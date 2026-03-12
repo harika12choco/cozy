@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" role="img" aria-label="Cozy Candle logo">
+  <rect width="500" height="500" fill="#7f1118" />
+
+  <g transform="translate(175 150)" fill="none" stroke="#f6efe4" stroke-width="4" stroke-linecap="round">
+    <path d="M0 150V55a35 35 0 0 1 70 0v95" />
+    <path d="M12 150V60a30 30 0 0 1 60 0v90" />
+    <path d="M24 150V66a24 24 0 0 1 48 0v84" />
+    <path d="M36 150V73a17 17 0 0 1 34 0v77" />
+    <path d="M48 150V81a9 9 0 0 1 18 0v69" />
+  </g>
+
+  <g transform="translate(260 193)" fill="#f6efe4">
+    <circle cx="82" cy="30" r="12" />
+    <path d="M20 52h92v30a46 46 0 0 1-46 46h0a46 46 0 0 1-46-46V52Z" />
+  </g>
+
+  <text x="250" y="385" text-anchor="middle" fill="#f6efe4" font-size="56" font-family="Georgia, 'Times New Roman', serif">
+    Cozy Candle
+  </text>
+  <text x="250" y="420" text-anchor="middle" fill="#f6efe4" font-size="24" letter-spacing="3" font-family="Arial, sans-serif">
+    BY AKANKSHA
+  </text>
+</svg>

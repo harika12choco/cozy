@@ -1,0 +1,52 @@
+.contact-section {
+  background: var(--light-bg);
+  text-align: center;
+}
+
+.contact-section h2 {
+  margin: 0 0 10px;
+  color: var(--primary);
+  font-size: clamp(30px, 4vw, 42px);
+  font-family: var(--display-font);
+  letter-spacing: 1px;
+}
+
+.contact-section p {
+  margin: 0 0 24px;
+  color: var(--text-dark);
+}
+
+.contact-form {
+  max-width: 640px;
+  margin: 0 auto;
+  display: grid;
+  gap: 14px;
+}
+
+.contact-form input,
+.contact-form textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  font: inherit;
+  box-sizing: border-box;
+  background: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+  outline: none;
+  border-color: rgba(101, 21, 20, 0.45);
+  box-shadow: 0 0 0 4px rgba(101, 21, 20, 0.1);
+}
+
+.contact-form textarea {
+  resize: vertical;
+  min-height: 130px;
+}
+
+.contact-form .btn {
+  justify-self: center;
+}

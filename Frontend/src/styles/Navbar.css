@@ -1,0 +1,43 @@
+.navbar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:20px 10%;
+background:var(--primary);
+border-bottom:1px solid rgba(255,255,255,0.22);
+box-shadow:0 10px 24px rgba(20,10,10,0.28);
+}
+
+.logo{
+color:#fffaf2;
+margin:0;
+letter-spacing:0.5px;
+font-size:30px;
+font-weight:700;
+text-shadow:0 1px 1px rgba(0,0,0,0.35);
+font-family:var(--display-font);
+}
+
+.navbar ul{
+display:flex;
+gap:30px;
+list-style:none;
+margin:0;
+padding:0;
+}
+
+.navbar li{
+color:#fffaf2;
+font-weight:600;
+font-size:24px;
+font-family:var(--display-font);
+letter-spacing:0.8px;
+text-shadow:0 1px 1px rgba(0,0,0,0.3);
+cursor:pointer;
+transition:opacity 0.25s, transform 0.25s;
+}
+
+.navbar li:hover{
+opacity:0.92;
+transform:translateY(-1px);
+}

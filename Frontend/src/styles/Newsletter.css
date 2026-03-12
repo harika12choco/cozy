@@ -1,0 +1,13 @@
+.newsletter{
+background:var(--primary);
+color:white;
+text-align:center;
+padding:60px;
+}
+
+input{
+padding:12px;
+border:none;
+border-radius:20px;
+margin-right:10px;
+}
