@@ -1,5 +1,5 @@
 .contact-section {
-  background: var(--light-bg);
+  background: transparent;
   text-align: center;
 }
 
@@ -31,7 +31,7 @@
   border-radius: 12px;
   font: inherit;
   box-sizing: border-box;
-  background: #fff;
+  background: var(--panel-bg);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -49,4 +49,20 @@
 
 .contact-form .btn {
   justify-self: center;
+}
+
+.contact-form-feedback {
+  margin: 0;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .contact-form {
+    gap: 12px;
+  }
+
+  .contact-form .btn {
+    width: 100%;
+  }
 }

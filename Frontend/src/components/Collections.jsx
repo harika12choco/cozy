@@ -2,16 +2,34 @@ import "../styles/Collections.css";
 import collection1 from "../assets/candles/4.png";
 import collection2 from "../assets/candles/5.png";
 import collection3 from "../assets/candles/6.png";
+
 export default function Collections(){
 
 return(
 
-<section className="section collections-section">
+<section id="collections" className="section collections-section">
+
+<h2 className="slanted-title" aria-label="Our Collections">
+<span>O</span>
+<span>u</span>
+<span>r</span>
+<span>&nbsp;</span>
+<span>C</span>
+<span>o</span>
+<span>l</span>
+<span>l</span>
+<span>e</span>
+<span>c</span>
+<span>t</span>
+<span>i</span>
+<span>o</span>
+<span>n</span>
+<span>s</span>
+</h2>
 
 <div className="collections">
 
 <div className="card featured-card">
-<h2 className="slanted-title">Our Collections</h2>
 <img src={collection1} alt="Floral Candles" className="collection-img"/>
 <h3>Floral Candles</h3>
 </div>

@@ -1,6 +1,8 @@
 import "../styles/Hero.css"
+import { useNavigate } from "react-router-dom";
 import hero from "../assets/candles/hero.png";
 export default function Hero(){
+const navigate = useNavigate();
 
 return(
 
@@ -15,7 +17,11 @@ Bring warmth and calm into your home
 with our premium handmade candles.
 </p>
 
-<button className="hero-btn">Shop Collection</button>
+<div className="hero-image hero-image-mobile">
+<img src={hero} alt="candle" />
+</div>
+
+<button className="hero-btn" onClick={() => navigate("/shop")}>Shop Collection</button>
 
 </div>
 

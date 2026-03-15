@@ -22,11 +22,11 @@ peace and comfort to your space.
 <h3>Quick Links</h3>
 
 <ul>
-<li>Home</li>
-<li>Shop</li>
-<li>Collections</li>
-<li>About</li>
-<li>Contact</li>
+<li><a href="/">Home</a></li>
+<li><a href="/shop">Shop</a></li>
+<li><a href="/#collections">Collections</a></li>
+<li><a href="/#about">About</a></li>
+<li><a href="/#contact">Contact</a></li>
 </ul>
 
 </div>
@@ -50,9 +50,15 @@ peace and comfort to your space.
 
 <div className="icons">
 
-<FaInstagram/>
-<FaFacebook/>
-<FaTwitter/>
+<a href="https://www.instagram.com/cozycandle_byakanksha?igsh=MWt2dmgzamJybDFlNQ==" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+  <FaInstagram />
+</a>
+<a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+  <FaFacebook />
+</a>
+<a href="https://www.twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
+  <FaTwitter />
+</a>
 
 </div>
 

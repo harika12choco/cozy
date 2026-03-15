@@ -1,0 +1,9 @@
+.collections-showcase{
+  position:relative;
+  background:
+    radial-gradient(circle at top, rgba(214, 162, 132, 0.18), transparent 32%),
+    linear-gradient(180deg, rgba(248, 239, 230, 0.88) 0%, rgba(242, 230, 217, 0.96) 100%);
+  margin-top:0;
+  padding-top:52px;
+  z-index:1;
+}

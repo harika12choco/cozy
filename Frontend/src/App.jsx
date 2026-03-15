@@ -1,4 +1,5 @@
 import { useEffect } from "react"
+import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom"
 import Navbar from "./components/Navbar"
 import Hero from "./components/Hero"
 import Categories from "./components/Categories"
@@ -7,53 +8,104 @@ import Collections from "./components/Collections"
 import Products from "./components/Products"
 import ContactForm from "./components/ContactForm"
 import Footer from "./components/Footer"
-import "./styles/global.css"
+import Shop from "./components/shop"
+import Cart from "./components/Cart"
+import AdminPortal from "./admin/AdminPortal"
+import "./styles/Global.css"
+import "./styles/Home.css"
+
+function PublicSite({ page }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const activePage = page === "shop" ? "shop" : page === "cart" ? "cart" : "home";
+
+  useEffect(() => {
+    if (!location.hash) {
+      return;
+    }
+
+    const target = document.querySelector(location.hash);
+    if (target) {
+      target.scrollIntoView({ behavior: "auto", block: "start" });
+    }
+  }, [location]);
+
+  function handleNavigate(destination) {
+    const sectionMap = {
+      collections: "#collections",
+      about: "#about",
+      contact: "#contact"
+    };
+
+    if (destination === "shop") {
+      navigate("/shop");
+      window.scrollTo({ top: 0, behavior: "auto" });
+      return;
+    }
+
+    if (destination === "home") {
+      navigate("/");
+      window.scrollTo({ top: 0, behavior: "auto" });
+      return;
+    }
+
+    if (destination === "cart") {
+      navigate("/cart");
+      window.scrollTo({ top: 0, behavior: "auto" });
+      return;
+    }
+
+    navigate(`/${sectionMap[destination]}`);
+  }
+
+  return (
+    <>
+      <Navbar activePage={activePage} onNavigate={handleNavigate}/>
+      {page === "shop" ? (
+        <Shop />
+      ) : page === "cart" ? (
+        <Cart />
+      ) : (
+        <>
+          <Hero/>
+          <section className="collections-showcase">
+            <Categories/>
+            <Collections/>
+          </section>
+          <Products/>
+          <AboutUs/>
+          <ContactForm/>
+        </>
+      )}
+      <Footer/>
+    </>
+  );
+}
+
+function AdminEditProductRoute() {
+  const { productId } = useParams();
+  return <AdminPortal currentPage="edit-product" productId={productId} />;
+}
 
 function App(){
-useEffect(() => {
-  const targets = document.querySelectorAll(
-    "section, .category-card, .card, .product, .about-left, .about-right, .contact-form, .footer-container, .footer-bottom"
-  );
+  return(
+    <Routes>
+      <Route path="/" element={<PublicSite page="home" />} />
+      <Route path="/shop" element={<PublicSite page="shop" />} />
+      <Route path="/cart" element={<PublicSite page="cart" />} />
 
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("revealed");
-          observer.unobserve(entry.target);
-        }
-      });
-    },
-    {
-      threshold: 0.15,
-      rootMargin: "0px 0px -60px 0px",
-    }
-  );
-
-  targets.forEach((el, index) => {
-    el.classList.add("reveal-on-scroll");
-    el.style.setProperty("--reveal-delay", `${(index % 6) * 70}ms`);
-    observer.observe(el);
-  });
-
-  return () => observer.disconnect();
-}, []);
-
-return(
-
-<>
-<Navbar/>
-<Hero/>
-<Categories/>
-<Collections/>
-<Products/>
-<AboutUs/>
-<ContactForm/>
-<Footer/>
-</>
-
-)
-
+      <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
+      <Route path="/admin/login" element={<AdminPortal currentPage="login" />} />
+      <Route path="/admin/dashboard" element={<AdminPortal currentPage="dashboard" />} />
+      <Route path="/admin/products" element={<AdminPortal currentPage="products" />} />
+      <Route path="/admin/collections" element={<AdminPortal currentPage="our-collections" />} />
+      <Route path="/admin/products/add" element={<AdminPortal currentPage="add-product" />} />
+      <Route path="/admin/products/:productId/edit" element={<AdminEditProductRoute />} />
+      <Route path="/admin/orders" element={<AdminPortal currentPage="orders" />} />
+      <Route path="/admin/messages" element={<AdminPortal currentPage="messages" />} />
+      <Route path="/admin/users" element={<AdminPortal currentPage="users" />} />
+    </Routes>
+  )
 }
 
 export default App

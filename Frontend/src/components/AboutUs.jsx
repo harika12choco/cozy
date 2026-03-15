@@ -3,14 +3,9 @@ import cozyLogo from "../assets/cozy-logo.svg";
 
 export default function AboutUs() {
   return (
-    <section className="section about-us">
+    <section id="about" className="section about-us">
       <div className="about-left">
-        <div className="flower-wrap">
-          <span className="petal petal-top" />
-          <span className="petal petal-right" />
-          <span className="petal petal-bottom" />
-          <span className="petal petal-left" />
-
+        <div className="logo-wrap">
           <div className="logo-slot">
             <img src={cozyLogo} alt="Cozy Candle logo" className="about-logo" />
           </div>

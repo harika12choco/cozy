@@ -12,48 +12,20 @@
   justify-content: center;
 }
 
-.flower-wrap {
+.logo-wrap {
   position: relative;
   width: min(360px, 78vw);
   aspect-ratio: 1 / 1;
 }
 
-.petal {
-  position: absolute;
-  width: 58%;
-  height: 58%;
-  background: var(--cream);
-  border-radius: 50%;
-}
-
-.petal-top {
-  top: 0;
-  left: 21%;
-}
-
-.petal-right {
-  right: 0;
-  top: 21%;
-}
-
-.petal-bottom {
-  bottom: 0;
-  left: 21%;
-}
-
-.petal-left {
-  left: 0;
-  top: 21%;
-}
-
 .logo-slot {
   position: absolute;
-  inset: 20%;
+  inset: 12%;
   background: transparent;
   display: grid;
   place-items: center;
   overflow: hidden;
-  border: 10px solid var(--cream);
+  border: 10px solid var(--soft-ivory);
   border-radius: 16px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
 }
@@ -95,5 +67,20 @@
 
   .about-right {
     max-width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .about-us {
+    gap: 28px;
+  }
+
+  .logo-wrap {
+    width: min(300px, 84vw);
+  }
+
+  .logo-slot {
+    inset: 10%;
+    border-width: 8px;
   }
 }
