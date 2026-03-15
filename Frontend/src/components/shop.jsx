@@ -8,7 +8,7 @@ import img5 from "../assets/candles/5.png";
 import img6 from "../assets/candles/6.png";
 import { addItemToCart } from "../utils/cart";
 
-const PRODUCTS_API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000/api/products";
+const PRODUCTS_API_URL = import.meta.env.VITE_API_URL ?? "https://cozy-candles-backend.onrender.com/api/products";
 const ADMIN_STORAGE_KEY = "cozy-candle-admin-db";
 
 const defaultShopProducts = [

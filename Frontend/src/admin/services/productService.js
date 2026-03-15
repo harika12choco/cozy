@@ -1,5 +1,5 @@
-const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:5000/api/products";
-
+const API_BASE =
+  import.meta.env.VITE_API_URL ?? "https://cozy-candles-backend.onrender.com/api/products";
 function notifyProductChange() {
   if (typeof window !== "undefined") {
     window.dispatchEvent(new Event("cozy-admin-products-updated"));
