@@ -4,12 +4,10 @@ import AdminLayout from "./layout/AdminLayout";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
-import OurCollections from "./pages/OurCollections";
 import AddProduct from "./pages/AddProduct";
 import EditProduct from "./pages/EditProduct";
 import Orders from "./pages/Orders";
 import Messages from "./pages/Messages";
-import Users from "./pages/Users";
 
 const pageMeta = {
   login: {
@@ -23,10 +21,6 @@ const pageMeta = {
   products: {
     title: "Products",
     subtitle: "Manage the candle catalog shown across the storefront."
-  },
-  "our-collections": {
-    title: "Our Collections",
-    subtitle: "Review the featured collections highlighted on the home page."
   },
   "add-product": {
     title: "Add Product",
@@ -44,10 +38,6 @@ const pageMeta = {
     title: "Messages",
     subtitle: "Read customer enquiries submitted through the website contact form."
   },
-  users: {
-    title: "Users",
-    subtitle: "Control user roles, account access, and customer records."
-  }
 };
 
 const ADMIN_USERNAME = "admin";
@@ -62,11 +52,9 @@ export default function AdminPortal({ currentPage = "dashboard", productId = nul
       login: "/admin/login",
       dashboard: "/admin/dashboard",
       products: "/admin/products",
-      "our-collections": "/admin/collections",
       "add-product": "/admin/products/add",
       orders: "/admin/orders",
-      messages: "/admin/messages",
-      users: "/admin/users"
+      messages: "/admin/messages"
     };
 
     if (page === "edit-product" && id) {
@@ -83,9 +71,6 @@ export default function AdminPortal({ currentPage = "dashboard", productId = nul
     case "products":
       page = <Products onNavigate={goTo} />;
       break;
-    case "our-collections":
-      page = <OurCollections />;
-      break;
     case "add-product":
       page = <AddProduct onNavigate={goTo} />;
       break;
@@ -94,9 +79,6 @@ export default function AdminPortal({ currentPage = "dashboard", productId = nul
       break;
     case "orders":
       page = <Orders />;
-      break;
-    case "users":
-      page = <Users />;
       break;
     case "messages":
       page = <Messages />;

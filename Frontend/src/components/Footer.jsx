@@ -1,5 +1,5 @@
 import "../styles/Footer.css"
-import { FaInstagram, FaFacebook, FaTwitter } from "react-icons/fa"
+import { FaInstagram } from "react-icons/fa"
 
 export default function Footer(){
 
@@ -31,19 +31,6 @@ peace and comfort to your space.
 
 </div>
 
-<div className="footer-links">
-
-<h3>Customer</h3>
-
-<ul>
-<li>Shipping</li>
-<li>Returns</li>
-<li>FAQ</li>
-<li>Privacy Policy</li>
-</ul>
-
-</div>
-
 <div className="footer-social">
 
 <h3>Follow Us</h3>
@@ -52,12 +39,6 @@ peace and comfort to your space.
 
 <a href="https://www.instagram.com/cozycandle_byakanksha?igsh=MWt2dmgzamJybDFlNQ==" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
   <FaInstagram />
-</a>
-<a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-  <FaFacebook />
-</a>
-<a href="https://www.twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
-  <FaTwitter />
 </a>
 
 </div>

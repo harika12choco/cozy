@@ -15,37 +15,54 @@ content:none;
 .collections {
 position:relative;
 z-index:3;
-display:flex;
-justify-content:center;
-gap:50px;
-margin-top:140px;
-flex-wrap:wrap;
+display:grid;
+grid-template-columns:repeat(4, minmax(0, 1fr));
+gap:30px 24px;
+margin-top:110px;
+align-items:start;
 }
 
-.card {
-width:240px;
-height:330px;
-background:var(--panel-bg);
-border-radius:140px 140px 20px 20px;
+.collection-card {
 display:flex;
 flex-direction:column;
-align-items:center;
-justify-content:flex-start;
-padding:0;
-overflow:hidden;
 position:relative;
-box-shadow:0 20px 40px rgba(0,0,0,0.15);
+text-align:center;
+min-height:0;
+align-self:start;
+}
+
+.collection-media {
+width:100%;
+aspect-ratio:1;
+overflow:hidden;
+background:var(--soft-ivory);
+border:1px solid rgba(101,21,20,0.1);
+border-radius:8px;
+margin-bottom:16px;
 }
 
 .collection-img {
 width:100%;
 height:100%;
 object-fit:cover;
-border-radius:inherit;
+display:block;
 }
 
-.featured-card {
-overflow:visible;
+.collection-card-body {
+display:flex;
+flex-direction:column;
+gap:8px;
+padding:0;
+height:auto;
+}
+
+.collections-feedback {
+position:relative;
+z-index:4;
+margin:120px 0 -100px;
+color:var(--primary);
+font-weight:700;
+text-align:center;
 }
 
 .slanted-title {
@@ -76,44 +93,73 @@ font-family:inherit;
 font-weight:inherit;
 }
 
-.card h3 {
+.collection-card h3 {
 color:var(--text-dark);
-font-size:22px;
+font-family:var(--body-font);
+font-size:24px;
 font-weight:600;
-font-family:var(--display-font);
-letter-spacing:0.5px;
-margin:0;
-position:absolute;
-bottom:14px;
-left:50%;
-transform:translateX(-50%);
-padding:8px 14px;
+margin:0 0 8px;
+line-height:1.15;
+}
+
+.collection-card-footer {
+display:flex;
+flex-direction:column;
+align-items:center;
+gap:12px;
+margin-top:0;
+padding-top:6px;
+}
+
+.collection-card-footer span {
+color:var(--primary);
+font-size:18px;
+font-weight:700;
+}
+
+.collection-card .btn {
+min-width:148px;
+padding:12px 22px;
+}
+
+.collections-shop-all {
+position:relative;
+z-index:3;
+display:inline-flex;
+align-items:center;
+justify-content:center;
+gap:10px;
+margin:42px auto 0;
+min-height:46px;
+padding:0 28px;
 border-radius:999px;
-background:rgba(251, 244, 236, 0.92);
-white-space:nowrap;
+background:linear-gradient(135deg, #7a1413, #5d100f);
+color:#fff;
+font-family:var(--body-font);
+font-size:15px;
+font-weight:600;
+text-decoration:none;
+box-shadow:0 10px 20px rgba(93,16,15,0.24);
 }
 
-.card:hover {
-box-shadow:0 25px 60px rgba(0,0,0,0.2);
+.collections-shop-all span {
+font-size:18px;
+line-height:1;
 }
 
-@media (max-width: 980px) {
+@media (max-width: 1100px) {
 .collections-section {
 padding:120px 8% 64px;
 margin-top:-50px;
 }
 
 .collections {
-gap:28px;
+grid-template-columns:repeat(3, minmax(0, 1fr));
 margin-top:110px;
 }
-
-.card {
-width:min(280px, 100%);
-}
 }
 
-@media (max-width: 640px) {
+@media (max-width: 700px) {
 .collections-section {
 padding:112px 6% 56px;
 margin-top:0;
@@ -129,19 +175,11 @@ line-height:1.1;
 
 .collections {
 margin-top:96px;
-gap:20px;
+grid-template-columns:repeat(2, minmax(0, 1fr));
 }
 
-.card {
-width:min(100%, 320px);
-height:280px;
-border-radius:96px 96px 20px 20px;
-}
-
-.card h3 {
-font-size:20px;
-max-width:80%;
-white-space:normal;
+.collection-card h3 {
+font-size:18px;
 }
 }
 
@@ -155,8 +193,8 @@ top:44px;
 font-size:30px;
 }
 
-.card {
-height:240px;
-border-radius:84px 84px 18px 18px;
+.collections {
+grid-template-columns:1fr;
 }
+
 }

@@ -101,7 +101,7 @@ export default function Products() {
 
       <div className="products">
         {products.map((p, i) => (
-          <article className="product" key={i}>
+          <article className="product" key={p.id ?? i}>
             <div className="product-image-wrap">
               <img src={p.image} alt={p.name} />
             </div>
@@ -111,6 +111,7 @@ export default function Products() {
 
             <button
               className="btn"
+              type="button"
               onClick={() => addToCart(p)}
             >
               Add to Cart

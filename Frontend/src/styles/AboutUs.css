@@ -14,20 +14,20 @@
 
 .logo-wrap {
   position: relative;
-  width: min(360px, 78vw);
+  width: min(280px, 68vw);
   aspect-ratio: 1 / 1;
 }
 
 .logo-slot {
   position: absolute;
-  inset: 12%;
+  inset: 0;
   background: transparent;
   display: grid;
   place-items: center;
   overflow: hidden;
-  border: 10px solid var(--soft-ivory);
-  border-radius: 16px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .about-logo {
@@ -76,11 +76,10 @@
   }
 
   .logo-wrap {
-    width: min(300px, 84vw);
+    width: min(240px, 76vw);
   }
 
   .logo-slot {
-    inset: 10%;
-    border-width: 8px;
+    inset: 0;
   }
 }

@@ -108,12 +108,10 @@ function App(){
       <Route path="/admin/login" element={<AdminPortal currentPage="login" />} />
       <Route path="/admin/dashboard" element={<AdminPortal currentPage="dashboard" />} />
       <Route path="/admin/products" element={<AdminPortal currentPage="products" />} />
-      <Route path="/admin/collections" element={<AdminPortal currentPage="our-collections" />} />
       <Route path="/admin/products/add" element={<AdminPortal currentPage="add-product" />} />
       <Route path="/admin/products/:productId/edit" element={<AdminEditProductRoute />} />
       <Route path="/admin/orders" element={<AdminPortal currentPage="orders" />} />
       <Route path="/admin/messages" element={<AdminPortal currentPage="messages" />} />
-      <Route path="/admin/users" element={<AdminPortal currentPage="users" />} />
     </Routes>
   )
 }

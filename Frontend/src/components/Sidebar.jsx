@@ -34,6 +34,11 @@ export default function Sidebar({ isOpen, onClose, onNavigate }) {
     onClose();
   }
 
+  function navigateHome() {
+    onNavigate?.("home");
+    onClose();
+  }
+
   return (
     <>
       <button
@@ -50,6 +55,10 @@ export default function Sidebar({ isOpen, onClose, onNavigate }) {
             x
           </button>
         </div>
+
+        <button type="button" className="sidebar-home-link" onClick={navigateHome}>
+          Home
+        </button>
 
         {menuData.map((section, index) => (
           <div key={section.title} className="menu-section">
