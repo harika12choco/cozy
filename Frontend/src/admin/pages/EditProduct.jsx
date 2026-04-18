@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { productService } from "../services/productService";
+import { categoryGroups } from "../../utils/menuData";
 
 export default function EditProduct({ productId, onNavigate }) {
   const [product, setProduct] = useState(null);
@@ -11,6 +12,7 @@ export default function EditProduct({ productId, onNavigate }) {
     status: "active",
     bestSeller: false,
     image: "",
+    imageFile: null,
     description: ""
   });
   const [imageName, setImageName] = useState("");
@@ -33,7 +35,7 @@ export default function EditProduct({ productId, onNavigate }) {
 
         setProduct(item);
         if (item) {
-          setForm(item);
+          setForm({ ...item, imageFile: null });
         }
       } catch (loadError) {
         if (active) {
@@ -87,12 +89,13 @@ export default function EditProduct({ productId, onNavigate }) {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      setImageName(file.name);
-      setForm((current) => ({ ...current, image: reader.result }));
-    };
-    reader.readAsDataURL(file);
+    setError("");
+    setImageName(file.name);
+    setForm((current) => ({
+      ...current,
+      image: URL.createObjectURL(file),
+      imageFile: file
+    }));
   }
 
   async function handleSubmit(event) {
@@ -137,7 +140,18 @@ export default function EditProduct({ productId, onNavigate }) {
 
         <label>
           Category
-          <input name="category" value={form.category} onChange={updateField} required />
+          <select name="category" value={form.category} onChange={updateField} required>
+            <option value="">Select a category</option>
+            {categoryGroups.map((group) => (
+              <optgroup key={group.label} label={group.label}>
+                {group.options.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
         </label>
 
         <label>

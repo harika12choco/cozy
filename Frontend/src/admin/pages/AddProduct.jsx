@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { productService } from "../services/productService";
+import { categoryGroups } from "../../utils/menuData";
 
 const initialState = {
   name: "",
@@ -9,6 +10,7 @@ const initialState = {
   status: "active",
   bestSeller: false,
   image: "",
+  imageFile: null,
   description: ""
 };
 
@@ -28,16 +30,17 @@ export default function AddProduct({ onNavigate }) {
 
     if (!file) {
       setImageName("");
-      setForm((current) => ({ ...current, image: "" }));
+      setForm((current) => ({ ...current, image: "", imageFile: null }));
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      setImageName(file.name);
-      setForm((current) => ({ ...current, image: reader.result }));
-    };
-    reader.readAsDataURL(file);
+    setError("");
+    setImageName(file.name);
+    setForm((current) => ({
+      ...current,
+      image: URL.createObjectURL(file),
+      imageFile: file
+    }));
   }
 
   async function handleSubmit(event) {
@@ -82,7 +85,18 @@ export default function AddProduct({ onNavigate }) {
 
         <label>
           Category
-          <input name="category" value={form.category} onChange={updateField} required />
+          <select name="category" value={form.category} onChange={updateField} required>
+            <option value="">Select a category</option>
+            {categoryGroups.map((group) => (
+              <optgroup key={group.label} label={group.label}>
+                {group.options.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
         </label>
 
         <label>

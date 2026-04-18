@@ -7,6 +7,7 @@ import img4 from "../assets/candles/4.png";
 import img5 from "../assets/candles/5.png";
 import img6 from "../assets/candles/6.png";
 import { addItemToCart } from "../utils/cart";
+import menuData from "../utils/menuData";
 
 const PRODUCTS_API_URL = import.meta.env.VITE_API_URL ?? "https://cozy-candles-backend.onrender.com/api/products";
 const ADMIN_STORAGE_KEY = "cozy-candle-admin-db";
@@ -35,10 +36,41 @@ function formatShopProducts(products) {
     .map((product) => ({
       id: product.id ?? product.name,
       name: product.name,
+      category: product.category ?? "",
       price: `Rs ${product.price}`,
       note: product.description,
       img: imageMap[product.image] ?? product.image ?? img1
     }));
+}
+
+function matchesCategory(product, selectedCategory) {
+  if (!selectedCategory) {
+    return true;
+  }
+
+  const normalizedCategory = selectedCategory.trim().toLowerCase();
+  const productCategory = String(product.category ?? "").trim().toLowerCase();
+
+  if (productCategory === normalizedCategory) {
+    return true;
+  }
+
+  const section = menuData.find(
+    (entry) =>
+      entry.title.trim().toLowerCase() === normalizedCategory ||
+      entry.items.some((item) => item.trim().toLowerCase() === normalizedCategory)
+  );
+
+  if (!section) {
+    return productCategory === normalizedCategory;
+  }
+
+  if (section.title.trim().toLowerCase() === normalizedCategory) {
+    const sectionCategories = [section.title, ...section.items].map((item) => item.trim().toLowerCase());
+    return sectionCategories.includes(productCategory);
+  }
+
+  return productCategory === normalizedCategory;
 }
 
 function readLegacyProducts() {
@@ -88,7 +120,7 @@ async function readShopProducts() {
   }
 }
 
-export default function Shop() {
+export default function Shop({ selectedCategory = "" }) {
   const [shopProducts, setShopProducts] = useState(() => formatShopProducts(defaultShopProducts));
   const [feedback, setFeedback] = useState("");
 
@@ -122,21 +154,24 @@ export default function Shop() {
     }, 1800);
   }
 
+  const visibleProducts = shopProducts.filter((product) => matchesCategory(product, selectedCategory));
+
   return (
     <main className="shop-page">
       <section className="shop-hero">
         <p className="shop-kicker">The Candle Shop</p>
-        <h1>Find your next cozy ritual</h1>
+        <h1>{selectedCategory || "Find your next cozy ritual"}</h1>
         <p className="shop-intro">
-          Browse handcrafted candles made to bring warmth, calm, and a soft luxury
-          feel into your everyday spaces.
+          {selectedCategory
+            ? `Browse products uploaded under ${selectedCategory}. The admin panel can add or edit items in this category anytime.`
+            : "Browse handcrafted candles made to bring warmth, calm, and a soft luxury feel into your everyday spaces."}
         </p>
       </section>
 
       <section className="shop-grid-section">
         {feedback ? <p className="shop-feedback">{feedback}</p> : null}
         <div className="shop-grid">
-          {shopProducts.map((product) => (
+          {visibleProducts.map((product) => (
             <article className="shop-card" key={product.id}>
               <div className="shop-card-image">
                 <img src={product.img} alt={product.name} />
@@ -159,6 +194,11 @@ export default function Shop() {
             </article>
           ))}
         </div>
+        {visibleProducts.length === 0 ? (
+          <p className="shop-feedback">
+            No products have been added to {selectedCategory} yet. The client can add them from the admin product panel.
+          </p>
+        ) : null}
       </section>
     </main>
   );

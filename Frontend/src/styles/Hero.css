@@ -49,8 +49,8 @@ margin-bottom:24px;
 .hero-content h1{
 font-size:52px;
 font-family:var(--display-font);
-font-weight:600;
-letter-spacing:0.2px;
+font-weight:700;
+letter-spacing:0.02em;
 color:var(--primary);
 line-height:1.12;
 margin:0 0 18px;

@@ -19,6 +19,10 @@ const productSchema = new mongoose.Schema({
     type: String
   },
 
+  imagePublicId: {
+    type: String
+  },
+
   category: {
     type: String
   },

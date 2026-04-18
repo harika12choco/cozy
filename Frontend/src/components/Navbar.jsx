@@ -4,14 +4,7 @@ import { getCartItems } from "../utils/cart";
 import { auth, provider } from "../firebase";
 import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
 import navLogo from "../assets/navlogo.png";
-
-const navItems = [
-  { label: "Home", key: "home" },
-  { label: "Shop", key: "shop" },
-  { label: "Collections", key: "collections" },
-  { label: "About", key: "about" },
-  { label: "Contact", key: "contact" }
-];
+import Sidebar from "./Sidebar";
 
 function CartIcon() {
   return (
@@ -50,7 +43,7 @@ export default function Navbar({ activePage, onNavigate }){
     getCartItems().reduce((total, item) => total + item.quantity, 0)
   );
   const [user, setUser] = useState(() => auth.currentUser);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     function syncCartCount() {
@@ -74,19 +67,6 @@ export default function Navbar({ activePage, onNavigate }){
     return unsubscribe;
   }, []);
 
-  useEffect(() => {
-    function handleResize() {
-      if (window.innerWidth > 640) {
-        setMenuOpen(false);
-      }
-    }
-
-    window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
-
   async function handleUserAction() {
     try {
       if (user) {
@@ -101,72 +81,28 @@ export default function Navbar({ activePage, onNavigate }){
   }
 
   return(
-    <nav className="navbar">
-      <div className="navbar-top-row">
-        <button type="button" className="logo-button" onClick={() => onNavigate("home")} aria-label="Go to home">
-          <img src={navLogo} alt="Cozy Candle" className="logo-image" />
-        </button>
-
-        <div className="nav-actions nav-actions-mobile">
-          <button
-            type="button"
-            className={`icon-btn ${activePage === "cart" ? "cart-btn-active" : ""}`}
-            onClick={() => onNavigate("cart")}
-            aria-label="Open cart"
-            title="Cart"
-          >
-            <CartIcon />
-            <span className="cart-count">{cartCount}</span>
-          </button>
-
-          <button
-            type="button"
-            className={`icon-btn user-btn ${user ? "user-btn-logged-in" : ""}`}
-            onClick={handleUserAction}
-            aria-label={user ? "Sign out" : "Login with Google"}
-            title={user ? "Sign out" : "Login with Google"}
-          >
-            {user?.photoURL ? (
-              <img
-                src={user.photoURL}
-                alt={user.displayName || "User profile"}
-                className="user-avatar"
-              />
-            ) : (
-              <UserIcon />
-            )}
-            <span className="user-btn-label">{user ? "Sign out" : "Login"}</span>
-          </button>
-
+    <>
+      <nav className="navbar">
+        <div className="navbar-left">
           <button
             type="button"
             className="nav-menu-toggle"
-            aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
-            onClick={() => setMenuOpen((current) => !current)}
+            aria-label={sidebarOpen ? "Close navigation menu" : "Open navigation menu"}
+            onClick={() => setSidebarOpen((current) => !current)}
           >
             <span />
             <span />
             <span />
           </button>
         </div>
-      </div>
 
-      <div className="navbar-right">
-        <ul className={menuOpen ? "nav-menu-open" : ""}>
-          {navItems.map((item) => (
-            <li
-              key={item.key}
-              className={activePage === item.key ? "nav-item-active" : ""}
-              onClick={() => {
-                onNavigate(item.key);
-                setMenuOpen(false);
-              }}
-            >
-              {item.label}
-            </li>
-          ))}
-        </ul>
-        <div className="nav-actions nav-actions-desktop">
+        <div className="navbar-center">
+          <button type="button" className="logo-button" onClick={() => onNavigate("home")} aria-label="Go to home">
+            <img src={navLogo} alt="Cozy Candle" className="logo-image" />
+          </button>
+        </div>
+
+        <div className="navbar-right">
           <button
             type="button"
             className={`icon-btn ${activePage === "cart" ? "cart-btn-active" : ""}`}
@@ -197,7 +133,13 @@ export default function Navbar({ activePage, onNavigate }){
             <span className="user-btn-label">{user ? "Sign out" : "Login"}</span>
           </button>
         </div>
-      </div>
-    </nav>
+      </nav>
+
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        onNavigate={onNavigate}
+      />
+    </>
   )
 }

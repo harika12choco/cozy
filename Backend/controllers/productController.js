@@ -1,9 +1,20 @@
 const Product = require("../models/productModel");
+const { uploadProductImage } = require("../services/cloudinaryService");
+
+async function prepareProductPayload(payload) {
+  const imageUpload = await uploadProductImage(payload.image);
+
+  return {
+    ...payload,
+    ...imageUpload
+  };
+}
 
 // Add product
 const addProduct = async (req, res) => {
   try {
-    const product = new Product(req.body);
+    const productPayload = await prepareProductPayload(req.body);
+    const product = new Product(productPayload);
     await product.save();
 
     res.status(201).json({
@@ -38,7 +49,8 @@ const getProductById = async (req, res) => {
 // Update product
 const updateProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
+    const productPayload = await prepareProductPayload(req.body);
+    const product = await Product.findByIdAndUpdate(req.params.id, productPayload, {
       new: true,
       runValidators: true
     });

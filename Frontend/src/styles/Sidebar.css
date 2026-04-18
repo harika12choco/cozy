@@ -1,0 +1,47 @@
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -300px;
+  width: 300px;
+  height: 100%;
+  background: #c79a9a; /* pink tone like your design */
+  color: white;
+  transition: 0.3s;
+  padding: 20px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.sidebar.open {
+  left: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: white;
+  margin-bottom: 20px;
+}
+
+.menu-section {
+  margin-bottom: 15px;
+}
+
+.menu-title {
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+  font-weight: 500;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.3);
+}
+
+.submenu {
+  padding-left: 10px;
+}
+
+.submenu p {
+  margin: 8px 0;
+  font-size: 14px;
+}

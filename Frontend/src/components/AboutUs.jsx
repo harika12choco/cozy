@@ -1,5 +1,5 @@
 import "../styles/AboutUs.css";
-import cozyLogo from "../assets/cozy-logo.svg";
+import cozyLogo from "../assets/cozy-logo.png";
 
 export default function AboutUs() {
   return (
