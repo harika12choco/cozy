@@ -50,7 +50,8 @@ font-size:11px;
 font-weight:600;
 letter-spacing:0.24em;
 text-transform:uppercase;
-font-family:var(--body-font);
+font-family: var(--sans-font);
+font-style: normal;
 }
 
 .close-btn{
@@ -84,13 +85,14 @@ border:none;
 border-bottom:1px solid rgba(42, 26, 25, 0.08);
 background:transparent;
 color:var(--primary);
-font-family:var(--body-font);
+font-family: var(--sans-font);
 font-size:12px;
 font-weight:700;
 letter-spacing:0.08em;
 text-transform:uppercase;
 text-align:left;
 cursor:pointer;
+font-style: normal;
 }
 
 .menu-row{
@@ -109,13 +111,14 @@ padding:11px 0;
 border:none;
 background:transparent;
 color:var(--text-dark);
-font-family:var(--body-font);
+font-family: var(--sans-font);
 font-size:11px;
 font-weight:600;
 letter-spacing:0.08em;
 text-transform:uppercase;
 text-align:left;
 cursor:pointer;
+font-style: normal;
 }
 
 .menu-toggle{
@@ -131,10 +134,11 @@ cursor:pointer;
 }
 
 .menu-indicator{
-font-family:var(--body-font);
+font-family: var(--sans-font);
 font-size:16px;
 font-weight:500;
 color:rgba(42, 26, 25, 0.72);
+font-style: normal;
 }
 
 .submenu{
@@ -160,7 +164,8 @@ font-weight:500;
 letter-spacing:0.04em;
 text-transform:uppercase;
 text-align:left;
-font-family:var(--body-font);
+font-family: var(--sans-font);
+font-style: normal;
 }
 
 .sidebar-footer-label{
@@ -170,7 +175,8 @@ font-size:10px;
 font-weight:600;
 letter-spacing:0.24em;
 text-transform:uppercase;
-font-family:var(--body-font);
+font-family: var(--sans-font);
+font-style: normal;
 }
 
 @media (max-width: 640px){

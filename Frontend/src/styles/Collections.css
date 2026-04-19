@@ -71,10 +71,10 @@ left:50%;
 top:112px;
 transform:translateX(-50%);
 color:var(--primary);
-font-size:44px;
+font-size:28px;
 font-family:var(--display-font);
-font-weight:600;
-letter-spacing:0.3px;
+font-weight:500;
+letter-spacing:2px;
 margin:0;
 white-space:nowrap;
 display:flex;
@@ -83,6 +83,7 @@ justify-content:center;
 gap:0;
 text-shadow:0 4px 12px rgba(0,0,0,0.12);
 z-index:4;
+text-transform: uppercase;
 }
 
 .slanted-title span {
@@ -95,11 +96,14 @@ font-weight:inherit;
 
 .collection-card h3 {
 color:var(--text-dark);
-font-family:var(--body-font);
-font-size:24px;
-font-weight:600;
+font-family: var(--sans-font);
+font-size:18px;
+font-weight:500;
 margin:0 0 8px;
 line-height:1.15;
+text-transform: uppercase;
+letter-spacing: 2px;
+font-style: normal;
 }
 
 .collection-card-footer {
@@ -115,11 +119,16 @@ padding-top:6px;
 color:var(--primary);
 font-size:18px;
 font-weight:700;
+font-family: var(--sans-font);
+text-transform: uppercase;
+letter-spacing: 2px;
 }
 
 .collection-card .btn {
 min-width:148px;
 padding:12px 22px;
+font-family: var(--sans-font);
+font-style: normal;
 }
 
 .collections-shop-all {
@@ -135,11 +144,14 @@ padding:0 28px;
 border-radius:999px;
 background:linear-gradient(135deg, #7a1413, #5d100f);
 color:#fff;
-font-family:var(--body-font);
+font-family: var(--sans-font);
 font-size:15px;
-font-weight:600;
+font-weight:500;
 text-decoration:none;
 box-shadow:0 10px 20px rgba(93,16,15,0.24);
+font-style: normal;
+text-transform: uppercase;
+letter-spacing: 2px;
 }
 
 .collections-shop-all span {

@@ -28,7 +28,7 @@ align-items:start;
 color:var(--cream);
 margin:0 0 10px;
 font-family:var(--display-font);
-font-size:40px;
+font-size:32px;
 font-weight:500;
 }
 
@@ -127,7 +127,7 @@ justify-items:center;
 }
 
 .footer-brand h2{
-font-size:34px;
+font-size:28px;
 }
 
 .footer-brand p{

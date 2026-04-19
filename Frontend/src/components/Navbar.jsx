@@ -5,6 +5,7 @@ import { auth, provider } from "../firebase";
 import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
 import navLogo from "../assets/navlogo.png";
 import Sidebar from "./Sidebar";
+import menuData, { slugifyCategory } from "../utils/menuData";
 
 function CartIcon() {
   return (
@@ -44,6 +45,7 @@ export default function Navbar({ activePage, onNavigate }){
   );
   const [user, setUser] = useState(() => auth.currentUser);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [shopDropdownOpen, setShopDropdownOpen] = useState(false);
 
   useEffect(() => {
     function syncCartCount() {
@@ -94,6 +96,72 @@ export default function Navbar({ activePage, onNavigate }){
             <span />
             <span />
           </button>
+
+          <nav className="left-desktop-nav">
+            <ul>
+              <li>
+                <button type="button" onClick={() => onNavigate("home")}>Home</button>
+              </li>
+              <li>
+                <button type="button" onClick={() => onNavigate({ type: "category", value: "Bestsellers", slug: "bestsellers" })}>Bestsellers</button>
+              </li>
+              <li
+                className={`desktop-dropdown ${shopDropdownOpen ? "open" : ""}`}
+                onMouseEnter={() => setShopDropdownOpen(true)}
+                onMouseLeave={() => setShopDropdownOpen(false)}
+              >
+                <button type="button" onClick={() => onNavigate("shop")}>Shop All</button>
+                <div className={`desktop-dropdown-panel ${shopDropdownOpen ? "open" : ""}`}>
+                  <div className="dropdown-grid">
+                    <div className="dropdown-grid-section" key="shop-all-root">
+                      <div className="dropdown-grid-heading">Browse Categories</div>
+                      <button
+                        type="button"
+                        className="dropdown-grid-item"
+                        onClick={() => {
+                          onNavigate("shop");
+                          setShopDropdownOpen(false);
+                        }}
+                      >
+                        Shop All
+                      </button>
+                    </div>
+                    {menuData.map((section) => (
+                      <div className="dropdown-grid-section" key={section.title}>
+                        <div className="dropdown-grid-heading">{section.title}</div>
+                        <button
+                          type="button"
+                          className="dropdown-grid-item"
+                          onClick={() => {
+                            onNavigate({ type: "category", value: section.title, slug: slugifyCategory(section.title) });
+                            setShopDropdownOpen(false);
+                          }}
+                        >
+                          {section.title}
+                        </button>
+                        {section.items.map((item) => (
+                          <button
+                            key={item}
+                            type="button"
+                            className="dropdown-grid-item"
+                            onClick={() => {
+                              onNavigate({ type: "category", value: item, slug: slugifyCategory(item) });
+                              setShopDropdownOpen(false);
+                            }}
+                          >
+                            {item}
+                          </button>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </li>
+              <li>
+                <button type="button" onClick={() => onNavigate("contact")}>Contact Us</button>
+              </li>
+            </ul>
+          </nav>
         </div>
 
         <div className="navbar-center">

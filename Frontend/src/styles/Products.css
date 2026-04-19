@@ -6,9 +6,11 @@
   text-align: center;
   color: var(--primary);
   margin: 0 0 28px;
-  font-size: clamp(30px, 4vw, 44px);
+  font-size: clamp(20px, 2.5vw, 28px);
   font-family: var(--display-font);
-  letter-spacing: 1px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
 .products-feedback{
@@ -56,12 +58,24 @@
 .product h3 {
   margin: 6px 0 6px;
   color: var(--text-dark);
+  font-family: var(--sans-font);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 500;
 }
 
 .product p {
   margin: 0 0 14px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--primary);
+  font-family: var(--sans-font);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.product .btn {
+  font-family: var(--sans-font);
+  font-style: normal;
 }
 
 @media (max-width: 900px) {

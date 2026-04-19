@@ -7,11 +7,12 @@
   --warm-blush: #f3e5d7;
   --panel-bg: rgba(255, 250, 244, 0.92);
   --text-dark: #2A1A19;
-  --body-font: "Montserrat", "Helvetica Neue", Arial, sans-serif;
-  --display-font: "Cormorant Garamond", Georgia, serif;
-  --script-font: "Cormorant Garamond", Georgia, serif;
-  --handwritten-font: "Cormorant Garamond", Georgia, serif;
-  --ornamental-font: "Cormorant Garamond", Georgia, serif;
+  --body-font: "Montserrat", sans-serif;
+  --display-font: "Montserrat", sans-serif;
+  --script-font: "Montserrat", sans-serif;
+  --handwritten-font: "Montserrat", sans-serif;
+  --ornamental-font: "Montserrat", sans-serif;
+  --sans-font: "Montserrat", sans-serif;
 }
 
 html{
@@ -63,15 +64,14 @@ button,
 .about-right h2,
 .contact-section h2{
   font-family:var(--display-font);
-  font-weight:700;
+  font-weight:600;
 }
 
-.product h3,
 .shop-card-body h3,
 .footer-links h3,
 .footer-social h3{
   font-family:var(--body-font);
-  font-weight:600;
+  font-weight:500;
 }
 
 .btn{
