@@ -33,17 +33,10 @@
   text-align: center;
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.08);
   border:1px solid rgba(101,21,20,0.08);
-  transition:
-    transform 320ms var(--motion-ease-standard),
-    box-shadow 320ms var(--motion-ease-standard),
-    border-color 320ms var(--motion-ease-standard);
-  animation:fade-up 700ms var(--motion-ease-standard) both;
 }
 
 .product:hover {
-  transform:translateY(-8px);
   box-shadow: 0 22px 42px rgba(0, 0, 0, 0.14);
-  border-color:rgba(101,21,20,0.18);
 }
 
 .product-image-wrap {
@@ -60,11 +53,6 @@
   height: 100%;
   object-fit: cover;
   display: block;
-  transition:transform 420ms var(--motion-ease-standard);
-}
-
-.product:hover img {
-  transform:scale(1.05);
 }
 
 .product h3 {
@@ -88,14 +76,6 @@
 .product .btn {
   font-family: var(--sans-font);
   font-style: normal;
-}
-
-.products .product:nth-child(2) {
-  animation-delay: 110ms;
-}
-
-.products .product:nth-child(3) {
-  animation-delay: 220ms;
 }
 
 @media (max-width: 900px) {

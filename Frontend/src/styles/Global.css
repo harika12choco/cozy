@@ -13,14 +13,10 @@
   --handwritten-font: "Montserrat", sans-serif;
   --ornamental-font: "Montserrat", sans-serif;
   --sans-font: "Montserrat", sans-serif;
-  --motion-duration-fast: 180ms;
-  --motion-duration-medium: 360ms;
-  --motion-duration-slow: 720ms;
-  --motion-ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 html{
-  scroll-behavior:smooth;
+  scroll-behavior:auto;
 }
 
 body{
@@ -86,62 +82,15 @@ button,
   border:none;
   cursor:pointer;
   box-shadow:0 10px 20px rgba(93,16,15,0.24);
-  transition:
-    transform var(--motion-duration-fast) var(--motion-ease-standard),
-    box-shadow var(--motion-duration-fast) var(--motion-ease-standard),
-    background var(--motion-duration-fast) var(--motion-ease-standard);
 }
 
 .btn:hover{
   background: linear-gradient(135deg, #651514, #501110);
-  transform:translateY(-2px);
-  box-shadow:0 16px 28px rgba(93,16,15,0.28);
 }
 
-@keyframes fade-up{
-  from{
-    opacity:0;
-    transform:translateY(28px);
-  }
-
-  to{
-    opacity:1;
-    transform:translateY(0);
-  }
-}
-
-@keyframes fade-in{
-  from{
-    opacity:0;
-  }
-
-  to{
-    opacity:1;
-  }
-}
-
-@keyframes float-soft{
-  0%,
-  100%{
-    transform:translateY(0);
-  }
-
-  50%{
-    transform:translateY(-10px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce){
-  html{
-    scroll-behavior:auto;
-  }
-
-  *,
-  *::before,
-  *::after{
-    animation-duration:0.01ms !important;
-    animation-iteration-count:1 !important;
-    transition-duration:0.01ms !important;
-    scroll-behavior:auto !important;
-  }
+*,
+*::before,
+*::after{
+  animation:none !important;
+  transition:none !important;
 }

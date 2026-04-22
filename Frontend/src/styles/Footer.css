@@ -3,7 +3,6 @@ position:relative;
 background: var(--primary);
 color:white;
 padding-top:60px;
-animation:fade-in 600ms var(--motion-ease-standard);
 }
 
 .footer::before{
@@ -23,7 +22,6 @@ grid-template-columns:minmax(260px, 1.5fr) minmax(160px, 0.8fr) minmax(160px, 0.
 gap:56px;
 padding:0 10%;
 align-items:start;
-animation:fade-up 700ms var(--motion-ease-standard) both;
 }
 
 .footer-brand h2{
@@ -90,14 +88,10 @@ justify-content:center;
 
 .icons svg{
 cursor:pointer;
-transition:
-transform var(--motion-duration-fast) var(--motion-ease-standard),
-color var(--motion-duration-fast) var(--motion-ease-standard);
 }
 
 .icons svg:hover{
 color:var(--cream);
-transform:translateY(-3px) scale(1.08);
 }
 
 .footer-bottom{
@@ -126,7 +120,6 @@ border-radius:999px;
 background:rgba(255,255,255,0.12);
 color:var(--cream);
 font-weight:600;
-animation:float-soft 5s ease-in-out infinite;
 }
 
 .footer-separator{
