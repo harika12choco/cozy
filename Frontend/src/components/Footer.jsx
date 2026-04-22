@@ -23,6 +23,7 @@ export default function Footer() {
             <li><Link to="/#collections">Collections</Link></li>
             <li><Link to="/#about">About</Link></li>
             <li><Link to="/#contact">Contact</Link></li>
+            <li><Link to="/admin/login">Admin Login</Link></li>
           </ul>
         </div>
 

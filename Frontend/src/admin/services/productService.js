@@ -1,6 +1,23 @@
 const API_BASE =
   import.meta.env.VITE_API_URL ?? "https://cozy-candles-backend.onrender.com/api/products";
 const API_ROOT = API_BASE.replace(/\/products\/?$/, "");
+const ADMIN_TOKEN_STORAGE_KEY = "cozy-admin-token";
+
+function getAdminAuthHeader() {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  const token = window.localStorage.getItem(ADMIN_TOKEN_STORAGE_KEY);
+
+  if (!token) {
+    return {};
+  }
+
+  return {
+    Authorization: `Bearer ${token}`
+  };
+}
 
 function notifyProductChange() {
   if (typeof window !== "undefined") {
@@ -31,7 +48,9 @@ async function uploadImageToCloudinary(file) {
 
   for (const signatureUrl of signatureUrls) {
     lastSignatureUrl = signatureUrl;
-    signatureResponse = await fetch(signatureUrl);
+    signatureResponse = await fetch(signatureUrl, {
+      headers: getAdminAuthHeader()
+    });
 
     if (signatureResponse.ok) {
       break;
@@ -91,6 +110,7 @@ async function request(path = "", options = {}) {
   const response = await fetch(`${API_BASE}${path}`, {
     headers: {
       "Content-Type": "application/json",
+      ...getAdminAuthHeader(),
       ...(options.headers ?? {})
     },
     ...options

@@ -3,6 +3,23 @@ const API_ROOT = (
   import.meta.env.VITE_API_URL?.replace(/\/products\/?$/, "") ??
   "https://cozy-candles-backend.onrender.com/api"
 ).replace(/\/$/, "");
+const ADMIN_TOKEN_STORAGE_KEY = "cozy-admin-token";
+
+function getAdminAuthHeader() {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  const token = window.localStorage.getItem(ADMIN_TOKEN_STORAGE_KEY);
+
+  if (!token) {
+    return {};
+  }
+
+  return {
+    Authorization: `Bearer ${token}`
+  };
+}
 
 export function normalizeEntity(entity) {
   if (!entity) {
@@ -19,6 +36,7 @@ export async function requestJson(path, options = {}) {
   const response = await fetch(`${API_ROOT}${path}`, {
     headers: {
       "Content-Type": "application/json",
+      ...getAdminAuthHeader(),
       ...(options.headers ?? {})
     },
     ...options

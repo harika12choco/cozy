@@ -7,9 +7,9 @@ export default function Login({ onLogin }) {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
-    const result = onLogin({ username, password });
+    const result = await onLogin({ username, password });
 
     if (result?.error) {
       setError(result.error);
@@ -23,10 +23,9 @@ export default function Login({ onLogin }) {
     <div className="admin-login-page">
       <form className="admin-login-card" onSubmit={handleSubmit}>
         <p className="admin-sidebar-kicker">Admin Access</p>
-        <h1>Manage your candle website</h1>
+        <h1>Admin Sign in</h1>
         <p className="admin-page-subtitle">
-          Update products, monitor orders, edit banners, and control discounts
-          from one place.
+          Single-admin access only. Use your admin credentials to manage the store.
         </p>
 
         <label>
@@ -56,7 +55,7 @@ export default function Login({ onLogin }) {
         {error ? <p className="products-feedback">{error}</p> : null}
 
         <button className="btn admin-login-btn" type="submit">
-          Enter Dashboard
+          Sign in
         </button>
       </form>
     </div>

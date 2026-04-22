@@ -8,6 +8,7 @@ import AddProduct from "./pages/AddProduct";
 import EditProduct from "./pages/EditProduct";
 import Orders from "./pages/Orders";
 import Messages from "./pages/Messages";
+import { adminAuthService } from "./services/authService";
 
 const pageMeta = {
   login: {
@@ -40,12 +41,9 @@ const pageMeta = {
   },
 };
 
-const ADMIN_USERNAME = "admin";
-const ADMIN_PASSWORD = "CozyCandle@12!";
-
 export default function AdminPortal({ currentPage = "dashboard", productId = null }) {
   const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => adminAuthService.isAuthenticated());
 
   function goTo(page, id = null) {
     const routeMap = {
@@ -93,16 +91,23 @@ export default function AdminPortal({ currentPage = "dashboard", productId = nul
   }
 
   if (currentPage === "login") {
+    if (isAuthenticated) {
+      return <Navigate to="/admin/dashboard" replace />;
+    }
+
     return (
       <Login
-        onLogin={({ username, password }) => {
-          if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
-            return { error: "Invalid username or password." };
+        onLogin={async ({ username, password }) => {
+          try {
+            await adminAuthService.login({ username, password });
+            setIsAuthenticated(true);
+            navigate("/admin/dashboard", { replace: true });
+            return { error: "" };
+          } catch (error) {
+            return {
+              error: error.message || "Invalid username or password."
+            };
           }
-
-          setIsAuthenticated(true);
-          navigate("/admin/dashboard", { replace: true });
-          return { error: "" };
         }}
       />
     );
@@ -117,6 +122,7 @@ export default function AdminPortal({ currentPage = "dashboard", productId = nul
       currentPage={currentPage}
       onNavigate={goTo}
       onLogout={() => {
+        adminAuthService.logout();
         setIsAuthenticated(false);
         navigate("/admin/login", { replace: true });
       }}
