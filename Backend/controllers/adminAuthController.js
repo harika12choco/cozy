@@ -1,9 +1,6 @@
 const { issueAdminToken, ADMIN_TOKEN_TTL } = require("../middleware/adminAuth");
 const crypto = require("crypto");
 
-const ADMIN_USERNAME = "cozyy@123";
-const ADMIN_PASSWORD = "cozzyy@#$@";
-
 function safeEqual(a, b) {
   const first = Buffer.from(String(a));
   const second = Buffer.from(String(b));
@@ -16,6 +13,13 @@ function safeEqual(a, b) {
 }
 
 function loginAdmin(req, res) {
+  const configuredUsername = String(process.env.ADMIN_USERNAME || "").trim();
+  const configuredPassword = String(process.env.ADMIN_PASSWORD || "");
+
+  if (!configuredUsername || !configuredPassword) {
+    return res.status(500).json({ error: "Admin credentials are not configured" });
+  }
+
   const username = String(req.body?.username || "").trim();
   const password = String(req.body?.password || "");
 
@@ -27,7 +31,7 @@ function loginAdmin(req, res) {
     return res.status(400).json({ error: "Invalid username or password" });
   }
 
-  if (!safeEqual(username, ADMIN_USERNAME) || !safeEqual(password, ADMIN_PASSWORD)) {
+  if (!safeEqual(username, configuredUsername) || !safeEqual(password, configuredPassword)) {
     return res.status(401).json({ error: "Invalid username or password" });
   }
 
