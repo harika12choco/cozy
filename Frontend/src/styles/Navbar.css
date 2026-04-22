@@ -212,6 +212,9 @@ gap:26px;
 }
 
 .dropdown-grid-section{
+display:grid;
+gap:8px;
+align-content:start;
 }
 
 .dropdown-grid-heading{

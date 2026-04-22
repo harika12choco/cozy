@@ -1,10 +1,11 @@
-import { auth, provider } from "../firebase";
 import { onAuthStateChanged, signInWithPopup } from "firebase/auth";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { auth, provider } from "../firebase";
 import {
   getCartItems,
   removeCartItem,
+  syncCartWithServer,
   updateCartItemQuantity
 } from "../utils/cart";
 import { orderService } from "../admin/services/orderService";
@@ -49,6 +50,18 @@ export default function Cart() {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setAuthReady(true);
+
+      if (currentUser) {
+        syncCartWithServer(currentUser)
+          .then((items) => {
+            setCartItems(items);
+          })
+          .catch((error) => {
+            console.error("Unable to sync cart:", error);
+          });
+      } else {
+        setCartItems(getCartItems());
+      }
     });
 
     return unsubscribe;
@@ -171,10 +184,11 @@ Please confirm my order.
       const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 
       window.open(url, "_blank");
+      let nextCart = getCartItems();
       cartItems.forEach((item) => {
-        removeCartItem(item.name);
+        nextCart = removeCartItem(item.key);
       });
-      setCartItems([]);
+      setCartItems(nextCart);
       setOrderPlaced(true);
     } catch (error) {
       setOrderError(error.message || "We could not place your order right now.");
@@ -231,7 +245,7 @@ Please confirm my order.
         <section className="cart-layout">
           <div className="cart-items">
             {cartItems.map((item) => (
-              <article className="cart-item" key={item.name}>
+              <article className="cart-item" key={item.key}>
                 <div className="cart-item-image">
                   <img src={item.img} alt={item.name} />
                 </div>
@@ -245,7 +259,7 @@ Please confirm my order.
                       <button
                         type="button"
                         onClick={() =>
-                          setCartItems(updateCartItemQuantity(item.name, item.quantity - 1))
+                          setCartItems(updateCartItemQuantity(item.key, item.quantity - 1))
                         }
                       >
                         -
@@ -254,7 +268,7 @@ Please confirm my order.
                       <button
                         type="button"
                         onClick={() =>
-                          setCartItems(updateCartItemQuantity(item.name, item.quantity + 1))
+                          setCartItems(updateCartItemQuantity(item.key, item.quantity + 1))
                         }
                       >
                         +
@@ -264,7 +278,7 @@ Please confirm my order.
                     <button
                       type="button"
                       className="cart-remove-btn"
-                      onClick={() => setCartItems(removeCartItem(item.name))}
+                      onClick={() => setCartItems(removeCartItem(item.key))}
                     >
                       Remove
                     </button>

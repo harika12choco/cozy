@@ -1,6 +1,6 @@
 import "../styles/Navbar.css";
 import { useEffect, useState } from "react";
-import { getCartItems } from "../utils/cart";
+import { getCartItems, syncCartWithServer } from "../utils/cart";
 import { auth, provider } from "../firebase";
 import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
 import navLogo from "../assets/navlogo.png";
@@ -64,6 +64,12 @@ export default function Navbar({ activePage, onNavigate }){
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+
+      if (currentUser) {
+        syncCartWithServer(currentUser).catch((error) => {
+          console.error("Unable to sync cart:", error);
+        });
+      }
     });
 
     return unsubscribe;

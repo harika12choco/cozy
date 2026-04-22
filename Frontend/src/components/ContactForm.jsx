@@ -33,6 +33,11 @@ export default function ContactForm() {
       return;
     }
 
+    if (nextData.name.length > 20) {
+      setFeedback("Name must be 20 characters or fewer.");
+      return;
+    }
+
     try {
       setSubmitting(true);
       await messageStore.create(nextData);
@@ -61,6 +66,7 @@ export default function ContactForm() {
           placeholder="Your name"
           value={formData.name}
           onChange={handleChange}
+          maxLength="20"
         />
         <input
           type="email"

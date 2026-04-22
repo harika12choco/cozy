@@ -1,4 +1,8 @@
-const API_ROOT = (import.meta.env.VITE_API_BASE_URL ?? "https://cozy-candles-backend.onrender.com").replace(/\/$/, "");
+const API_ROOT = (
+  import.meta.env.VITE_API_BASE_URL ??
+  import.meta.env.VITE_API_URL?.replace(/\/products\/?$/, "") ??
+  "https://cozy-candles-backend.onrender.com/api"
+).replace(/\/$/, "");
 
 export function normalizeEntity(entity) {
   if (!entity) {
