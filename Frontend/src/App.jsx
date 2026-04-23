@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom"
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom"
 import Navbar from "./components/Navbar"
 import Hero from "./components/Hero"
 import Categories from "./components/Categories"
@@ -92,11 +92,6 @@ function PublicSite({ page }) {
   );
 }
 
-function AdminEditProductRoute() {
-  const { productId } = useParams();
-  return <AdminPortal currentPage="edit-product" productId={productId} />;
-}
-
 function App(){
   return(
     <Routes>
@@ -107,11 +102,7 @@ function App(){
       <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
       <Route path="/admin/login" element={<AdminPortal currentPage="login" />} />
       <Route path="/admin/dashboard" element={<AdminPortal currentPage="dashboard" />} />
-      <Route path="/admin/products" element={<AdminPortal currentPage="products" />} />
-      <Route path="/admin/products/add" element={<AdminPortal currentPage="add-product" />} />
-      <Route path="/admin/products/:productId/edit" element={<AdminEditProductRoute />} />
-      <Route path="/admin/orders" element={<AdminPortal currentPage="orders" />} />
-      <Route path="/admin/messages" element={<AdminPortal currentPage="messages" />} />
+      <Route path="/admin/*" element={<Navigate to="/admin/login" replace />} />
     </Routes>
   )
 }

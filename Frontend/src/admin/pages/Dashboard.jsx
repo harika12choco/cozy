@@ -70,13 +70,13 @@ export default function Dashboard({ onNavigate }) {
         <div className="admin-panel-head">
           <div>
             <h3>Quick actions</h3>
-            <p>Jump straight into the most common website edits.</p>
+            <p>Access your admin home or open the public storefront.</p>
           </div>
         </div>
 
         <div className="admin-quick-grid">
-          <button type="button" onClick={() => onNavigate("add-product")}>Add a new candle</button>
-          <button type="button" onClick={() => onNavigate("orders")}>Review latest orders</button>
+          <button type="button" onClick={() => onNavigate("dashboard")}>Refresh dashboard</button>
+          <button type="button" onClick={() => window.open("/", "_blank", "noopener,noreferrer")}>Open storefront</button>
         </div>
       </section>
     </div>

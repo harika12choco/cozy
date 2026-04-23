@@ -3,11 +3,6 @@ import { Navigate, useNavigate } from "react-router-dom";
 import AdminLayout from "./layout/AdminLayout";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
-import Products from "./pages/Products";
-import AddProduct from "./pages/AddProduct";
-import EditProduct from "./pages/EditProduct";
-import Orders from "./pages/Orders";
-import Messages from "./pages/Messages";
 import { adminAuthService } from "./services/authService";
 
 const pageMeta = {
@@ -17,48 +12,19 @@ const pageMeta = {
   },
   dashboard: {
     title: "Dashboard",
-    subtitle: "A quick overview of store activity and editable website content."
-  },
-  products: {
-    title: "Products",
-    subtitle: "Manage the candle catalog shown across the storefront."
-  },
-  "add-product": {
-    title: "Add Product",
-    subtitle: "Create a new product entry for the website."
-  },
-  "edit-product": {
-    title: "Edit Product",
-    subtitle: "Update an existing product listing."
-  },
-  orders: {
-    title: "Orders",
-    subtitle: "Review purchases and keep order statuses updated."
-  },
-  messages: {
-    title: "Messages",
-    subtitle: "Read customer enquiries submitted through the website contact form."
-  },
+    subtitle: "A quick overview of store activity and website performance."
+  }
 };
 
-export default function AdminPortal({ currentPage = "dashboard", productId = null }) {
+export default function AdminPortal({ currentPage = "dashboard" }) {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(() => adminAuthService.isAuthenticated());
 
-  function goTo(page, id = null) {
+  function goTo(page) {
     const routeMap = {
       login: "/admin/login",
-      dashboard: "/admin/dashboard",
-      products: "/admin/products",
-      "add-product": "/admin/products/add",
-      orders: "/admin/orders",
-      messages: "/admin/messages"
+      dashboard: "/admin/dashboard"
     };
-
-    if (page === "edit-product" && id) {
-      navigate(`/admin/products/${id}/edit`);
-      return;
-    }
 
     navigate(routeMap[page] ?? "/admin/dashboard");
   }
@@ -66,21 +32,6 @@ export default function AdminPortal({ currentPage = "dashboard", productId = nul
   let page = null;
 
   switch (currentPage) {
-    case "products":
-      page = <Products onNavigate={goTo} />;
-      break;
-    case "add-product":
-      page = <AddProduct onNavigate={goTo} />;
-      break;
-    case "edit-product":
-      page = <EditProduct productId={productId} onNavigate={goTo} />;
-      break;
-    case "orders":
-      page = <Orders />;
-      break;
-    case "messages":
-      page = <Messages />;
-      break;
     case "login":
       page = null;
       break;

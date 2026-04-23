@@ -1,9 +1,5 @@
 const navItems = [
-  { key: "dashboard", label: "Dashboard" },
-  { key: "products", label: "Products" },
-  { key: "add-product", label: "Add Product" },
-  { key: "orders", label: "Orders" },
-  { key: "messages", label: "Messages" }
+  { key: "dashboard", label: "Dashboard" }
 ];
 
 export default function Sidebar({ currentPage, onNavigate, onLogout }) {
