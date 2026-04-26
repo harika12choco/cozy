@@ -3,7 +3,6 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
-const mongoSanitize = require("express-mongo-sanitize");
 
 
 const connectDB = require("./config/db");
@@ -18,6 +17,30 @@ const allowedOrigins = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL ||
   .filter(Boolean);
 const isProduction = process.env.NODE_ENV === "production";
 const API_VERSION = "cloudinary-signature-v2";
+
+function sanitizeForMongoOperators(value) {
+  if (Array.isArray(value)) {
+    return value.map(sanitizeForMongoOperators);
+  }
+
+  if (value && typeof value === "object") {
+    return Object.entries(value).reduce((accumulator, [key, nestedValue]) => {
+      const safeKey = key.replace(/\$/g, "_").replace(/\./g, "_");
+      accumulator[safeKey] = sanitizeForMongoOperators(nestedValue);
+      return accumulator;
+    }, {});
+  }
+
+  return value;
+}
+
+function sanitizeRequestBody(req, res, next) {
+  if (req.body && typeof req.body === "object") {
+    req.body = sanitizeForMongoOperators(req.body);
+  }
+
+  next();
+}
 
 connectDB();
 
@@ -46,11 +69,7 @@ app.use(
   })
 );
 app.use(express.json({ limit: "25mb" }));
-app.use(
-  mongoSanitize({
-    replaceWith: "_"
-  })
-);
+app.use(sanitizeRequestBody);
 
 app.get("/api/health", (req, res) => {
   res.json({
