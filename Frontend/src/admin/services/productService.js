@@ -1,8 +1,26 @@
 const PRODUCTION_PRODUCTS_API = "https://cozy-candles-backend.onrender.com/api/products";
 
+function normalizeProductsApi(value) {
+  const trimmed = String(value || "").trim().replace(/\/$/, "");
+
+  if (!trimmed) {
+    return "";
+  }
+
+  if (/\/api\/products$/i.test(trimmed)) {
+    return trimmed;
+  }
+
+  if (/\/api$/i.test(trimmed)) {
+    return `${trimmed}/products`;
+  }
+
+  return `${trimmed}/api/products`;
+}
+
 function resolveProductsApiBase() {
   if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
+    return normalizeProductsApi(import.meta.env.VITE_API_URL);
   }
 
   if (typeof window !== "undefined") {

@@ -3,11 +3,29 @@ import { auth } from "../firebase";
 const CART_STORAGE_KEY = "cozy-candles-cart";
 const PRODUCTION_BACKEND_API = "https://cozy-candles-backend.onrender.com/api";
 
+function normalizeApiRoot(value) {
+  const trimmed = String(value || "").trim().replace(/\/$/, "");
+
+  if (!trimmed) {
+    return "";
+  }
+
+  if (/\/api\/products$/i.test(trimmed)) {
+    return trimmed.replace(/\/products$/i, "");
+  }
+
+  if (/\/api$/i.test(trimmed)) {
+    return trimmed;
+  }
+
+  return `${trimmed}/api`;
+}
+
 function resolveCartApiRoot() {
   const envApiRoot = import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL?.replace(/\/products\/?$/, "");
 
   if (envApiRoot) {
-    return envApiRoot.replace(/\/$/, "");
+    return normalizeApiRoot(envApiRoot);
   }
 
   if (typeof window !== "undefined") {
