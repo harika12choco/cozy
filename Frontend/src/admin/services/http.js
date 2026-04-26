@@ -1,7 +1,7 @@
 const API_ROOT = (
   import.meta.env.VITE_API_BASE_URL ??
   import.meta.env.VITE_API_URL?.replace(/\/products\/?$/, "") ??
-  "https://cozy-candles-backend.onrender.com/api"
+  "http://localhost:5000/api"
 ).replace(/\/$/, "");
 const ADMIN_TOKEN_STORAGE_KEY = "cozy-admin-token";
 

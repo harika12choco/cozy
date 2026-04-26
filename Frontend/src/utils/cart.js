@@ -4,7 +4,7 @@ const CART_STORAGE_KEY = "cozy-candles-cart";
 const CART_API_ROOT = (
   import.meta.env.VITE_API_BASE_URL ??
   import.meta.env.VITE_API_URL?.replace(/\/products\/?$/, "") ??
-  "https://cozy-candles-backend.onrender.com/api"
+  "http://localhost:5000/api"
 ).replace(/\/$/, "");
 
 function parseStoredCart(savedCart) {

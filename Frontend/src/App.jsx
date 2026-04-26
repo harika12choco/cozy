@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom"
+import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom"
 import Navbar from "./components/Navbar"
 import Hero from "./components/Hero"
 import Categories from "./components/Categories"
@@ -14,6 +14,12 @@ import AdminPortal from "./admin/AdminPortal"
 import { findCategoryBySlug } from "./utils/menuData"
 import "./styles/Global.css"
 import "./styles/Home.css"
+
+function AdminEditProductRoute() {
+  const { id = "" } = useParams();
+  const productId = String(id).trim();
+  return <AdminPortal currentPage="edit-product" currentProductId={productId} />;
+}
 
 function PublicSite({ page }) {
   const location = useLocation();
@@ -102,6 +108,14 @@ function App(){
       <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
       <Route path="/admin/login" element={<AdminPortal currentPage="login" />} />
       <Route path="/admin/dashboard" element={<AdminPortal currentPage="dashboard" />} />
+      <Route path="/admin/products" element={<AdminPortal currentPage="products" />} />
+      <Route path="/admin/products/new" element={<AdminPortal currentPage="add-product" />} />
+      <Route path="/admin/products/:id/edit" element={<AdminEditProductRoute />} />
+      <Route path="/admin/orders" element={<AdminPortal currentPage="orders" />} />
+      <Route path="/admin/users" element={<AdminPortal currentPage="users" />} />
+      <Route path="/admin/messages" element={<AdminPortal currentPage="messages" />} />
+      <Route path="/admin/discounts" element={<AdminPortal currentPage="discounts" />} />
+      <Route path="/admin/collections" element={<AdminPortal currentPage="collections" />} />
       <Route path="/admin/*" element={<Navigate to="/admin/login" replace />} />
     </Routes>
   )

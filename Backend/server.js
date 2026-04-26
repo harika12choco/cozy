@@ -15,6 +15,7 @@ const allowedOrigins = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL ||
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
+const isProduction = process.env.NODE_ENV === "production";
 const API_VERSION = "cloudinary-signature-v2";
 
 connectDB();
@@ -29,8 +30,8 @@ app.use(
 app.use(
   cors({
     origin(origin, callback) {
-      const defaultAllowed = ["http://localhost:5173", "https://cozy-sigma.vercel.app"];
-      const allowList = allowedOrigins.length ? [...defaultAllowed, ...allowedOrigins] : defaultAllowed;
+      const defaultAllowed = isProduction ? [] : ["http://localhost:5173"];
+      const allowList = [...new Set([...defaultAllowed, ...allowedOrigins])];
 
       if (!origin || allowList.includes(origin)) {
         callback(null, true);
