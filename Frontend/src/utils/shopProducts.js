@@ -6,7 +6,22 @@ import img5 from "../assets/candles/5.png";
 import img6 from "../assets/candles/6.png";
 import menuData from "./menuData";
 
-const PRODUCTS_API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000/api/products";
+const PRODUCTION_PRODUCTS_API = "https://cozy-candles-backend.onrender.com/api/products";
+
+function resolveProductsApiUrl() {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+
+  if (typeof window !== "undefined") {
+    const isLocalHost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+    return isLocalHost ? "http://localhost:5000/api/products" : PRODUCTION_PRODUCTS_API;
+  }
+
+  return "http://localhost:5000/api/products";
+}
+
+const PRODUCTS_API_URL = resolveProductsApiUrl();
 const ADMIN_STORAGE_KEY = "cozy-candle-admin-db";
 
 const defaultShopProducts = [

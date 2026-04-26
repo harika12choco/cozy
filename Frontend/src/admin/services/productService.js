@@ -1,5 +1,19 @@
-const API_BASE =
-  import.meta.env.VITE_API_URL ?? "http://localhost:5000/api/products";
+const PRODUCTION_PRODUCTS_API = "https://cozy-candles-backend.onrender.com/api/products";
+
+function resolveProductsApiBase() {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+
+  if (typeof window !== "undefined") {
+    const isLocalHost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+    return isLocalHost ? "http://localhost:5000/api/products" : PRODUCTION_PRODUCTS_API;
+  }
+
+  return "http://localhost:5000/api/products";
+}
+
+const API_BASE = resolveProductsApiBase();
 const API_ROOT = API_BASE.replace(/\/products\/?$/, "");
 const ADMIN_TOKEN_STORAGE_KEY = "cozy-admin-token";
 

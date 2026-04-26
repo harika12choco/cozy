@@ -1,11 +1,24 @@
 import { auth } from "../firebase";
 
 const CART_STORAGE_KEY = "cozy-candles-cart";
-const CART_API_ROOT = (
-  import.meta.env.VITE_API_BASE_URL ??
-  import.meta.env.VITE_API_URL?.replace(/\/products\/?$/, "") ??
-  "http://localhost:5000/api"
-).replace(/\/$/, "");
+const PRODUCTION_BACKEND_API = "https://cozy-candles-backend.onrender.com/api";
+
+function resolveCartApiRoot() {
+  const envApiRoot = import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL?.replace(/\/products\/?$/, "");
+
+  if (envApiRoot) {
+    return envApiRoot.replace(/\/$/, "");
+  }
+
+  if (typeof window !== "undefined") {
+    const isLocalHost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+    return (isLocalHost ? "http://localhost:5000/api" : PRODUCTION_BACKEND_API).replace(/\/$/, "");
+  }
+
+  return "http://localhost:5000/api";
+}
+
+const CART_API_ROOT = resolveCartApiRoot();
 
 function parseStoredCart(savedCart) {
   if (!savedCart) {

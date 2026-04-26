@@ -77,9 +77,13 @@ export default function Products() {
     }
 
     loadProducts();
+    window.addEventListener("cozy-admin-products-updated", loadProducts);
+    window.addEventListener("storage", loadProducts);
 
     return () => {
       active = false;
+      window.removeEventListener("cozy-admin-products-updated", loadProducts);
+      window.removeEventListener("storage", loadProducts);
     };
   }, []);
 

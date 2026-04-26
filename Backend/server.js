@@ -3,6 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
+const mongoSanitize = require("express-mongo-sanitize");
 
 
 const connectDB = require("./config/db");
@@ -45,6 +46,11 @@ app.use(
   })
 );
 app.use(express.json({ limit: "25mb" }));
+app.use(
+  mongoSanitize({
+    replaceWith: "_"
+  })
+);
 
 app.get("/api/health", (req, res) => {
   res.json({
