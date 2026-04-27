@@ -69,6 +69,38 @@ export default function AdminPortal({ currentPage = "dashboard", currentProductI
     navigate(routeMap[page] ?? "/admin/dashboard");
   }
 
+  useEffect(() => {
+    function handleVisibilityChange() {
+      if (document.hidden && isAuthenticated) {
+        // Auto logout if admin moves out
+        adminAuthService.logout();
+        setIsAuthenticated(false);
+        navigate("/admin/login", { replace: true });
+      }
+    }
+
+    let idleTimeout;
+    function resetIdle() {
+      clearTimeout(idleTimeout);
+      if (isAuthenticated) {
+        // 10 minutes idle timeout fallback
+        idleTimeout = setTimeout(() => {
+          adminAuthService.logout();
+          setIsAuthenticated(false);
+          navigate("/admin/login", { replace: true });
+        }, 10 * 60 * 1000);
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    resetIdle();
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      clearTimeout(idleTimeout);
+    };
+  }, [isAuthenticated, navigate]);
+
   let page = null;
 
   switch (currentPage) {
@@ -124,42 +156,6 @@ export default function AdminPortal({ currentPage = "dashboard", currentProductI
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
-
-  useEffect(() => {
-    function handleVisibilityChange() {
-      if (document.hidden && isAuthenticated) {
-        // Auto logout if admin moves out
-        adminAuthService.logout();
-        setIsAuthenticated(false);
-        navigate("/admin/login", { replace: true });
-      }
-    }
-
-    let idleTimeout;
-    function resetIdle() {
-      clearTimeout(idleTimeout);
-      if (isAuthenticated) {
-        // 10 minutes idle timeout fallback
-        idleTimeout = setTimeout(() => {
-          adminAuthService.logout();
-          setIsAuthenticated(false);
-          navigate("/admin/login", { replace: true });
-        }, 10 * 60 * 1000);
-      }
-    }
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    // document.addEventListener("mousemove", resetIdle);
-    // document.addEventListener("keydown", resetIdle);
-    resetIdle();
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      // document.removeEventListener("mousemove", resetIdle);
-      // document.removeEventListener("keydown", resetIdle);
-      clearTimeout(idleTimeout);
-    };
-  }, [isAuthenticated, navigate]);
 
   return (
     <AdminLayout
