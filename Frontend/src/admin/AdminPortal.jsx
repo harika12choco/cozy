@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import AdminLayout from "./layout/AdminLayout";
 import Login from "./pages/Login";
@@ -7,9 +7,7 @@ import Products from "./pages/Products";
 import AddProduct from "./pages/AddProduct";
 import EditProduct from "./pages/EditProduct";
 import Orders from "./pages/Orders";
-import Users from "./pages/Users";
 import Messages from "./pages/Messages";
-import Discounts from "./pages/Discounts";
 import OurCollections from "./pages/OurCollections";
 import { adminAuthService } from "./services/authService";
 
@@ -38,17 +36,9 @@ const pageMeta = {
     title: "Orders",
     subtitle: "Track order status and manage fulfillment workflow."
   },
-  users: {
-    title: "Users",
-    subtitle: "View and manage customer accounts."
-  },
   messages: {
     title: "Messages",
     subtitle: "Review and manage customer contact messages."
-  },
-  discounts: {
-    title: "Discounts",
-    subtitle: "Create and monitor promotional offers."
   },
   collections: {
     title: "Our Collections",
@@ -67,9 +57,7 @@ export default function AdminPortal({ currentPage = "dashboard", currentProductI
       products: "/admin/products",
       "add-product": "/admin/products/new",
       orders: "/admin/orders",
-      users: "/admin/users",
       messages: "/admin/messages",
-      discounts: "/admin/discounts",
       collections: "/admin/collections"
     };
 
@@ -99,14 +87,8 @@ export default function AdminPortal({ currentPage = "dashboard", currentProductI
     case "orders":
       page = <Orders onNavigate={goTo} />;
       break;
-    case "users":
-      page = <Users onNavigate={goTo} />;
-      break;
     case "messages":
       page = <Messages onNavigate={goTo} />;
-      break;
-    case "discounts":
-      page = <Discounts onNavigate={goTo} />;
       break;
     case "collections":
       page = <OurCollections onNavigate={goTo} />;
@@ -116,7 +98,6 @@ export default function AdminPortal({ currentPage = "dashboard", currentProductI
       page = <Dashboard onNavigate={goTo} />;
       break;
   }
-
   if (currentPage === "login") {
     if (isAuthenticated) {
       return <Navigate to="/admin/dashboard" replace />;
@@ -143,6 +124,42 @@ export default function AdminPortal({ currentPage = "dashboard", currentProductI
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
+
+  useEffect(() => {
+    function handleVisibilityChange() {
+      if (document.hidden && isAuthenticated) {
+        // Auto logout if admin moves out
+        adminAuthService.logout();
+        setIsAuthenticated(false);
+        navigate("/admin/login", { replace: true });
+      }
+    }
+
+    let idleTimeout;
+    function resetIdle() {
+      clearTimeout(idleTimeout);
+      if (isAuthenticated) {
+        // 10 minutes idle timeout fallback
+        idleTimeout = setTimeout(() => {
+          adminAuthService.logout();
+          setIsAuthenticated(false);
+          navigate("/admin/login", { replace: true });
+        }, 10 * 60 * 1000);
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    // document.addEventListener("mousemove", resetIdle);
+    // document.addEventListener("keydown", resetIdle);
+    resetIdle();
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      // document.removeEventListener("mousemove", resetIdle);
+      // document.removeEventListener("keydown", resetIdle);
+      clearTimeout(idleTimeout);
+    };
+  }, [isAuthenticated, navigate]);
 
   return (
     <AdminLayout

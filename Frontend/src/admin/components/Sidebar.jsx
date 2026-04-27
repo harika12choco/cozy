@@ -2,9 +2,7 @@ const navItems = [
   { key: "dashboard", label: "Dashboard" },
   { key: "products", label: "Products" },
   { key: "orders", label: "Orders" },
-  { key: "users", label: "Users" },
   { key: "messages", label: "Messages" },
-  { key: "discounts", label: "Discounts" },
   { key: "collections", label: "Collections" }
 ];
 

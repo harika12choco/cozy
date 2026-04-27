@@ -41,7 +41,21 @@ export default function OrderTable({ orders, onStatusChange, onDelete }) {
               </td>
               <td>{order.email || "No email"}</td>
               <td>{order.date}</td>
-              <td>{order.items}</td>
+              <td>
+                <div style={{ maxHeight: "100px", overflowY: "auto", fontSize: "0.85em" }}>
+                  {order.lineItems && order.lineItems.length > 0 ? (
+                    <ul style={{ paddingLeft: "15px", margin: 0 }}>
+                      {order.lineItems.map((item, idx) => (
+                        <li key={idx}>
+                          {item.name} x{item.quantity} ({item.price})
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span>{order.items} items</span>
+                  )}
+                </div>
+              </td>
               <td>Rs {order.total}</td>
               <td>{order.payment}</td>
               <td>

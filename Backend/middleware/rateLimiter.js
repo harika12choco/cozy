@@ -1,12 +1,12 @@
 const rateLimit = require("express-rate-limit");
 
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs: 60 * 1000,
   max: 5,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
-    error: "Too many login attempts. Try again in 15 minutes."
+    error: "Too many login attempts. Try again in 1 minute."
   }
 });
 
