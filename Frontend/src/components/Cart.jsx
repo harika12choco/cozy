@@ -27,6 +27,10 @@ export default function Cart() {
     address: "",
     pincode: ""
   });
+  const [validationErrors, setValidationErrors] = useState({
+    phone: "",
+    pincode: ""
+  });
 
   const navigate = useNavigate();
   const [user, setUser] = useState(() => auth.currentUser);
@@ -77,11 +81,55 @@ export default function Cart() {
   );
 
   const handleChange = (event) => {
-    setCustomer({
-      ...customer,
-      [event.target.name]: event.target.value
-    });
+    const { name, value } = event.target;
+    const normalizedValue =
+      name === "phone" || name === "pincode"
+        ? value.replace(/[^0-9]/g, "").slice(0, name === "phone" ? 10 : 6)
+        : value;
+
+    setCustomer((current) => ({
+      ...current,
+      [name]: normalizedValue
+    }));
+
+    if (name === "phone") {
+      setValidationErrors((current) => ({
+        ...current,
+        phone: normalizedValue.length > 0 && !/^[0-9]{10}$/.test(normalizedValue)
+          ? "Please enter a valid 10-digit phone number."
+          : ""
+      }));
+    }
+
+    if (name === "pincode") {
+      setValidationErrors((current) => ({
+        ...current,
+        pincode: normalizedValue.length > 0 && !/^[0-9]{6}$/.test(normalizedValue)
+          ? "Please enter a valid 6-digit pincode."
+          : ""
+      }));
+    }
   };
+
+  function handleNumericKeyDown(event) {
+    const allowedKeys = [
+      "Backspace",
+      "Delete",
+      "Tab",
+      "ArrowLeft",
+      "ArrowRight",
+      "Home",
+      "End"
+    ];
+
+    if (allowedKeys.includes(event.key)) {
+      return;
+    }
+
+    if (!/^[0-9]$/.test(event.key)) {
+      event.preventDefault();
+    }
+  }
 
   const handleGoogleLogin = async () => {
     try {
@@ -115,12 +163,18 @@ export default function Cart() {
     }
 
     if (!/^[0-9]{10}$/.test(customer.phone)) {
-      alert("Please enter a valid 10-digit phone number.");
+      setValidationErrors((current) => ({
+        ...current,
+        phone: "Please enter a valid 10-digit phone number."
+      }));
       return;
     }
 
     if (!/^[0-9]{6}$/.test(customer.pincode)) {
-      alert("Please enter a valid 6-digit pincode.");
+      setValidationErrors((current) => ({
+        ...current,
+        pincode: "Please enter a valid 6-digit pincode."
+      }));
       return;
     }
 
@@ -141,7 +195,8 @@ export default function Cart() {
         customer: customer.name,
         email,
         phone: customer.phone,
-        address: `${customer.address} - ${customer.pincode}`,
+        address: customer.address,
+        pincode: customer.pincode,
         date: orderDate,
         items: cartItems.reduce((total, item) => total + item.quantity, 0),
         total: totalPrice,
@@ -213,10 +268,11 @@ Please confirm my order.
   if (orderPlaced) {
     return (
       <main className="cart-page">
-        <section className="cart-empty">
-          <h2>Your order is successful</h2>
+        <section className="cart-empty" role="status" aria-live="polite">
+          <span aria-hidden="true" style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>✅</span>
+          <h2>Order placed successfully!</h2>
           <p>
-            Your order details have been prepared for WhatsApp and saved in the admin panel.
+            Thank you for your order. We&apos;ll get it to you soon.
           </p>
           <button className="btn" type="button" onClick={() => navigate("/shop")}>
             Continue Shopping
@@ -304,12 +360,21 @@ Please confirm my order.
               />
 
               <input
-                type="text"
+                type="tel"
                 name="phone"
                 placeholder="Contact Number"
                 value={customer.phone}
                 onChange={handleChange}
+                onInput={(event) => {
+                  event.currentTarget.value = event.currentTarget.value.replace(/[^0-9]/g, "").slice(0, 10);
+                }}
+                inputMode="numeric"
+                pattern="[0-9]{10}"
+                maxLength={10}
+                minLength={10}
+                onKeyDown={handleNumericKeyDown}
               />
+              {validationErrors.phone ? <p className="products-feedback">{validationErrors.phone}</p> : null}
 
               <input
                 type="text"
@@ -320,12 +385,21 @@ Please confirm my order.
               />
 
               <input
-                type="text"
+                type="tel"
                 name="pincode"
                 placeholder="Pincode"
                 value={customer.pincode}
                 onChange={handleChange}
+                onInput={(event) => {
+                  event.currentTarget.value = event.currentTarget.value.replace(/[^0-9]/g, "").slice(0, 6);
+                }}
+                inputMode="numeric"
+                pattern="[0-9]{6}"
+                maxLength={6}
+                minLength={6}
+                onKeyDown={handleNumericKeyDown}
               />
+              {validationErrors.pincode ? <p className="products-feedback">{validationErrors.pincode}</p> : null}
             </div>
 
             <div className="cart-total">

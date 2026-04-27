@@ -6,6 +6,7 @@ export default function ContactForm() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
     message: ""
   });
   const [feedback, setFeedback] = useState("");
@@ -13,6 +14,16 @@ export default function ContactForm() {
 
   function handleChange(event) {
     const { name, value } = event.target;
+
+    if (name === "phone") {
+      const numericValue = value.replace(/[^0-9]/g, "").slice(0, 10);
+      setFormData((current) => ({
+        ...current,
+        [name]: numericValue
+      }));
+      return;
+    }
+
     setFormData((current) => ({
       ...current,
       [name]: value
@@ -25,16 +36,22 @@ export default function ContactForm() {
     const nextData = {
       name: formData.name.trim(),
       email: formData.email.trim(),
+      phone: formData.phone.trim(),
       message: formData.message.trim()
     };
 
-    if (!nextData.name || !nextData.email || !nextData.message) {
-      setFeedback("Please fill in your name, email, and message.");
+    if (!nextData.name || !nextData.email || !nextData.phone || !nextData.message) {
+      setFeedback("Please fill in your name, email, phone number, and message.");
       return;
     }
 
     if (nextData.name.length > 20) {
       setFeedback("Name must be 20 characters or fewer.");
+      return;
+    }
+
+    if (!/^[6-9][0-9]{9}$/.test(nextData.phone)) {
+      setFeedback("Please enter a valid 10-digit mobile number.");
       return;
     }
 
@@ -44,6 +61,7 @@ export default function ContactForm() {
       setFormData({
         name: "",
         email: "",
+        phone: "",
         message: ""
       });
       setFeedback("Your message has been sent. We will get back to you soon.");
@@ -75,6 +93,23 @@ export default function ContactForm() {
           value={formData.email}
           onChange={handleChange}
         />
+        <input
+          type="tel"
+          name="phone"
+          placeholder="Your mobile number"
+          value={formData.phone}
+          onChange={handleChange}
+          onInput={(event) => {
+            event.currentTarget.value = event.currentTarget.value.replace(/[^0-9]/g, "").slice(0, 10);
+          }}
+          inputMode="numeric"
+          pattern="[6-9][0-9]{9}"
+          maxLength={10}
+          title="Please enter a valid 10-digit mobile number."
+        />
+        {formData.phone && !/^[6-9][0-9]{9}$/.test(formData.phone) ? (
+          <p className="contact-form-feedback">Please enter a valid 10-digit mobile number.</p>
+        ) : null}
         <textarea
           rows="5"
           name="message"

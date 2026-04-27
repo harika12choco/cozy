@@ -12,6 +12,12 @@ const messageSchema = new mongoose.Schema(
       required: true,
       trim: true
     },
+    phone: {
+      type: String,
+      required: true,
+      trim: true,
+      match: /^[6-9][0-9]{9}$/
+    },
     message: {
       type: String,
       required: true,

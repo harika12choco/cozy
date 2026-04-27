@@ -34,6 +34,11 @@ const orderSchema = new mongoose.Schema(
       type: String,
       default: ""
     },
+    pincode: {
+      type: String,
+      required: true,
+      match: /^[0-9]{6}$/
+    },
     address: {
       type: String,
       default: ""

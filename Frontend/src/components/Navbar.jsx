@@ -2,7 +2,8 @@ import "../styles/Navbar.css";
 import { useEffect, useState } from "react";
 import { getCartItems, syncCartWithServer } from "../utils/cart";
 import { auth, provider } from "../firebase";
-import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
+import { onAuthStateChanged, signInWithPopup } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
 import navLogo from "../assets/navlogo.png";
 import Sidebar from "./Sidebar";
 import menuData, { slugifyCategory } from "../utils/menuData";
@@ -40,6 +41,7 @@ function UserIcon() {
 }
 
 export default function Navbar({ activePage, onNavigate }){
+  const navigate = useNavigate();
   const [cartCount, setCartCount] = useState(() =>
     getCartItems().reduce((total, item) => total + item.quantity, 0)
   );
@@ -78,7 +80,7 @@ export default function Navbar({ activePage, onNavigate }){
   async function handleUserAction() {
     try {
       if (user) {
-        await signOut(auth);
+        navigate("/profile");
         return;
       }
 
@@ -192,8 +194,8 @@ export default function Navbar({ activePage, onNavigate }){
             type="button"
             className={`icon-btn user-btn ${user ? "user-btn-logged-in" : ""}`}
             onClick={handleUserAction}
-            aria-label={user ? "Sign out" : "Login with Google"}
-            title={user ? "Sign out" : "Login with Google"}
+            aria-label={user ? "Open profile" : "Login with Google"}
+            title={user ? "My Profile" : "Login with Google"}
           >
             {user?.photoURL ? (
               <img
@@ -204,7 +206,7 @@ export default function Navbar({ activePage, onNavigate }){
             ) : (
               <UserIcon />
             )}
-            <span className="user-btn-label">{user ? "Sign out" : "Login"}</span>
+            <span className="user-btn-label">{user ? "Profile" : "Login"}</span>
           </button>
         </div>
       </nav>

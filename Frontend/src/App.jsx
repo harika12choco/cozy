@@ -10,6 +10,7 @@ import ContactForm from "./components/ContactForm"
 import Footer from "./components/Footer"
 import Shop from "./components/shop"
 import Cart from "./components/Cart"
+import Profile from "./pages/Profile"
 import AdminPortal from "./admin/AdminPortal"
 import { findCategoryBySlug } from "./utils/menuData"
 import "./styles/Global.css"
@@ -24,7 +25,7 @@ function AdminEditProductRoute() {
 function PublicSite({ page }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const activePage = page === "shop" ? "shop" : page === "cart" ? "cart" : "home";
+  const activePage = page === "shop" ? "shop" : page === "cart" ? "cart" : page === "profile" ? "profile" : "home";
   const selectedCategory = page === "shop"
     ? findCategoryBySlug(new URLSearchParams(location.search).get("category") ?? "")?.value ?? ""
     : "";
@@ -79,6 +80,8 @@ function PublicSite({ page }) {
       <Navbar activePage={activePage} onNavigate={handleNavigate}/>
       {page === "shop" ? (
         <Shop selectedCategory={selectedCategory} />
+      ) : page === "profile" ? (
+        <Profile />
       ) : page === "cart" ? (
         <Cart />
       ) : (
@@ -104,6 +107,7 @@ function App(){
       <Route path="/" element={<PublicSite page="home" />} />
       <Route path="/shop" element={<PublicSite page="shop" />} />
       <Route path="/cart" element={<PublicSite page="cart" />} />
+      <Route path="/profile" element={<PublicSite page="profile" />} />
 
       <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
       <Route path="/admin/login" element={<AdminPortal currentPage="login" />} />
@@ -116,7 +120,7 @@ function App(){
       <Route path="/admin/messages" element={<AdminPortal currentPage="messages" />} />
       <Route path="/admin/discounts" element={<AdminPortal currentPage="discounts" />} />
       <Route path="/admin/collections" element={<AdminPortal currentPage="collections" />} />
-      <Route path="/admin/*" element={<Navigate to="/admin/login" replace />} />
+      <Route path="/admin/*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }

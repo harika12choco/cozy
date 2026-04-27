@@ -12,6 +12,7 @@ export const messageStore = {
       body: JSON.stringify({
         name: input.name.trim(),
         email: input.email.trim(),
+        phone: input.phone.trim(),
         message: input.message.trim()
       })
     });

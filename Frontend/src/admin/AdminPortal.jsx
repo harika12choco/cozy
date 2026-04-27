@@ -141,7 +141,7 @@ export default function AdminPortal({ currentPage = "dashboard", currentProductI
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/admin/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return (
