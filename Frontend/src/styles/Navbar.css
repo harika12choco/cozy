@@ -39,20 +39,27 @@ padding:0;
 
 .left-desktop-nav li{
 position:relative;
+flex-shrink:0;
 }
 
-.left-desktop-nav button{
+.left-desktop-nav > ul > li > button{
+display:inline-flex;
+align-items:center;
 background:none;
 border:none;
 color:#fffaf2;
 font-family:var(--body-font);
-font-weight:600;
+font-size:14px;
+font-weight:500;
+letter-spacing:1px;
+text-transform:uppercase;
+white-space:nowrap;
 cursor:pointer;
 padding:10px;
 transition:background 0.2s ease;
 }
 
-.left-desktop-nav button:hover{
+.left-desktop-nav > ul > li > button:hover{
 background:rgba(255,250,242,0.16);
 border-radius:8px;
 }
@@ -74,6 +81,9 @@ flex-direction:column;
 gap:4px;
 width:40px;
 height:40px;
+min-width:40px;
+min-height:40px;
+flex:0 0 40px;
 border:1px solid rgba(255,255,255,0.35);
 border-radius:12px;
 background:rgba(255,250,242,0.08);
@@ -84,6 +94,7 @@ transition:background 0.2s ease, transform 0.2s ease;
 
 .nav-menu-toggle span{
 display:block;
+flex:0 0 auto;
 width:16px;
 height:2px;
 background:#fffaf2;
@@ -217,7 +228,8 @@ background:rgba(7,7,7,0.98);
 border:1px solid rgba(255,255,255,0.18);
 border-radius:16px;
 padding:22px;
-min-width:680px;
+width:min(860px, calc(100vw - 32px));
+max-width:calc(100vw - 32px);
 box-shadow:0 28px 60px rgba(0,0,0,0.22);
 z-index:20;
 }
@@ -228,8 +240,8 @@ display:block;
 
 .dropdown-grid{
 display:grid;
-grid-template-columns:repeat(3, minmax(180px, 1fr));
-gap:26px;
+grid-template-columns:repeat(3, minmax(0, 1fr));
+gap:30px;
 }
 
 .dropdown-grid-section{
@@ -242,9 +254,12 @@ align-content:start;
 font-size:12px;
 font-weight:700;
 letter-spacing:0.12em;
+line-height:1.45;
 text-transform:uppercase;
 color:rgba(255,255,255,0.7);
 margin-bottom:12px;
+white-space:normal;
+overflow-wrap:break-word;
 }
 
 .dropdown-grid-item{
@@ -257,6 +272,9 @@ text-align:left;
 padding:8px 0;
 font-size:14px;
 font-weight:600;
+line-height:1.35;
+white-space:normal;
+overflow-wrap:break-word;
 cursor:pointer;
 transition:color 0.2s ease;
 }
@@ -337,6 +355,9 @@ justify-self:center;
 .nav-menu-toggle{
 width:38px;
 height:38px;
+min-width:38px;
+min-height:38px;
+flex-basis:38px;
 }
 
 .nav-icon-svg{

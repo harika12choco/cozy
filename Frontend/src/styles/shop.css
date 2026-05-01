@@ -86,13 +86,14 @@
 }
 
 .shop-card-body h3{
-  margin:0 0 8px;
-  color:var(--text-dark);
+  margin:10px 0 8px;
+  color:#1f1716;
   font-family: var(--sans-font);
-  font-size:18px;
+  font-size:13px;
+  line-height:1.55;
   font-weight:500;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
   font-style: normal;
 }
 
@@ -104,12 +105,12 @@
 }
 
 .shop-price{
-  color:var(--primary);
-  font-weight:500;
-  font-size:18px;
+  color:#6f6661;
+  font-weight:400;
+  font-size:12px;
   font-family: var(--sans-font);
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
 }
 
 .shop-card .btn{

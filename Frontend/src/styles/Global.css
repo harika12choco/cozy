@@ -8,10 +8,10 @@
   --panel-bg: rgba(255, 250, 244, 0.92);
   --text-dark: #2A1A19;
   --body-font: "Montserrat", sans-serif;
-  --display-font: "Montserrat", sans-serif;
-  --script-font: "Montserrat", sans-serif;
-  --handwritten-font: "Montserrat", sans-serif;
-  --ornamental-font: "Montserrat", sans-serif;
+  --display-font: "Cormorant Garamond", serif;
+  --script-font: "Cormorant Garamond", serif;
+  --handwritten-font: "Cormorant Garamond", serif;
+  --ornamental-font: "Cormorant Garamond", serif;
   --sans-font: "Montserrat", sans-serif;
 }
 
@@ -29,6 +29,16 @@ body{
     linear-gradient(180deg, #f7efe7 0%, #f4e9de 28%, #f1e4d7 58%, #efe1d2 100%);
   color: var(--text-dark);
   overflow-x:hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6{
+  font-family:var(--display-font);
+  letter-spacing:1px;
 }
 
 .section{
@@ -55,22 +65,33 @@ button,
 .btn,
 .hero-btn{
   font-family:var(--body-font);
-  font-weight:500;
+  font-weight:600;
+  letter-spacing:0.5px;
 }
 
 .logo,
-.hero-content h1,
+.hero-content h1{
+  font-family:var(--display-font);
+  font-weight:500;
+}
+
 .best-title,
 .about-right h2,
 .contact-section h2{
-  font-family:var(--display-font);
-  font-weight:600;
+  color:#0f0f0f;
+  font-family:var(--sans-font);
+  font-size:clamp(20px, 2.2vw, 24px);
+  font-style:normal;
+  font-weight:500;
+  line-height:1.4;
+  letter-spacing:6px;
+  text-transform:uppercase;
 }
 
 .shop-card-body h3,
 .footer-links h3,
 .footer-social h3{
-  font-family:var(--body-font);
+  font-family:var(--display-font);
   font-weight:500;
 }
 
@@ -78,7 +99,7 @@ button,
   background: linear-gradient(135deg, #7a1413, #5d100f);
   color:white;
   padding:12px 28px;
-  border-radius:30px;
+  border-radius:999px;
   border:none;
   cursor:pointer;
   box-shadow:0 10px 20px rgba(93,16,15,0.24);

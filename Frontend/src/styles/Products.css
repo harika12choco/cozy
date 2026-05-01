@@ -4,13 +4,15 @@
 
 .best-title {
   text-align: center;
-  color: var(--primary);
-  margin: 0 0 28px;
-  font-size: clamp(20px, 2.5vw, 28px);
-  font-family: var(--display-font);
+  color: #0f0f0f;
+  margin: 0 0 32px;
+  font-size: clamp(20px, 2.2vw, 24px);
+  font-family: var(--sans-font);
+  font-style: normal;
   font-weight: 500;
+  line-height: 1.4;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 6px;
 }
 
 .products-feedback{
@@ -56,21 +58,24 @@
 }
 
 .product h3 {
-  margin: 6px 0 6px;
-  color: var(--text-dark);
+  margin: 10px 0 8px;
+  color: #1f1716;
   font-family: var(--sans-font);
+  font-size: 13px;
+  line-height: 1.55;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
   font-weight: 500;
 }
 
 .product p {
   margin: 0 0 14px;
-  font-weight: 500;
-  color: var(--primary);
+  font-weight: 400;
+  color: #6f6661;
   font-family: var(--sans-font);
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
+  font-size: 12px;
 }
 
 .product .btn {

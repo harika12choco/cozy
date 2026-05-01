@@ -46,12 +46,14 @@
 
 .about-right h2 {
   margin: 0 0 16px;
-  font-size: clamp(24px, 2.5vw, 30px);
-  color: var(--primary);
-  font-family: var(--display-font);
+  font-size: clamp(20px, 2.2vw, 24px);
+  color: #0f0f0f;
+  font-family: var(--sans-font);
+  font-style: normal;
   font-weight: 500;
+  line-height: 1.4;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 6px;
 }
 
 .about-right p {
