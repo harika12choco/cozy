@@ -46,6 +46,7 @@ export default function Navbar({ activePage, onNavigate }){
     getCartItems().reduce((total, item) => total + item.quantity, 0)
   );
   const [user, setUser] = useState(() => auth.currentUser);
+  const [avatarFailed, setAvatarFailed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [shopDropdownOpen, setShopDropdownOpen] = useState(false);
 
@@ -76,6 +77,10 @@ export default function Navbar({ activePage, onNavigate }){
 
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    setAvatarFailed(false);
+  }, [user?.photoURL]);
 
   async function handleUserAction() {
     try {
@@ -197,12 +202,18 @@ export default function Navbar({ activePage, onNavigate }){
             aria-label={user ? "Open profile" : "Login with Google"}
             title={user ? "My Profile" : "Login with Google"}
           >
-            {user?.photoURL ? (
+            {user?.photoURL && !avatarFailed ? (
               <img
                 src={user.photoURL}
-                alt={user.displayName || "User profile"}
+                alt=""
                 className="user-avatar"
+                referrerPolicy="no-referrer"
+                onError={() => setAvatarFailed(true)}
               />
+            ) : user ? (
+              <span className="user-avatar-fallback" aria-hidden="true">
+                {(user.displayName || user.email || "U").trim().charAt(0).toUpperCase()}
+              </span>
             ) : (
               <UserIcon />
             )}
