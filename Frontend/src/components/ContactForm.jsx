@@ -75,7 +75,7 @@ export default function ContactForm() {
   return (
     <section id="contact" className="section contact-section">
       <h2>Contact Us</h2>
-      <p>Have a custom order or question? Send us a message.</p>
+      <p>Need gifting help? Send us your custom order inquiry.</p>
 
       <div className="contact-content">
         <aside className="contact-details" aria-label="Store contact details">
@@ -86,7 +86,7 @@ export default function ContactForm() {
           </div>
           <div>
             <span>Phone</span>
-            <a href="tel:+917070759111">7070759111</a>
+            <a href="tel:+91-7070759111">+91-7070759111</a>
           </div>
           <div>
             <span>Email</span>

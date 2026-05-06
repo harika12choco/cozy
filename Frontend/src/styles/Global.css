@@ -163,9 +163,53 @@ button,
   background: linear-gradient(135deg, #651514, #501110);
 }
 
+
+
+.scroll-reveal{
+  opacity:0;
+  transform:translateY(34px);
+  filter:blur(6px);
+  transition:
+    opacity 700ms ease,
+    transform 700ms ease,
+    filter 700ms ease !important;
+  transition-delay:var(--reveal-delay, 0ms) !important;
+  will-change:opacity, transform, filter;
+}
+
+.scroll-reveal.scroll-visible{
+  opacity:1;
+  transform:translateY(0);
+  filter:blur(0);
+}
+
+.category-card.scroll-reveal,
+.collection-card.scroll-reveal,
+.product.scroll-reveal{
+  transform:translateY(28px) scale(0.96);
+}
+
+.category-card.scroll-reveal.scroll-visible,
+.collection-card.scroll-reveal.scroll-visible,
+.product.scroll-reveal.scroll-visible{
+  transform:translateY(0) scale(1);
+}
+
 @media (max-width: 640px){
   .section{
     padding:56px 6%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .scroll-reveal,
+  .category-card.scroll-reveal,
+  .collection-card.scroll-reveal,
+  .product.scroll-reveal{
+    opacity:1;
+    transform:none;
+    filter:none;
+    transition:none !important;
   }
 }
 

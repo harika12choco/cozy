@@ -25,12 +25,7 @@ function resolveApiRoot() {
     return normalizeApiRoot(envApiRoot);
   }
 
-  if (typeof window !== "undefined") {
-    const isLocalHost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
-    return (isLocalHost ? "http://localhost:5000/api" : PRODUCTION_BACKEND_API).replace(/\/$/, "");
-  }
-
-  return "http://localhost:5000/api";
+  return PRODUCTION_BACKEND_API.replace(/\/$/, "");
 }
 
 const API_ROOT = resolveApiRoot();

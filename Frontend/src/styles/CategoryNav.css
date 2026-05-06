@@ -1,0 +1,129 @@
+.category-nav {
+  position: relative;
+  z-index: 18;
+  background: linear-gradient(180deg, #f4e5d8 0%, #ead1c1 100%);
+  border-bottom: 1px solid rgba(101, 21, 20, 0.1);
+  box-shadow: 0 8px 20px rgba(91, 48, 35, 0.08);
+}
+
+.category-nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 32px;
+  min-height: 54px;
+  padding: 0 clamp(16px, 3vw, 46px);
+}
+
+.category-nav-desktop-links,
+.category-nav-mobile-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.category-nav button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--nav-text);
+  font-family: var(--body-font);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.category-nav button:hover,
+.category-nav button:focus-visible {
+  color: var(--primary);
+  outline: none;
+}
+
+.category-nav-more {
+  position: relative;
+}
+
+.category-nav-more-trigger svg {
+  width: 12px;
+  height: 12px;
+}
+
+.category-nav-more-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 230px;
+  padding: 10px 14px;
+  border: 1px solid rgba(101, 21, 20, 0.12);
+  border-radius: 8px;
+  background: #fffaf4;
+  box-shadow: 0 18px 38px rgba(59, 42, 38, 0.16);
+}
+
+.category-nav-more.open .category-nav-more-menu {
+  display: grid;
+}
+
+.category-nav-more-menu button {
+  justify-content: flex-start;
+  min-height: 38px;
+  text-align: left;
+}
+
+.category-nav-mobile-links {
+  display: none;
+}
+
+@media (max-width: 1120px) {
+  .category-nav-inner,
+  .category-nav-desktop-links {
+    gap: 24px;
+  }
+
+  .category-nav button {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 760px) {
+  .category-nav {
+    display: none;
+  }
+
+  .category-nav-inner {
+    justify-content: flex-start;
+    gap: 18px;
+    min-height: 50px;
+    padding: 0 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .category-nav-inner::-webkit-scrollbar {
+    display: none;
+  }
+
+  .category-nav-desktop-links {
+    display: none;
+  }
+
+  .category-nav-mobile-links {
+    display: flex;
+    gap: 24px;
+  }
+
+  .category-nav button {
+    font-size: 11px;
+    min-height: 40px;
+  }
+}

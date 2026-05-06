@@ -60,8 +60,8 @@ export default function Cart() {
           .then((items) => {
             setCartItems(items);
           })
-          .catch((error) => {
-            console.error("Unable to sync cart:", error);
+          .catch(() => {
+            setCartItems(getCartItems());
           });
       } else {
         setCartItems(getCartItems());

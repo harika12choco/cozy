@@ -28,12 +28,7 @@ function resolveCartApiRoot() {
     return normalizeApiRoot(envApiRoot);
   }
 
-  if (typeof window !== "undefined") {
-    const isLocalHost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
-    return (isLocalHost ? "http://localhost:5000/api" : PRODUCTION_BACKEND_API).replace(/\/$/, "");
-  }
-
-  return "http://localhost:5000/api";
+  return PRODUCTION_BACKEND_API.replace(/\/$/, "");
 }
 
 const CART_API_ROOT = resolveCartApiRoot();
@@ -180,9 +175,7 @@ export function addItemToCart(product) {
     : [...cartItems, nextItem];
 
   writeCart(updatedCart);
-  persistUserCart(auth.currentUser, updatedCart).catch((error) => {
-    console.error("Unable to sync cart:", error);
-  });
+  persistUserCart(auth.currentUser, updatedCart).catch(() => {});
 
   return updatedCart;
 }
@@ -200,9 +193,7 @@ export function updateCartItemQuantity(itemKey, quantity) {
     .filter((item) => item.quantity > 0);
 
   writeCart(updatedCart);
-  persistUserCart(auth.currentUser, updatedCart).catch((error) => {
-    console.error("Unable to sync cart:", error);
-  });
+  persistUserCart(auth.currentUser, updatedCart).catch(() => {});
 
   return updatedCart;
 }
@@ -210,9 +201,7 @@ export function updateCartItemQuantity(itemKey, quantity) {
 export function removeCartItem(itemKey) {
   const updatedCart = readCart().filter((item) => item.key !== itemKey);
   writeCart(updatedCart);
-  persistUserCart(auth.currentUser, updatedCart).catch((error) => {
-    console.error("Unable to sync cart:", error);
-  });
+  persistUserCart(auth.currentUser, updatedCart).catch(() => {});
   return updatedCart;
 }
 
@@ -224,8 +213,20 @@ export async function syncCartWithServer(user) {
   }
 
   const localCart = readCart();
-  const remoteCart = await requestCart(`/${encodeURIComponent(user.uid)}?email=${encodeURIComponent(user.email ?? "")}`);
+
+  let remoteCart;
+
+  try {
+    remoteCart = await requestCart(`/${encodeURIComponent(user.uid)}?email=${encodeURIComponent(user.email ?? "")}`);
+  } catch {
+    return localCart;
+  }
+
   const mergedItems = mergeCartItems(localCart, normalizeCartItems(remoteCart?.items ?? []));
 
-  return persistUserCart(user, mergedItems);
+  try {
+    return await persistUserCart(user, mergedItems);
+  } catch {
+    return mergedItems;
+  }
 }

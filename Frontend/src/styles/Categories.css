@@ -25,6 +25,7 @@
 .category-grid{
   display:flex;
   gap:34px;
+  padding:8px 4px 18px;
   overflow-x:auto;
   overscroll-behavior-inline:contain;
   scroll-behavior:smooth;

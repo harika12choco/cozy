@@ -1,19 +1,23 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom"
 import Navbar from "./components/Navbar"
+import CategoryNav from "./components/CategoryNav"
 import Hero from "./components/Hero"
 import Categories from "./components/Categories"
 import AboutUs from "./components/AboutUs"
 import HomeBanner from "./components/HomeBanner"
 import Collections from "./components/Collections"
+import DiscountShowcase from "./components/DiscountShowcase"
 import Products from "./components/Products"
 import ContactForm from "./components/ContactForm"
 import Footer from "./components/Footer"
+import FloatingWhatsApp from "./components/FloatingWhatsApp"
 import Shop from "./components/shop"
 import Cart from "./components/Cart"
 import Profile from "./pages/Profile"
 import AdminPortal from "./admin/AdminPortal"
 import { findCategoryBySlug } from "./utils/menuData"
+import navLogo from "./assets/navlogo.png"
 import "./styles/Global.css"
 import "./styles/Home.css"
 
@@ -41,6 +45,46 @@ function PublicSite({ page }) {
       target.scrollIntoView({ behavior: "auto", block: "start" });
     }
   }, [location]);
+
+  useEffect(() => {
+    if (page !== "home") {
+      return undefined;
+    }
+
+    const revealTargets = document.querySelectorAll(
+      ".collections-showcase, .categories, .collections-section, .collection-card, .discount-showcase, .discount-card, .best-sellers-section, .product, .about-us, .home-banner, .contact-section"
+    );
+
+    revealTargets.forEach((target, index) => {
+      target.classList.add("scroll-reveal");
+      target.style.setProperty("--reveal-delay", `${Math.min(index % 6, 5) * 70}ms`);
+    });
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("scroll-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        threshold: 0.14,
+        rootMargin: "0px 0px -8% 0px"
+      }
+    );
+
+    revealTargets.forEach((target) => observer.observe(target));
+
+    return () => {
+      observer.disconnect();
+      revealTargets.forEach((target) => {
+        target.classList.remove("scroll-reveal", "scroll-visible");
+        target.style.removeProperty("--reveal-delay");
+      });
+    };
+  }, [page]);
 
   function handleNavigate(destination) {
     const sectionMap = {
@@ -79,6 +123,7 @@ function PublicSite({ page }) {
   return (
     <>
       <Navbar activePage={activePage} onNavigate={handleNavigate}/>
+      <CategoryNav onNavigate={handleNavigate}/>
       {page === "shop" ? (
         <Shop selectedCategory={selectedCategory} />
       ) : page === "profile" ? (
@@ -91,6 +136,7 @@ function PublicSite({ page }) {
           <section className="collections-showcase">
             <Categories/>
             <Collections/>
+            <DiscountShowcase/>
           </section>
           <Products/>
           <AboutUs/>
@@ -98,6 +144,7 @@ function PublicSite({ page }) {
           <ContactForm/>
         </>
       )}
+      <FloatingWhatsApp/>
       <Footer/>
     </>
   );

@@ -71,9 +71,7 @@ export default function Navbar({ activePage, onNavigate }){
       setUser(currentUser);
 
       if (currentUser) {
-        syncCartWithServer(currentUser).catch((error) => {
-          console.error("Unable to sync cart:", error);
-        });
+        syncCartWithServer(currentUser).catch(() => {});
       }
     });
 
