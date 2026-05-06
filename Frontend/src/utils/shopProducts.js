@@ -55,9 +55,17 @@ const imageMap = {
   "/src/assets/candles/6.png": img6
 };
 
+export function isPublicStorefrontProduct(product) {
+  const productName = String(product?.name ?? "").trim().toLowerCase();
+  const productStatus = String(product?.status ?? "active").trim().toLowerCase();
+  const productImage = String(product?.image ?? product?.img ?? "").trim().toLowerCase();
+
+  return productStatus !== "draft" && productStatus !== "test" && productName !== "test" && !productImage.includes("test");
+}
+
 function formatShopProducts(products) {
   return products
-    .filter((product) => product.status !== "draft")
+    .filter(isPublicStorefrontProduct)
     .map((product) => ({
       id: product._id ?? product.id ?? product.name,
       name: product.name,

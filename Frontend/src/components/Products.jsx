@@ -5,6 +5,7 @@ import img3 from "../assets/candles/3.png";
 import { useEffect, useState } from "react";
 import { addItemToCart } from "../utils/cart";
 import { productService } from "../admin/services/productService";
+import { isPublicStorefrontProduct } from "../utils/shopProducts";
 
 const fallbackProducts = [
   {
@@ -51,7 +52,7 @@ export default function Products() {
           return;
         }
 
-        const activeProducts = items.filter((product) => product.status === "active");
+        const activeProducts = items.filter((product) => product.status === "active" && isPublicStorefrontProduct(product));
         const selectedBestSellers = activeProducts.filter((product) => product.bestSeller);
         const fallbackProductsFromActive = activeProducts.filter(
           (product) => !selectedBestSellers.some((selected) => selected.id === product.id)
