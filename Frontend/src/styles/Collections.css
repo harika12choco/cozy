@@ -70,12 +70,12 @@ position:absolute;
 left:50%;
 top:112px;
 transform:translateX(-50%);
-color:#0f0f0f;
-font-size:clamp(20px, 2.4vw, 28px);
-font-family:var(--sans-font);
+color:var(--heading-dark);
+font-size:54px;
+font-family:var(--display-font);
 font-style:normal;
-font-weight:500;
-letter-spacing:6px;
+font-weight:400;
+letter-spacing:0.5px;
 margin:0;
 white-space:nowrap;
 display:flex;
@@ -84,7 +84,7 @@ justify-content:center;
 gap:0;
 text-shadow:none;
 z-index:4;
-text-transform: uppercase;
+text-transform: none;
 }
 
 .slanted-title span {
@@ -97,14 +97,14 @@ font-weight:inherit;
 }
 
 .collection-card h3 {
-color:#1f1716;
-font-family: var(--sans-font);
-font-size:13px;
-font-weight:500;
+color:var(--heading-dark);
+font-family: var(--display-font);
+font-size:23px;
+font-weight:400;
 margin:10px 0 8px;
 line-height:1.55;
-text-transform: uppercase;
-letter-spacing: 3px;
+text-transform: none;
+letter-spacing: 0.5px;
 font-style: normal;
 }
 
@@ -119,11 +119,11 @@ padding-top:6px;
 
 .collection-card-footer span {
 color:#6f6661;
-font-size:12px;
-font-weight:400;
+font-size:14px;
+font-weight:700;
 font-family: var(--sans-font);
-text-transform: uppercase;
-letter-spacing: 3px;
+text-transform: none;
+letter-spacing: 0.01em;
 }
 
 .collection-card .btn {
@@ -148,12 +148,12 @@ background:linear-gradient(135deg, #7a1413, #5d100f);
 color:#fff;
 font-family: var(--sans-font);
 font-size:15px;
-font-weight:500;
+font-weight:700;
 text-decoration:none;
 box-shadow:0 10px 20px rgba(93,16,15,0.24);
 font-style: normal;
-text-transform: uppercase;
-letter-spacing: 2px;
+text-transform: none;
+letter-spacing: 0.01em;
 }
 
 .collections-shop-all span {
@@ -181,7 +181,7 @@ margin-top:0;
 
 .slanted-title {
 top:52px;
-font-size:34px;
+font-size:38px;
 white-space:normal;
 text-align:center;
 line-height:1.1;
@@ -204,7 +204,7 @@ padding:100px 5% 48px;
 
 .slanted-title {
 top:44px;
-font-size:30px;
+font-size:34px;
 }
 
 .collections {

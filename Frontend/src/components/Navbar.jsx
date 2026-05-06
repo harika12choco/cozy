@@ -4,6 +4,7 @@ import { getCartItems, syncCartWithServer } from "../utils/cart";
 import { auth, provider } from "../firebase";
 import { onAuthStateChanged, signInWithPopup } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import { FaSearch } from "react-icons/fa";
 import navLogo from "../assets/navlogo.png";
 import Sidebar from "./Sidebar";
 import menuData, { slugifyCategory } from "../utils/menuData";
@@ -49,6 +50,7 @@ export default function Navbar({ activePage, onNavigate }){
   const [avatarFailed, setAvatarFailed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [shopDropdownOpen, setShopDropdownOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     function syncCartCount() {
@@ -93,6 +95,14 @@ export default function Navbar({ activePage, onNavigate }){
     } catch (error) {
       console.error("Unable to sign in:", error);
     }
+  }
+
+  function handleSearchSubmit(event) {
+    event.preventDefault();
+
+    const normalizedSearch = searchTerm.trim();
+    navigate(normalizedSearch ? `/shop?search=${encodeURIComponent(normalizedSearch)}` : "/shop");
+    window.scrollTo({ top: 0, behavior: "auto" });
   }
 
   return(
@@ -182,6 +192,17 @@ export default function Navbar({ activePage, onNavigate }){
             <img src={navLogo} alt="Cozy Candle" className="logo-image" />
           </button>
         </div>
+
+        <form className="navbar-search" role="search" onSubmit={handleSearchSubmit}>
+          <FaSearch aria-hidden="true" />
+          <input
+            type="search"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+            placeholder="Search candles"
+            aria-label="Search candles"
+          />
+        </form>
 
         <div className="navbar-right">
           <button

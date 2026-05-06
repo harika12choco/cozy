@@ -15,12 +15,13 @@ export default function AboutUs() {
       <div className="about-right">
         <h2>About Us</h2>
         <p>
-          At Cozy Candle, we craft each candle with care to bring calm, warmth,
-          and elegance into your everyday space.
-        </p>
-        <p>
-          Replace the left placeholder with your brand logo or image and keep
-          this section as your intro story for customers.
+          Cozy Candle by Akansha creates refined, hand-poured candles using
+          100% pure soy wax-crafted for a cleaner burn and a softer, lasting
+          ambiance. Rooted in simplicity and attention to detail, each candle is
+          designed to bring warmth, balance, and quiet luxury into everyday
+          spaces. Why choose us? Pure ingredients, thoughtful craftsmanship, and
+          a focus on quality over excess-so every candle feels intentional, not
+          ordinary. Cozy Candle by Akansha - where comfort meets elegance.
         </p>
       </div>
     </section>

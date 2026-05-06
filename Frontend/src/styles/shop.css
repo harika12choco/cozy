@@ -14,26 +14,27 @@
 .shop-kicker{
   margin:0 0 12px;
   color:var(--primary);
-  font-family:var(--ornamental-font);
-  font-size:18px;
-  letter-spacing:2px;
-  text-transform:uppercase;
-  font-weight: 500;
+  font-family:var(--script-font);
+  font-size:38px;
+  letter-spacing:0.5px;
+  text-transform:none;
+  font-weight:400;
 }
 
 .shop-hero h1{
   margin:0 0 16px;
-  color:var(--primary);
-  font-family:var(--display-font);
-  font-size:clamp(28px, 4vw, 42px);
-  line-height:1.05;
-  font-weight: 500;
+  color:var(--heading-dark);
+  font-family:var(--script-font);
+  font-size:70px;
+  line-height:1.1;
+  font-weight:400;
+  letter-spacing:0.5px;
 }
 
 .shop-intro{
   max-width:680px;
   margin:0 auto;
-  color:rgba(42,26,25,0.86);
+  color:var(--text-dark);
   line-height:1.8;
   font-size:14px;
   font-weight: 400;
@@ -41,6 +42,42 @@
 
 .shop-grid-section{
   padding:0 10%;
+}
+
+.shop-search{
+  width:min(100%, 520px);
+  min-height:52px;
+  margin:0 auto 34px;
+  padding:0 18px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:rgba(255,255,255,0.64);
+  border:1px solid rgba(101,21,20,0.16);
+  border-radius:999px;
+  color:var(--primary);
+  box-shadow:0 14px 30px rgba(101,21,20,0.08);
+}
+
+.shop-search input{
+  width:100%;
+  min-width:0;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:var(--heading-dark);
+  font:600 15px/1.4 var(--sans-font);
+}
+
+.shop-search input::placeholder{
+  color:rgba(42,26,25,0.52);
+}
+
+.shop-empty{
+  margin:30px 0 0;
+  text-align:center;
+  color:var(--primary);
+  font-weight:700;
 }
 
 .shop-feedback{
@@ -87,13 +124,13 @@
 
 .shop-card-body h3{
   margin:10px 0 8px;
-  color:#1f1716;
-  font-family: var(--sans-font);
-  font-size:13px;
+  color:var(--heading-dark);
+  font-family: var(--display-font);
+  font-size:23px;
   line-height:1.55;
-  font-weight:500;
-  text-transform: uppercase;
-  letter-spacing: 3px;
+  font-weight:400;
+  text-transform: none;
+  letter-spacing: 0.5px;
   font-style: normal;
 }
 
@@ -106,11 +143,11 @@
 
 .shop-price{
   color:#6f6661;
-  font-weight:400;
-  font-size:12px;
+  font-weight:700;
+  font-size:14px;
   font-family: var(--sans-font);
-  text-transform: uppercase;
-  letter-spacing: 3px;
+  text-transform: none;
+  letter-spacing: 0.01em;
 }
 
 .shop-card .btn{
@@ -135,8 +172,20 @@
     padding:0 8%;
   }
 
+  .shop-search{
+    margin-bottom:28px;
+  }
+
   .shop-grid{
     grid-template-columns:repeat(2, minmax(0, 1fr));
+  }
+
+  .shop-kicker{
+    font-size:32px;
+  }
+
+  .shop-hero h1{
+    font-size:52px;
   }
 }
 
@@ -150,8 +199,8 @@
   }
 
   .shop-hero h1{
-    font-size:30px;
-    line-height:1.05;
+    font-size:38px;
+    line-height:1.08;
   }
 
   .shop-card-body{

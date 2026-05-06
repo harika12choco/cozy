@@ -1,11 +1,15 @@
 import "../styles/shop.css";
 import { useEffect, useState } from "react";
+import { FaSearch } from "react-icons/fa";
+import { useSearchParams } from "react-router-dom";
 import { addItemToCart } from "../utils/cart";
 import { matchesCategory, readShopProducts } from "../utils/shopProducts";
 
 export default function Shop({ selectedCategory = "" }) {
+  const [searchParams] = useSearchParams();
   const [shopProducts, setShopProducts] = useState([]);
   const [feedback, setFeedback] = useState("");
+  const [searchTerm, setSearchTerm] = useState(() => searchParams.get("search") ?? "");
 
   useEffect(() => {
     let active = true;
@@ -29,6 +33,10 @@ export default function Shop({ selectedCategory = "" }) {
     };
   }, []);
 
+  useEffect(() => {
+    setSearchTerm(searchParams.get("search") ?? "");
+  }, [searchParams]);
+
   function handleAddToCart(product) {
     addItemToCart(product);
     setFeedback(`${product.name} added to cart`);
@@ -37,7 +45,25 @@ export default function Shop({ selectedCategory = "" }) {
     }, 1800);
   }
 
-  const visibleProducts = shopProducts.filter((product) => matchesCategory(product, selectedCategory));
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+  const visibleProducts = shopProducts.filter((product) => {
+    if (!matchesCategory(product, selectedCategory)) {
+      return false;
+    }
+
+    if (!normalizedSearch) {
+      return true;
+    }
+
+    return [
+      product.name,
+      product.category,
+      product.price,
+      product.note
+    ]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(normalizedSearch));
+  });
 
   return (
     <main className="shop-page">
@@ -53,6 +79,17 @@ export default function Shop({ selectedCategory = "" }) {
 
       <section className="shop-grid-section">
         {feedback ? <p className="shop-feedback">{feedback}</p> : null}
+
+        <label className="shop-search" aria-label="Search candles">
+          <FaSearch aria-hidden="true" />
+          <input
+            type="search"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+            placeholder="Search candles"
+          />
+        </label>
+
         <div className="shop-grid">
           {visibleProducts.map((product) => (
             <article className="shop-card" key={product.id}>
@@ -76,6 +113,9 @@ export default function Shop({ selectedCategory = "" }) {
             </article>
           ))}
         </div>
+        {visibleProducts.length === 0 ? (
+          <p className="shop-empty">No candles found for your search.</p>
+        ) : null}
       </section>
     </main>
   );

@@ -23,12 +23,7 @@ function resolveProductsApiBase() {
     return normalizeProductsApi(import.meta.env.VITE_API_URL);
   }
 
-  if (typeof window !== "undefined") {
-    const isLocalHost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
-    return isLocalHost ? "http://localhost:5000/api/products" : PRODUCTION_PRODUCTS_API;
-  }
-
-  return "http://localhost:5000/api/products";
+  return PRODUCTION_PRODUCTS_API;
 }
 
 const API_BASE = resolveProductsApiBase();

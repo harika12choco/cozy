@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { FaInstagram } from "react-icons/fa";
+import { FaFacebook, FaInstagram } from "react-icons/fa";
 import "../styles/Footer.css";
 
 export default function Footer() {
@@ -37,6 +37,14 @@ export default function Footer() {
               aria-label="Instagram"
             >
               <FaInstagram />
+            </a>
+            <a
+              href="https://www.facebook.com/cozycandlebyakanksha?rdid=2aQkxkqfs5MZBxtC&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1GkJCU8nFm%2F#"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Facebook"
+            >
+              <FaFacebook />
             </a>
           </div>
         </div>

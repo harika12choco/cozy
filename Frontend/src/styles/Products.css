@@ -1,18 +1,19 @@
 .best-sellers-section {
   background: transparent;
+  padding-top: 118px;
 }
 
 .best-title {
   text-align: center;
-  color: #0f0f0f;
+  color: var(--heading-dark);
   margin: 0 0 32px;
-  font-size: clamp(20px, 2.2vw, 24px);
-  font-family: var(--sans-font);
+  font-size: 54px;
+  font-family: var(--display-font);
   font-style: normal;
-  font-weight: 500;
-  line-height: 1.4;
-  text-transform: uppercase;
-  letter-spacing: 6px;
+  font-weight: 400;
+  line-height: 1.05;
+  text-transform: none;
+  letter-spacing: 0.5px;
 }
 
 .products-feedback{
@@ -59,23 +60,23 @@
 
 .product h3 {
   margin: 10px 0 8px;
-  color: #1f1716;
-  font-family: var(--sans-font);
-  font-size: 13px;
+  color: var(--heading-dark);
+  font-family: var(--display-font);
+  font-size: 23px;
   line-height: 1.55;
-  text-transform: uppercase;
-  letter-spacing: 3px;
-  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0.5px;
+  font-weight: 400;
 }
 
 .product p {
   margin: 0 0 14px;
-  font-weight: 400;
+  font-weight: 700;
   color: #6f6661;
   font-family: var(--sans-font);
-  text-transform: uppercase;
-  letter-spacing: 3px;
-  font-size: 12px;
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-size: 14px;
 }
 
 .product .btn {
@@ -90,6 +91,14 @@
 }
 
 @media (max-width: 640px) {
+  .best-sellers-section {
+    padding-top: 88px;
+  }
+
+  .best-title {
+    font-size: 38px;
+  }
+
   .products {
     grid-template-columns: 1fr;
     gap: 20px;

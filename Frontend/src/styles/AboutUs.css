@@ -46,20 +46,23 @@
 
 .about-right h2 {
   margin: 0 0 16px;
-  font-size: clamp(20px, 2.2vw, 24px);
-  color: #0f0f0f;
-  font-family: var(--sans-font);
+  font-size: 54px;
+  color: var(--heading-dark);
+  font-family: var(--display-font);
   font-style: normal;
-  font-weight: 500;
-  line-height: 1.4;
-  text-transform: uppercase;
-  letter-spacing: 6px;
+  font-weight: 400;
+  line-height: 1.05;
+  text-transform: none;
+  letter-spacing: 0.5px;
+  text-align: center;
 }
 
 .about-right p {
-  margin: 0 0 14px;
-  line-height: 1.8;
+  margin: 0 auto;
+  max-width: 500px;
+  line-height: 1.9;
   color: var(--text-dark);
+  text-align: left;
 }
 
 @media (max-width: 900px) {
@@ -85,5 +88,9 @@
 
   .logo-slot {
     inset: 0;
+  }
+
+  .about-right h2 {
+    font-size: 38px;
   }
 }

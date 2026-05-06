@@ -31,12 +31,7 @@ function resolveProductsApiUrl() {
     return normalizeProductsApi(import.meta.env.VITE_API_URL);
   }
 
-  if (typeof window !== "undefined") {
-    const isLocalHost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
-    return isLocalHost ? "http://localhost:5000/api/products" : PRODUCTION_PRODUCTS_API;
-  }
-
-  return "http://localhost:5000/api/products";
+  return PRODUCTION_PRODUCTS_API;
 }
 
 const PRODUCTS_API_URL = resolveProductsApiUrl();
@@ -143,8 +138,7 @@ export async function readShopProducts() {
     const sourceProducts = mergeProducts(normalizedProducts, legacyProducts);
 
     return formatShopProducts(sourceProducts.length > 0 ? sourceProducts : defaultShopProducts);
-  } catch (error) {
-    console.error("Unable to load storefront products:", error);
+  } catch {
     const fallbackProducts = legacyProducts.length > 0 ? legacyProducts : defaultShopProducts;
     return formatShopProducts(fallbackProducts);
   }

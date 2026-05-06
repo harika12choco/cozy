@@ -1,0 +1,95 @@
+.home-banner{
+  padding:20px 6% 84px;
+  background:
+    linear-gradient(180deg, transparent 0%, rgba(251,244,236,0.64) 48%, transparent 100%);
+}
+
+.home-banner-frame{
+  position:relative;
+  max-width:1180px;
+  margin:0 auto;
+  aspect-ratio:16 / 5;
+  padding:12px;
+  border:1px solid rgba(255,250,244,0.7);
+  border-radius:36px 12px 36px 12px;
+  overflow:hidden;
+  background:rgba(255,250,244,0.26);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  box-shadow:
+    0 30px 58px rgba(91,52,39,0.16),
+    inset 0 1px 0 rgba(255,255,255,0.7),
+    inset 0 -18px 34px rgba(255,250,244,0.22);
+}
+
+.home-banner-frame::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:2;
+  background:
+    linear-gradient(120deg, rgba(255,255,255,0.34) 0%, transparent 26%),
+    linear-gradient(180deg, rgba(255,250,244,0.12) 0%, rgba(101,21,20,0.06) 100%);
+  pointer-events:none;
+}
+
+.home-banner-frame::after{
+  content:"";
+  position:absolute;
+  inset:12px;
+  z-index:3;
+  border:1px solid rgba(255,255,255,0.48);
+  border-radius:26px 7px 26px 7px;
+  box-shadow:inset 0 0 34px rgba(255,255,255,0.18);
+  pointer-events:none;
+}
+
+.home-banner-frame img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  border-radius:26px 7px 26px 7px;
+  box-shadow:0 16px 34px rgba(59,42,38,0.1);
+}
+
+@media (max-width: 760px){
+  .home-banner{
+    padding:4px 5% 44px;
+  }
+
+  .home-banner-frame{
+    aspect-ratio:auto;
+    padding:8px;
+    border-radius:24px 8px 24px 8px;
+    box-shadow:
+      0 22px 40px rgba(91,52,39,0.16),
+      inset 0 1px 0 rgba(255,255,255,0.7);
+  }
+
+  .home-banner-frame::after{
+    inset:8px;
+    border-radius:18px 5px 18px 5px;
+  }
+
+  .home-banner-frame img{
+    height:auto;
+    object-fit:contain;
+    border-radius:18px 5px 18px 5px;
+  }
+}
+
+@media (max-width: 420px){
+  .home-banner{
+    padding-bottom:34px;
+  }
+
+  .home-banner-frame{
+    padding:6px;
+    border-radius:20px 7px 20px 7px;
+  }
+
+  .home-banner-frame::after{
+    inset:6px;
+  }
+}

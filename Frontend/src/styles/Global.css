@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Satisfy&display=swap');
+
 :root{
   --primary: #651514;
   --accent: #6D0B0A;
@@ -6,13 +8,15 @@
   --soft-ivory: #fbf4ec;
   --warm-blush: #f3e5d7;
   --panel-bg: rgba(255, 250, 244, 0.92);
-  --text-dark: #2A1A19;
-  --body-font: "Montserrat", sans-serif;
-  --display-font: "Cormorant Garamond", serif;
-  --script-font: "Cormorant Garamond", serif;
-  --handwritten-font: "Cormorant Garamond", serif;
-  --ornamental-font: "Cormorant Garamond", serif;
-  --sans-font: "Montserrat", sans-serif;
+  --text-dark: #5A4A42;
+  --heading-dark: #3B2A26;
+  --nav-text: #4A342E;
+  --body-font: "Quicksand", sans-serif;
+  --display-font: "Satisfy", cursive;
+  --script-font: "Satisfy", cursive;
+  --handwritten-font: "Satisfy", cursive;
+  --ornamental-font: "Satisfy", cursive;
+  --sans-font: "Quicksand", sans-serif;
 }
 
 html{
@@ -28,6 +32,8 @@ body{
     radial-gradient(920px 420px at 50% 58%, rgba(248, 238, 228, 0.9), transparent 78%),
     linear-gradient(180deg, #f7efe7 0%, #f4e9de 28%, #f1e4d7 58%, #efe1d2 100%);
   color: var(--text-dark);
+  font-weight:400;
+  letter-spacing:0.5px;
   overflow-x:hidden;
 }
 
@@ -38,7 +44,8 @@ h4,
 h5,
 h6{
   font-family:var(--display-font);
-  letter-spacing:1px;
+  letter-spacing:0.5px;
+  color:var(--heading-dark);
 }
 
 .section{
@@ -65,34 +72,81 @@ button,
 .btn,
 .hero-btn{
   font-family:var(--body-font);
-  font-weight:600;
-  letter-spacing:0.5px;
+  font-size:16px;
+  font-weight:700;
+  letter-spacing:0.01em;
 }
 
-.logo,
-.hero-content h1{
-  font-family:var(--display-font);
-  font-weight:500;
+.logo{
+  font-family:var(--body-font);
+  font-weight:600;
+}
+
+.dancing-script-400 {
+  font-family: "Satisfy", cursive;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.dancing-script-700 {
+  font-family: "Satisfy", cursive;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.satisfy-regular {
+  font-family: "Satisfy", cursive;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.great-vibes-regular {
+  font-family: "Satisfy", cursive;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.hero-title,
+.elegant-title{
+  font-family: "Satisfy", cursive;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: 0.5px;
+  color: var(--heading-dark);
 }
 
 .best-title,
 .about-right h2,
 .contact-section h2{
-  color:#0f0f0f;
-  font-family:var(--sans-font);
-  font-size:clamp(20px, 2.2vw, 24px);
+  color:var(--heading-dark);
+  font-family:var(--display-font);
+  font-size:54px;
   font-style:normal;
-  font-weight:500;
-  line-height:1.4;
-  letter-spacing:6px;
-  text-transform:uppercase;
+  font-weight:400;
+  line-height:1.05;
+  letter-spacing:0.5px;
+  text-transform:none;
 }
 
+.slanted-title,
 .shop-card-body h3,
+.collection-card h3,
+.product h3,
 .footer-links h3,
 .footer-social h3{
   font-family:var(--display-font);
-  font-weight:500;
+  font-weight:400;
+}
+
+.footer-brand h2,
+.admin-sidebar h2,
+.admin-topbar h1,
+.admin-login-card h1{
+  font-family:var(--script-font);
+  font-weight:400;
+  letter-spacing:0.3px;
 }
 
 .btn{
@@ -107,6 +161,12 @@ button,
 
 .btn:hover{
   background: linear-gradient(135deg, #651514, #501110);
+}
+
+@media (max-width: 640px){
+  .section{
+    padding:56px 6%;
+  }
 }
 
 *,

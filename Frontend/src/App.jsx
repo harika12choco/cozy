@@ -4,6 +4,7 @@ import Navbar from "./components/Navbar"
 import Hero from "./components/Hero"
 import Categories from "./components/Categories"
 import AboutUs from "./components/AboutUs"
+import HomeBanner from "./components/HomeBanner"
 import Collections from "./components/Collections"
 import Products from "./components/Products"
 import ContactForm from "./components/ContactForm"
@@ -93,6 +94,7 @@ function PublicSite({ page }) {
           </section>
           <Products/>
           <AboutUs/>
+          <HomeBanner/>
           <ContactForm/>
         </>
       )}
