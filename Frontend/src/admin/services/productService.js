@@ -61,7 +61,8 @@ function normalizeProduct(product) {
     ...product,
     id: product.id ?? product._id,
     status: product.status ?? "active",
-    bestSeller: Boolean(product.bestSeller)
+    bestSeller: Boolean(product.bestSeller ?? product.isBestSeller),
+    isBestSeller: Boolean(product.isBestSeller ?? product.bestSeller)
   };
 }
 

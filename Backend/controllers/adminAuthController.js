@@ -44,6 +44,11 @@ function loginAdmin(req, res) {
   });
 }
 
+function verifyAdminToken(req, res) {
+  return res.json({ valid: true, admin: req.admin ?? null });
+}
+
 module.exports = {
-  loginAdmin
+  loginAdmin,
+  verifyAdminToken
 };

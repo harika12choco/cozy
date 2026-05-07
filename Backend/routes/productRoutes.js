@@ -7,6 +7,7 @@ const { writeLimiter } = require("../middleware/rateLimiter");
 const {
   addProduct,
   getProducts,
+  searchProducts,
   getProductById,
   updateProduct,
   deleteProduct
@@ -25,6 +26,7 @@ router.get("/products/cloudinary/signature", authenticateAdmin, writeLimiter, se
 
 router.post("/products", authenticateAdmin, writeLimiter, addProduct);
 router.get("/products", getProducts);
+router.get("/products/search", searchProducts);
 router.get("/products/:id", getProductById);
 router.put("/products/:id", authenticateAdmin, writeLimiter, updateProduct);
 router.delete("/products/:id", authenticateAdmin, writeLimiter, deleteProduct);

@@ -192,7 +192,9 @@ export default function Navbar({ activePage, onNavigate }){
         </div>
 
         <form className="navbar-search" role="search" onSubmit={handleSearchSubmit}>
-          <FaSearch aria-hidden="true" />
+          <button type="submit" className="navbar-search-btn" aria-label="Search">
+            <FaSearch aria-hidden="true" />
+          </button>
           <input
             type="search"
             value={searchTerm}

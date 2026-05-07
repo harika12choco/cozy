@@ -56,6 +56,11 @@ export const adminAuthService = {
     return response;
   },
 
+  async verify() {
+    const response = await requestJson("/admin/verify-token");
+    return response?.valid === true;
+  },
+
   logout() {
     clearToken();
   }

@@ -9,15 +9,23 @@ const FEATURED_PRODUCT_COUNT = 4;
 export default function Collections(){
 const [featuredProducts, setFeaturedProducts] = useState([]);
 const [feedback, setFeedback] = useState("");
+const [loading, setLoading] = useState(true);
 
 useEffect(() => {
 let active = true;
 
 async function syncFeaturedProducts() {
+try {
+setLoading(true);
 const products = await readShopProducts();
 
 if (active) {
 setFeaturedProducts(products.slice(0, FEATURED_PRODUCT_COUNT));
+}
+} finally {
+if (active) {
+setLoading(false);
+}
 }
 }
 
@@ -33,6 +41,14 @@ window.removeEventListener("cozy-admin-products-updated", syncFeaturedProducts);
 }, []);
 
 function handleAddToCart(product) {
+if (product.stock <= 0) {
+setFeedback("Out of stock");
+window.setTimeout(() => {
+setFeedback("");
+}, 1800);
+return;
+}
+
 addItemToCart(product);
 setFeedback(`${product.name} added to cart`);
 window.setTimeout(() => {
@@ -63,7 +79,11 @@ return(
 
 <div className="collections">
 
-{featuredProducts.map((product) => (
+{loading ? (
+<p className="collections-feedback">Loading products...</p>
+) : featuredProducts.length === 0 ? (
+<p className="collections-feedback">No products available.</p>
+) : featuredProducts.map((product) => (
 <article className="collection-card" key={product.id}>
 <div className="collection-media">
 <img
@@ -76,10 +96,14 @@ className="collection-img"
 <h3>{product.name}</h3>
 <div className="collection-card-footer">
 <span>{product.price}</span>
+<span className="collection-stock">
+{product.stock > 0 ? `${product.stock} items left` : "Out of Stock"}
+</span>
 <button
 className="btn"
 type="button"
 onClick={() => handleAddToCart(product)}
+disabled={product.stock <= 0}
 >
 Add to Cart
 </button>

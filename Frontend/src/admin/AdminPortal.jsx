@@ -50,6 +50,46 @@ export default function AdminPortal({ currentPage = "dashboard", currentProductI
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(() => adminAuthService.isAuthenticated());
 
+  useEffect(() => {
+    let active = true;
+
+    async function validateToken() {
+      if (!adminAuthService.isAuthenticated()) {
+        return;
+      }
+
+      try {
+        const valid = await adminAuthService.verify();
+        if (!active) {
+          return;
+        }
+
+        if (!valid) {
+          adminAuthService.logout();
+          setIsAuthenticated(false);
+          if (currentPage !== "login") {
+            navigate("/admin/login", { replace: true });
+          }
+        }
+      } catch {
+        if (!active) {
+          return;
+        }
+        adminAuthService.logout();
+        setIsAuthenticated(false);
+        if (currentPage !== "login") {
+          navigate("/admin/login", { replace: true });
+        }
+      }
+    }
+
+    validateToken();
+
+    return () => {
+      active = false;
+    };
+  }, [currentPage, navigate]);
+
   function goTo(page, id = "") {
     const routeMap = {
       login: "/admin/login",

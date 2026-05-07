@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 
 const orderLineItemSchema = new mongoose.Schema(
   {
+    productId: {
+      type: String,
+      default: ""
+    },
     name: {
       type: String,
       required: true

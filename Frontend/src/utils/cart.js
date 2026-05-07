@@ -48,12 +48,14 @@ function parseStoredCart(savedCart) {
 }
 
 function normalizeCartItem(product) {
+  const itemId = String(product.itemId ?? product._id ?? "").trim();
   const productId = String(product.productId ?? product.id ?? product._id ?? "").trim();
   const price = String(product.price ?? "").trim();
   const name = String(product.name ?? "").trim();
   const key = String(product.key ?? [productId || name, price].filter(Boolean).join("::")).trim();
 
   return {
+    itemId,
     key,
     productId,
     name,
@@ -109,10 +111,28 @@ function mergeCartItems(primaryItems, secondaryItems) {
   return Array.from(merged.values());
 }
 
-async function requestCart(path, options = {}) {
+function getUserHeaders(user) {
+  if (!user?.uid) {
+    return null;
+  }
+
+  return {
+    "x-user-id": user.uid,
+    "x-user-email": user.email ?? ""
+  };
+}
+
+async function requestCart(user, path, options = {}) {
+  const headers = getUserHeaders(user);
+
+  if (!headers) {
+    throw new Error("User authentication required");
+  }
+
   const response = await fetch(`${CART_API_ROOT}/cart${path}`, {
     headers: {
       "Content-Type": "application/json",
+      ...headers,
       ...(options.headers ?? {})
     },
     ...options
@@ -134,22 +154,62 @@ async function requestCart(path, options = {}) {
   return response.json();
 }
 
-async function persistUserCart(user, cartItems) {
-  if (!user?.uid) {
-    return normalizeCartItems(cartItems);
-  }
+async function fetchUserCart(user) {
+  const cart = await requestCart(user, "/");
+  return normalizeCartItems(cart?.items ?? []);
+}
 
+async function replaceUserCart(user, cartItems) {
   const payload = {
-    email: user.email ?? "",
     items: normalizeCartItems(cartItems)
   };
 
-  const savedCart = await requestCart(`/${encodeURIComponent(user.uid)}`, {
+  const savedCart = await requestCart(user, "/", {
     method: "PUT",
     body: JSON.stringify(payload)
   });
 
   const nextItems = normalizeCartItems(savedCart?.items ?? payload.items);
+  writeCart(nextItems);
+  return nextItems;
+}
+
+async function addItemToServer(user, cartItem) {
+  if (!cartItem.productId) {
+    return normalizeCartItems(readCart());
+  }
+
+  const savedCart = await requestCart(user, "/", {
+    method: "POST",
+    body: JSON.stringify({
+      productId: cartItem.productId,
+      quantity: cartItem.quantity ?? 1,
+      key: cartItem.key
+    })
+  });
+
+  const nextItems = normalizeCartItems(savedCart?.items ?? []);
+  writeCart(nextItems);
+  return nextItems;
+}
+
+async function updateServerItem(user, itemId, quantity) {
+  const savedCart = await requestCart(user, `/${encodeURIComponent(itemId)}`, {
+    method: "PUT",
+    body: JSON.stringify({ quantity })
+  });
+
+  const nextItems = normalizeCartItems(savedCart?.items ?? []);
+  writeCart(nextItems);
+  return nextItems;
+}
+
+async function removeServerItem(user, itemId) {
+  const savedCart = await requestCart(user, `/${encodeURIComponent(itemId)}`, {
+    method: "DELETE"
+  });
+
+  const nextItems = normalizeCartItems(savedCart?.items ?? []);
   writeCart(nextItems);
   return nextItems;
 }
@@ -175,7 +235,9 @@ export function addItemToCart(product) {
     : [...cartItems, nextItem];
 
   writeCart(updatedCart);
-  persistUserCart(auth.currentUser, updatedCart).catch(() => {});
+  if (auth.currentUser) {
+    addItemToServer(auth.currentUser, nextItem).catch(() => {});
+  }
 
   return updatedCart;
 }
@@ -193,15 +255,31 @@ export function updateCartItemQuantity(itemKey, quantity) {
     .filter((item) => item.quantity > 0);
 
   writeCart(updatedCart);
-  persistUserCart(auth.currentUser, updatedCart).catch(() => {});
+  if (auth.currentUser) {
+    const targetItem = updatedCart.find((item) => item.key === itemKey);
+
+    if (targetItem?.itemId) {
+      updateServerItem(auth.currentUser, targetItem.itemId, quantity).catch(() => {});
+    } else {
+      replaceUserCart(auth.currentUser, updatedCart).catch(() => {});
+    }
+  }
 
   return updatedCart;
 }
 
 export function removeCartItem(itemKey) {
-  const updatedCart = readCart().filter((item) => item.key !== itemKey);
+  const currentItems = readCart();
+  const removedItem = currentItems.find((item) => item.key === itemKey);
+  const updatedCart = currentItems.filter((item) => item.key !== itemKey);
   writeCart(updatedCart);
-  persistUserCart(auth.currentUser, updatedCart).catch(() => {});
+  if (auth.currentUser) {
+    if (removedItem?.itemId) {
+      removeServerItem(auth.currentUser, removedItem.itemId).catch(() => {});
+    } else {
+      replaceUserCart(auth.currentUser, updatedCart).catch(() => {});
+    }
+  }
   return updatedCart;
 }
 
@@ -214,18 +292,18 @@ export async function syncCartWithServer(user) {
 
   const localCart = readCart();
 
-  let remoteCart;
+  let remoteItems = [];
 
   try {
-    remoteCart = await requestCart(`/${encodeURIComponent(user.uid)}?email=${encodeURIComponent(user.email ?? "")}`);
+    remoteItems = await fetchUserCart(user);
   } catch {
     return localCart;
   }
 
-  const mergedItems = mergeCartItems(localCart, normalizeCartItems(remoteCart?.items ?? []));
+  const mergedItems = mergeCartItems(localCart, remoteItems);
 
   try {
-    return await persistUserCart(user, mergedItems);
+    return await replaceUserCart(user, mergedItems);
   } catch {
     return mergedItems;
   }

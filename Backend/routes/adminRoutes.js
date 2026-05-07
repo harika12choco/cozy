@@ -1,6 +1,6 @@
 const express = require("express");
 const { authenticateAdmin } = require("../middleware/adminAuth");
-const { loginAdmin } = require("../controllers/adminAuthController");
+const { loginAdmin, verifyAdminToken } = require("../controllers/adminAuthController");
 const { loginLimiter, writeLimiter } = require("../middleware/rateLimiter");
 
 const {
@@ -20,6 +20,7 @@ const {
 const router = express.Router();
 
 router.post("/admin/auth/login", loginLimiter, loginAdmin);
+router.get("/admin/verify-token", authenticateAdmin, verifyAdminToken);
 
 router.get("/orders", authenticateAdmin, listOrders);
 router.post("/orders", writeLimiter, createOrder);

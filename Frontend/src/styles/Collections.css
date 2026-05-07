@@ -126,6 +126,12 @@ text-transform: none;
 letter-spacing: 0.01em;
 }
 
+.collection-stock {
+color:#7a3f25;
+font-size:12px;
+font-weight:600;
+}
+
 .collection-card .btn {
 min-width:148px;
 padding:12px 22px;

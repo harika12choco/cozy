@@ -1,78 +1,33 @@
 import "../styles/Products.css";
-import img1 from "../assets/candles/1.png";
-import img2 from "../assets/candles/2.png";
-import img3 from "../assets/candles/3.png";
 import { useEffect, useState } from "react";
 import { addItemToCart } from "../utils/cart";
-import { productService } from "../admin/services/productService";
-import { isPublicStorefrontProduct } from "../utils/shopProducts";
-
-const fallbackProducts = [
-  {
-    name: "Vanilla Dream",
-    price: 499,
-    image: img1,
-    bestSeller: true,
-    status: "active"
-  },
-  {
-    name: "Rose Bliss",
-    price: 599,
-    image: img2,
-    bestSeller: true,
-    status: "active"
-  },
-  {
-    name: "Lavender Calm",
-    price: 549,
-    image: img3,
-    bestSeller: true,
-    status: "active"
-  }
-];
-
-const fallbackImageMap = {
-  "Vanilla Dream": img1,
-  "Rose Bliss": img2,
-  "Lavender Calm": img3
-};
+import { readBestSellerProducts } from "../utils/shopProducts";
 
 export default function Products() {
   const [feedback, setFeedback] = useState("");
-  const [products, setProducts] = useState(fallbackProducts);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
 
     async function loadProducts() {
       try {
-        const items = await productService.list();
+        setLoading(true);
+        const items = await readBestSellerProducts();
 
         if (!active) {
           return;
         }
 
-        const activeProducts = items.filter((product) => product.status === "active" && isPublicStorefrontProduct(product));
-        const selectedBestSellers = activeProducts.filter((product) => product.bestSeller);
-        const fallbackProductsFromActive = activeProducts.filter(
-          (product) => !selectedBestSellers.some((selected) => selected.id === product.id)
-        );
-        const displayProducts = [
-          ...selectedBestSellers,
-          ...fallbackProductsFromActive
-        ]
-          .slice(0, 3)
-          .map((product) => ({
-            ...product,
-            image: product.image || fallbackImageMap[product.name] || ""
-          }));
-
-        if (displayProducts.length > 0) {
-          setProducts(displayProducts);
-        }
+        setProducts(items.slice(0, 3));
       } catch {
         if (active) {
-          setProducts(fallbackProducts);
+          setProducts([]);
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
         }
       }
     }
@@ -89,9 +44,14 @@ export default function Products() {
   }, []);
 
   const addToCart = (product) => {
+    if (product.stock <= 0) {
+      setFeedback("Out of stock");
+      return;
+    }
+
     addItemToCart({
       ...product,
-      img: product.image
+      img: product.img ?? product.image
     });
     setFeedback(`${product.name} added to cart`);
     window.setTimeout(() => {
@@ -105,19 +65,27 @@ export default function Products() {
       {feedback ? <p className="products-feedback">{feedback}</p> : null}
 
       <div className="products">
-        {products.map((p, i) => (
-          <article className="product" key={p.id ?? i}>
+        {loading ? (
+          <p className="products-feedback">Loading best sellers...</p>
+        ) : products.length === 0 ? (
+          <p className="products-feedback">No products available.</p>
+        ) : products.map((p) => (
+          <article className="product" key={p.id}>
             <div className="product-image-wrap">
-              <img src={p.image} alt={p.name} />
+              <img src={p.img ?? p.image} alt={p.name} />
             </div>
 
             <h3>{p.name}</h3>
-            <p>Rs {p.price}</p>
+            <p>{p.price}</p>
+            <p className="product-stock">
+              {p.stock > 0 ? `${p.stock} items left` : "Out of Stock"}
+            </p>
 
             <button
               className="btn"
               type="button"
               onClick={() => addToCart(p)}
+              disabled={p.stock <= 0}
             >
               Add to Cart
             </button>

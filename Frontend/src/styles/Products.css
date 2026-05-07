@@ -79,6 +79,13 @@
   font-size: 14px;
 }
 
+.product-stock {
+  margin: 0 0 12px;
+  font-weight: 600;
+  color: #7a3f25;
+  font-size: 13px;
+}
+
 .product .btn {
   font-family: var(--sans-font);
   font-style: normal;

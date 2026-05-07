@@ -9,6 +9,7 @@ import {
   updateCartItemQuantity
 } from "../utils/cart";
 import { orderService } from "../admin/services/orderService";
+import { fetchProductsByIds } from "../utils/shopProducts";
 import "../styles/Cart.css";
 
 function parsePrice(price) {
@@ -31,6 +32,7 @@ export default function Cart() {
     phone: "",
     pincode: ""
   });
+  const [stockMap, setStockMap] = useState({});
 
   const navigate = useNavigate();
   const [user, setUser] = useState(() => auth.currentUser);
@@ -49,6 +51,50 @@ export default function Cart() {
       window.removeEventListener("storage", syncCart);
     };
   }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadStock() {
+      const ids = Array.from(
+        new Set(
+          cartItems
+            .map((item) => item.productId)
+            .filter(Boolean)
+        )
+      );
+
+      if (ids.length === 0) {
+        if (active) {
+          setStockMap({});
+        }
+        return;
+      }
+
+      try {
+        const products = await fetchProductsByIds(ids);
+        if (!active) {
+          return;
+        }
+
+        const nextMap = products.reduce((acc, product) => {
+          acc[product.productId] = Number(product.stock ?? 0);
+          return acc;
+        }, {});
+        setStockMap(nextMap);
+      } catch {
+        if (active) {
+          setStockMap({});
+        }
+      }
+    }
+
+    loadStock();
+
+    return () => {
+      active = false;
+    };
+  }, [cartItems]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -78,6 +124,18 @@ export default function Cart() {
         0
       ),
     [cartItems]
+  );
+
+  const outOfStockItems = useMemo(
+    () =>
+      cartItems.filter((item) => {
+        const stock = stockMap[item.productId];
+        if (stock === undefined) {
+          return false;
+        }
+        return stock <= 0 || item.quantity > stock;
+      }),
+    [cartItems, stockMap]
   );
 
   const handleChange = (event) => {
@@ -157,6 +215,11 @@ export default function Cart() {
       return;
     }
 
+    if (outOfStockItems.length > 0) {
+      setOrderError("Some items are out of stock. Please update your cart.");
+      return;
+    }
+
     if (!customer.name || !customer.phone || !customer.address || !customer.pincode) {
       alert("Please fill all delivery details.");
       return;
@@ -205,6 +268,7 @@ export default function Cart() {
         placedByUid: user?.uid || null,
         placedByName: user?.displayName || customer.name,
         lineItems: cartItems.map((item) => ({
+          productId: item.productId,
           name: item.name,
           price: item.price,
           quantity: item.quantity
@@ -309,6 +373,13 @@ Please confirm my order.
                 <div className="cart-item-details">
                   <h2>{item.name}</h2>
                   <p>{item.price}</p>
+                  {item.productId ? (
+                    <p className="cart-stock">
+                      {stockMap[item.productId] > 0
+                        ? `${stockMap[item.productId]} items left`
+                        : "Out of Stock"}
+                    </p>
+                  ) : null}
 
                   <div className="cart-item-actions">
                     <div className="cart-quantity">
@@ -409,7 +480,16 @@ Please confirm my order.
 
             {orderError ? <p className="products-feedback">{orderError}</p> : null}
 
-            <button className="btn" type="button" onClick={placeOrderWhatsApp} disabled={placingOrder}>
+            {outOfStockItems.length > 0 ? (
+              <p className="products-feedback">Some items are out of stock. Update your cart to continue.</p>
+            ) : null}
+
+            <button
+              className="btn"
+              type="button"
+              onClick={placeOrderWhatsApp}
+              disabled={placingOrder || outOfStockItems.length > 0}
+            >
               {placingOrder ? "Placing Order..." : "Place Order on WhatsApp"}
             </button>
           </aside>

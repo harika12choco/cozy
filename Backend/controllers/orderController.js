@@ -1,4 +1,5 @@
 const Order = require("../models/Order");
+const Product = require("../models/productModel");
 const mongoose = require("mongoose");
 
 function isValidPincode(value) {
@@ -19,6 +20,113 @@ function normalizeOrderPayload(payload = {}, partial = false) {
   }
 
   return normalized;
+}
+
+function normalizeLineItems(items) {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  return items
+    .map((item) => ({
+      productId: String(item.productId ?? item.id ?? "").trim(),
+      name: String(item.name ?? "").trim(),
+      price: String(item.price ?? "").trim(),
+      quantity: Number(item.quantity ?? 0)
+    }))
+    .filter((item) => item.name && item.price && item.quantity > 0);
+}
+
+async function resolveProductId(item) {
+  if (item.productId) {
+    return item.productId;
+  }
+
+  if (!item.name) {
+    return "";
+  }
+
+  const product = await Product.findOne({ name: item.name });
+  return product?._id ? String(product._id) : "";
+}
+
+async function reserveStock(lineItems) {
+  const session = await mongoose.startSession();
+
+  try {
+    await session.withTransaction(async () => {
+      for (const item of lineItems) {
+        const productId = await resolveProductId(item);
+
+        if (!productId) {
+          throw new Error(`Missing product id for ${item.name || "item"}`);
+        }
+
+        item.productId = productId;
+
+        const updated = await Product.findOneAndUpdate(
+          { _id: productId, stock: { $gte: item.quantity } },
+          { $inc: { stock: -item.quantity } },
+          { new: true, session }
+        );
+
+        if (!updated) {
+          throw new Error(`Out of stock: ${item.name || item.productId}`);
+        }
+      }
+    });
+
+    return;
+  } catch (error) {
+    if (!/Transaction numbers are only allowed/.test(error.message)) {
+      throw error;
+    }
+  } finally {
+    session.endSession();
+  }
+
+  const reserved = [];
+
+  try {
+    for (const item of lineItems) {
+      const productId = await resolveProductId(item);
+
+      if (!productId) {
+        throw new Error(`Missing product id for ${item.name || "item"}`);
+      }
+
+      item.productId = productId;
+
+      const updated = await Product.findOneAndUpdate(
+        { _id: productId, stock: { $gte: item.quantity } },
+        { $inc: { stock: -item.quantity } },
+        { new: true }
+      );
+
+      if (!updated) {
+        throw new Error(`Out of stock: ${item.name || item.productId}`);
+      }
+
+      reserved.push({ productId, quantity: item.quantity });
+    }
+  } catch (error) {
+    await Promise.all(
+      reserved.map((item) =>
+        Product.findByIdAndUpdate(item.productId, { $inc: { stock: item.quantity } })
+      )
+    );
+    throw error;
+  }
+}
+
+async function releaseStock(lineItems) {
+  await Promise.all(
+    lineItems
+      .filter((item) => item.productId)
+      .map((item) =>
+        Product.findByIdAndUpdate(item.productId, { $inc: { stock: item.quantity } })
+      )
+  );
 }
 
 const defaultOrders = [
@@ -47,13 +155,33 @@ const listOrders = async (req, res) => {
 const createOrder = async (req, res) => {
   try {
     const payload = normalizeOrderPayload(req.body, false);
+    const lineItems = normalizeLineItems(payload.lineItems ?? []);
 
     if (!isValidPincode(payload.pincode)) {
       return res.status(400).json({ error: "Pincode must be exactly 6 digits." });
     }
 
+    if (lineItems.length === 0) {
+      return res.status(400).json({ error: "Order items are required." });
+    }
+
+    payload.lineItems = lineItems;
+
+    try {
+      await reserveStock(lineItems);
+    } catch (stockError) {
+      return res.status(409).json({ error: stockError.message || "Out of stock" });
+    }
+
     const order = new Order(payload);
-    await order.save();
+
+    try {
+      await order.save();
+    } catch (saveError) {
+      await releaseStock(lineItems);
+      throw saveError;
+    }
+
     res.status(201).json(order);
   } catch (error) {
     res.status(500).json({ error: error.message });

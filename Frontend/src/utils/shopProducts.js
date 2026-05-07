@@ -35,16 +35,6 @@ function resolveProductsApiUrl() {
 }
 
 const PRODUCTS_API_URL = resolveProductsApiUrl();
-const ADMIN_STORAGE_KEY = "cozy-candle-admin-db";
-
-const defaultShopProducts = [
-  { id: "shop_1", name: "Vanilla Dream", price: 499, description: "Soft vanilla and warm amber", image: img1, status: "active" },
-  { id: "shop_2", name: "Rose Bliss", price: 599, description: "Romantic floral evening glow", image: img2, status: "active" },
-  { id: "shop_3", name: "Lavender Calm", price: 549, description: "Relaxing spa-style scent", image: img3, status: "active" },
-  { id: "shop_4", name: "Bloom Candle", price: 649, description: "Creamy petals and fresh air", image: img4, status: "active" },
-  { id: "shop_5", name: "Golden Luxe", price: 699, description: "Rich vanilla musk finish", image: img5, status: "active" },
-  { id: "shop_6", name: "Aroma Haven", price: 579, description: "Herbal calm for cozy nights", image: img6, status: "active" }
-];
 
 const imageMap = {
   "/src/assets/candles/1.png": img1,
@@ -68,11 +58,15 @@ function formatShopProducts(products) {
     .filter(isPublicStorefrontProduct)
     .map((product) => ({
       id: product._id ?? product.id ?? product.name,
+      productId: product._id ?? product.id ?? "",
       name: product.name,
       category: product.category ?? "",
       price: `Rs ${product.price}`,
       note: product.description,
-      img: imageMap[product.image] ?? product.image ?? img1
+      img: imageMap[product.image] ?? product.image ?? img1,
+      stock: Number(product.stock ?? 0),
+      bestSeller: Boolean(product.bestSeller ?? product.isBestSeller),
+      isBestSeller: Boolean(product.isBestSeller ?? product.bestSeller)
     }));
 }
 
@@ -106,48 +100,72 @@ export function matchesCategory(product, selectedCategory) {
   return productCategory === normalizedCategory;
 }
 
-function readLegacyProducts() {
-  if (typeof window === "undefined") {
-    return [];
+function buildProductsUrl({ search, bestSeller, ids } = {}) {
+  if (search) {
+    return `${PRODUCTS_API_URL}/search?q=${encodeURIComponent(search)}`;
   }
 
-  try {
-    const savedDb = JSON.parse(window.localStorage.getItem(ADMIN_STORAGE_KEY));
-    return Array.isArray(savedDb?.products) ? savedDb.products : [];
-  } catch (error) {
-    console.error("Unable to read admin product cache:", error);
-    return [];
+  const params = new URLSearchParams();
+
+  if (bestSeller !== undefined && bestSeller !== null) {
+    params.set("bestSeller", String(bestSeller));
   }
+
+  if (Array.isArray(ids) && ids.length > 0) {
+    params.set("ids", ids.join(","));
+  }
+
+  const query = params.toString();
+  return query ? `${PRODUCTS_API_URL}?${query}` : PRODUCTS_API_URL;
 }
 
-function mergeProducts(primaryProducts, secondaryProducts) {
-  const productMap = new Map();
+async function fetchProducts(options = {}) {
+  const response = await fetch(buildProductsUrl(options));
 
-  [...secondaryProducts, ...primaryProducts].forEach((product) => {
-    const key = product._id ?? product.id ?? product.name;
-    productMap.set(key, product);
-  });
+  if (!response.ok) {
+    throw new Error(`Unable to load products (${response.status})`);
+  }
 
-  return Array.from(productMap.values());
+  const products = await response.json();
+  return Array.isArray(products) ? products : [];
 }
 
 export async function readShopProducts() {
-  const legacyProducts = readLegacyProducts();
-
   try {
-    const response = await fetch(PRODUCTS_API_URL);
+    const products = await fetchProducts();
+    return formatShopProducts(products);
+  } catch (error) {
+    console.error("Unable to load products:", error);
+    return [];
+  }
+}
 
-    if (!response.ok) {
-      throw new Error(`Unable to load products (${response.status})`);
-    }
+export async function readBestSellerProducts() {
+  try {
+    const products = await fetchProducts({ bestSeller: true });
+    return formatShopProducts(products);
+  } catch (error) {
+    console.error("Unable to load best sellers:", error);
+    return [];
+  }
+}
 
-    const products = await response.json();
-    const normalizedProducts = Array.isArray(products) ? products : [];
-    const sourceProducts = mergeProducts(normalizedProducts, legacyProducts);
+export async function searchProducts(query) {
+  try {
+    const products = await fetchProducts({ search: query });
+    return formatShopProducts(products);
+  } catch (error) {
+    console.error("Unable to search products:", error);
+    return [];
+  }
+}
 
-    return formatShopProducts(sourceProducts.length > 0 ? sourceProducts : defaultShopProducts);
-  } catch {
-    const fallbackProducts = legacyProducts.length > 0 ? legacyProducts : defaultShopProducts;
-    return formatShopProducts(fallbackProducts);
+export async function fetchProductsByIds(ids) {
+  try {
+    const products = await fetchProducts({ ids });
+    return formatShopProducts(products);
+  } catch (error) {
+    console.error("Unable to load products by ids:", error);
+    return [];
   }
 }

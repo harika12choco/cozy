@@ -38,6 +38,11 @@ const productSchema = new mongoose.Schema({
     default: false
   },
 
+  isBestSeller: {
+    type: Boolean,
+    default: false
+  },
+
   stock: {
     type: Number,
     default: 0

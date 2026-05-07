@@ -10,15 +10,23 @@ export default function Shop({ selectedCategory = "" }) {
   const [shopProducts, setShopProducts] = useState([]);
   const [feedback, setFeedback] = useState("");
   const [searchTerm, setSearchTerm] = useState(() => searchParams.get("search") ?? "");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
 
     async function syncProducts() {
-      const products = await readShopProducts();
+      try {
+        setLoading(true);
+        const products = await readShopProducts();
 
-      if (active) {
-        setShopProducts(products);
+        if (active) {
+          setShopProducts(products);
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
       }
     }
 
@@ -38,6 +46,14 @@ export default function Shop({ selectedCategory = "" }) {
   }, [searchParams]);
 
   function handleAddToCart(product) {
+    if (product.stock <= 0) {
+      setFeedback("Out of stock");
+      window.setTimeout(() => {
+        setFeedback("");
+      }, 1800);
+      return;
+    }
+
     addItemToCart(product);
     setFeedback(`${product.name} added to cart`);
     window.setTimeout(() => {
@@ -91,7 +107,9 @@ export default function Shop({ selectedCategory = "" }) {
         </label>
 
         <div className="shop-grid">
-          {visibleProducts.map((product) => (
+          {loading ? (
+            <p className="shop-feedback">Loading products...</p>
+          ) : visibleProducts.length === 0 ? null : visibleProducts.map((product) => (
             <article className="shop-card" key={product.id}>
               <div className="shop-card-image">
                 <img src={product.img} alt={product.name} />
@@ -101,10 +119,14 @@ export default function Shop({ selectedCategory = "" }) {
                 <h3>{product.name}</h3>
                 <div className="shop-card-footer">
                   <span className="shop-price">{product.price}</span>
+                  <span className="shop-stock">
+                    {product.stock > 0 ? `${product.stock} items left` : "Out of Stock"}
+                  </span>
                   <button
                     className="btn"
                     type="button"
                     onClick={() => handleAddToCart(product)}
+                    disabled={product.stock <= 0}
                   >
                     Add to Cart
                   </button>
@@ -113,8 +135,12 @@ export default function Shop({ selectedCategory = "" }) {
             </article>
           ))}
         </div>
-        {visibleProducts.length === 0 ? (
-          <p className="shop-empty">No candles found for your search.</p>
+        {!loading && visibleProducts.length === 0 ? (
+          <p className="shop-empty">
+            {shopProducts.length === 0
+              ? "No products available."
+              : "No candles found for your search."}
+          </p>
         ) : null}
       </section>
     </main>

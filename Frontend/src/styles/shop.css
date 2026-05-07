@@ -150,6 +150,12 @@
   letter-spacing: 0.01em;
 }
 
+.shop-stock{
+  color:#7a3f25;
+  font-weight:600;
+  font-size:12px;
+}
+
 .shop-card .btn{
   padding:12px 22px;
   min-width:148px;

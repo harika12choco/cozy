@@ -168,7 +168,7 @@ export default function EditProduct({ productId, onNavigate }) {
         </label>
 
         <label>
-          Best seller
+          Mark as Best Seller
           <input
             name="bestSeller"
             type="checkbox"
