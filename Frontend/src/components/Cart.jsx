@@ -246,7 +246,8 @@ export default function Cart() {
       return;
     }
 
-    const phone = "918688942497";
+    const rawNumber = String(import.meta.env.VITE_WHATSAPP_NUMBER || "");
+    const phone = rawNumber.replace(/^\+/, "");
     const orderDate = new Date().toISOString().slice(0, 10);
     const email = user?.email || "";
 

@@ -1,7 +1,9 @@
 import { FaWhatsapp } from "react-icons/fa";
 import "../styles/FloatingWhatsApp.css";
 
-const WHATSAPP_URL = "https://wa.me/917070759111";
+const RAW_NUMBER = String(import.meta.env.VITE_WHATSAPP_NUMBER || "");
+const WHATSAPP_NUMBER = RAW_NUMBER.replace(/^\+/, "");
+const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
 
 export default function FloatingWhatsApp() {
   return (
@@ -10,7 +12,7 @@ export default function FloatingWhatsApp() {
       href={WHATSAPP_URL}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Chat on WhatsApp at +91 70707 59111"
+      aria-label={WHATSAPP_NUMBER ? `Chat on WhatsApp at +${WHATSAPP_NUMBER}` : "Chat on WhatsApp"}
       title="Chat on WhatsApp"
     >
       <FaWhatsapp aria-hidden="true" />

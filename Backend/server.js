@@ -4,6 +4,10 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 
+if (!process.env.WHATSAPP_NUMBER) {
+  console.warn("WARNING: WHATSAPP_NUMBER is not set in environment variables. WhatsApp orders will not work.");
+}
+
 
 const connectDB = require("./config/db");
 const productRoutes = require("./routes/productRoutes");
