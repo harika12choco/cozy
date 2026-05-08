@@ -7,6 +7,7 @@ export default function Products() {
   const [feedback, setFeedback] = useState("");
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const refreshIntervalMs = 30000;
 
   useEffect(() => {
     let active = true;
@@ -35,13 +36,15 @@ export default function Products() {
     loadProducts();
     window.addEventListener("cozy-admin-products-updated", loadProducts);
     window.addEventListener("storage", loadProducts);
+    const intervalId = window.setInterval(loadProducts, refreshIntervalMs);
 
     return () => {
       active = false;
       window.removeEventListener("cozy-admin-products-updated", loadProducts);
       window.removeEventListener("storage", loadProducts);
+      window.clearInterval(intervalId);
     };
-  }, []);
+  }, [refreshIntervalMs]);
 
   const addToCart = (product) => {
     if (product.stock <= 0) {

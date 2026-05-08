@@ -10,6 +10,7 @@ export default function Collections(){
 const [featuredProducts, setFeaturedProducts] = useState([]);
 const [feedback, setFeedback] = useState("");
 const [loading, setLoading] = useState(true);
+const refreshIntervalMs = 30000;
 
 useEffect(() => {
 let active = true;
@@ -32,13 +33,15 @@ setLoading(false);
 syncFeaturedProducts();
 window.addEventListener("storage", syncFeaturedProducts);
 window.addEventListener("cozy-admin-products-updated", syncFeaturedProducts);
+const intervalId = window.setInterval(syncFeaturedProducts, refreshIntervalMs);
 
 return () => {
 active = false;
 window.removeEventListener("storage", syncFeaturedProducts);
 window.removeEventListener("cozy-admin-products-updated", syncFeaturedProducts);
+window.clearInterval(intervalId);
 };
-}, []);
+}, [refreshIntervalMs]);
 
 function handleAddToCart(product) {
 if (product.stock <= 0) {

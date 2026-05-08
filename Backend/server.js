@@ -15,6 +15,7 @@ const cartRoutes = require("./routes/Cartroutes");
 const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
+app.disable("x-powered-by");
 const allowedOrigins = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || "")
   .split(",")
   .map((origin) => origin.trim())
@@ -101,6 +102,23 @@ app.use("/api/cart", cartRoutes);
 
 app.get("/", (req, res) => {
   res.send(`Server Running - ${API_VERSION}`);
+});
+
+app.use((req, res) => {
+  res.status(404).json({ error: "Route not found" });
+});
+
+app.use((err, req, res, next) => {
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  const status = err.status || 500;
+  const message = status === 500 && process.env.NODE_ENV === "production"
+    ? "Internal server error"
+    : err.message || "Internal server error";
+
+  res.status(status).json({ error: message });
 });
 
 const port = process.env.PORT || 5000;

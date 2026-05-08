@@ -5,35 +5,8 @@ function isValidIndianMobile(value) {
   return /^[6-9][0-9]{9}$/.test(String(value || "").trim());
 }
 
-const defaultMessages = [
-  {
-    name: "Priya Nair",
-    email: "priya@example.com",
-    phone: "9876543210",
-    message: "Hi, can I customize a candle gift set for a birthday order next week?",
-    createdAt: "2026-03-12T10:15:00.000Z",
-    status: "new"
-  },
-  {
-    name: "Kabir Shah",
-    email: "kabir@example.com",
-    phone: "9123456789",
-    message: "I would like to know if the lavender candle is available in a larger size.",
-    createdAt: "2026-03-11T16:40:00.000Z",
-    status: "read"
-  }
-];
-
-async function ensureDefaults() {
-  const total = await Message.countDocuments();
-  if (total === 0) {
-    await Message.insertMany(defaultMessages);
-  }
-}
-
 const listMessages = async (req, res) => {
   try {
-    await ensureDefaults();
     const messages = await Message.find().sort({ createdAt: -1 });
     res.json(messages);
   } catch (error) {

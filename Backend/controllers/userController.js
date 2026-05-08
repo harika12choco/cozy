@@ -1,21 +1,7 @@
 const User = require("../models/User");
 
-const defaultUsers = [
-  { name: "Aarav Mehta", email: "aarav@example.com", role: "Customer", status: "active", joined: "2026-02-18", orders: 4 },
-  { name: "Sara Khan", email: "sara@example.com", role: "Client", status: "active", joined: "2026-01-30", orders: 7 },
-  { name: "Neil Roy", email: "neil@example.com", role: "Customer", status: "blocked", joined: "2026-02-05", orders: 1 }
-];
-
-async function ensureDefaults() {
-  const total = await User.countDocuments();
-  if (total === 0) {
-    await User.insertMany(defaultUsers);
-  }
-}
-
 const listUsers = async (req, res) => {
   try {
-    await ensureDefaults();
     const users = await User.find().sort({ createdAt: -1 });
     res.json(users);
   } catch (error) {

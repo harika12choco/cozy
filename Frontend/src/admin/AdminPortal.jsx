@@ -110,16 +110,8 @@ export default function AdminPortal({ currentPage = "dashboard", currentProductI
   }
 
   useEffect(() => {
-    function handleVisibilityChange() {
-      if (document.hidden && isAuthenticated) {
-        // Auto logout if admin moves out
-        adminAuthService.logout();
-        setIsAuthenticated(false);
-        navigate("/admin/login", { replace: true });
-      }
-    }
-
     let idleTimeout;
+
     function resetIdle() {
       clearTimeout(idleTimeout);
       if (isAuthenticated) {
@@ -132,11 +124,12 @@ export default function AdminPortal({ currentPage = "dashboard", currentProductI
       }
     }
 
-    document.addEventListener("visibilitychange", handleVisibilityChange);
+    const activityEvents = ["click", "keydown", "mousemove", "scroll", "touchstart"];
+    activityEvents.forEach((eventName) => document.addEventListener(eventName, resetIdle));
     resetIdle();
 
     return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      activityEvents.forEach((eventName) => document.removeEventListener(eventName, resetIdle));
       clearTimeout(idleTimeout);
     };
   }, [isAuthenticated, navigate]);

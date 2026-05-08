@@ -13,6 +13,7 @@ export default function Shop({ selectedCategory = "" }) {
   const [searchTerm, setSearchTerm] = useState(() => searchParams.get("search") ?? "");
   const [loading, setLoading] = useState(true);
   const searchQuery = searchParams.get("search")?.trim() ?? "";
+  const refreshIntervalMs = 30000;
 
   useEffect(() => {
     let active = true;
@@ -37,13 +38,15 @@ export default function Shop({ selectedCategory = "" }) {
     syncProducts();
     window.addEventListener("storage", syncProducts);
     window.addEventListener("cozy-admin-products-updated", syncProducts);
+    const intervalId = window.setInterval(syncProducts, refreshIntervalMs);
 
     return () => {
       active = false;
       window.removeEventListener("storage", syncProducts);
       window.removeEventListener("cozy-admin-products-updated", syncProducts);
+      window.clearInterval(intervalId);
     };
-  }, [searchQuery]);
+  }, [searchQuery, refreshIntervalMs]);
 
   useEffect(() => {
     setSearchTerm(searchParams.get("search") ?? "");

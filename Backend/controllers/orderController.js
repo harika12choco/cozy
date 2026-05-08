@@ -129,22 +129,8 @@ async function releaseStock(lineItems) {
   );
 }
 
-const defaultOrders = [
-  { customer: "Anika Sharma", total: 1098, status: "processing", date: "2026-03-10", items: 2, payment: "Paid", email: "", phone: "9876543210", pincode: "560001", address: "MG Road" },
-  { customer: "Riya Kapoor", total: 599, status: "delivered", date: "2026-03-09", items: 1, payment: "Paid", email: "", phone: "9123456789", pincode: "560034", address: "Koramangala" },
-  { customer: "Maya Singh", total: 1647, status: "pending", date: "2026-03-11", items: 3, payment: "Pending", email: "", phone: "9988776655", pincode: "560078", address: "JP Nagar" }
-];
-
-async function ensureDefaults() {
-  const total = await Order.countDocuments();
-  if (total === 0) {
-    await Order.insertMany(defaultOrders);
-  }
-}
-
 const listOrders = async (req, res) => {
   try {
-    await ensureDefaults();
     const orders = await Order.find().sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
