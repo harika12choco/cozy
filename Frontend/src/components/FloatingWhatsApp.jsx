@@ -1,8 +1,9 @@
 import { FaWhatsapp } from "react-icons/fa";
 import "../styles/FloatingWhatsApp.css";
 
-const RAW_NUMBER = String(import.meta.env.VITE_WHATSAPP_NUMBER || "");
-const WHATSAPP_NUMBER = RAW_NUMBER.replace(/^\+/, "");
+const DEFAULT_WHATSAPP_NUMBER = "+91 70707 59111";
+const RAW_NUMBER = String(import.meta.env.VITE_WHATSAPP_NUMBER || DEFAULT_WHATSAPP_NUMBER);
+const WHATSAPP_NUMBER = RAW_NUMBER.replace(/\D/g, "");
 const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
 
 export default function FloatingWhatsApp() {

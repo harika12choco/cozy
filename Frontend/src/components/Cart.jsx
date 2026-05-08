@@ -246,8 +246,9 @@ export default function Cart() {
       return;
     }
 
-    const rawNumber = String(import.meta.env.VITE_WHATSAPP_NUMBER || "");
-    const phone = rawNumber.replace(/^\+/, "");
+    const defaultWhatsAppNumber = "+91 70707 59111";
+    const rawNumber = String(import.meta.env.VITE_WHATSAPP_NUMBER || defaultWhatsAppNumber);
+    const phone = rawNumber.replace(/\D/g, "");
     const orderDate = new Date().toISOString().slice(0, 10);
     const email = user?.email || "";
 
