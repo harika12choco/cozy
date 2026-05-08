@@ -19,8 +19,16 @@ const allowedOrigins = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL ||
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
-const isProduction = process.env.NODE_ENV === "production";
 const API_VERSION = "cloudinary-signature-v2";
+
+function isLocalDevelopmentOrigin(origin) {
+  try {
+    const { hostname } = new URL(origin);
+    return hostname === "localhost" || hostname === "127.0.0.1";
+  } catch {
+    return false;
+  }
+}
 
 function sanitizeForMongoOperators(value) {
   if (Array.isArray(value)) {
@@ -46,8 +54,6 @@ function sanitizeRequestBody(req, res, next) {
   next();
 }
 
-connectDB();
-
 app.set("trust proxy", 1);
 app.use(
   helmet({
@@ -58,10 +64,15 @@ app.use(
 app.use(
   cors({
     origin(origin, callback) {
-      const defaultAllowed = isProduction ? [] : ["http://localhost:5173"];
+      const defaultAllowed = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:4173",
+        "http://127.0.0.1:4173"
+      ];
       const allowList = [...new Set([...defaultAllowed, ...allowedOrigins])];
 
-      if (!origin || allowList.includes(origin)) {
+      if (!origin || allowList.includes(origin) || isLocalDevelopmentOrigin(origin)) {
         callback(null, true);
         return;
       }
@@ -92,6 +103,10 @@ app.get("/", (req, res) => {
   res.send(`Server Running - ${API_VERSION}`);
 });
 
-app.listen(process.env.PORT || 5000, () => {
-  console.log(`Server started on port ${process.env.PORT || 5000}`);
+const port = process.env.PORT || 5000;
+
+connectDB().then(() => {
+  app.listen(port, () => {
+    console.log(`Server started on port ${port}`);
+  });
 });

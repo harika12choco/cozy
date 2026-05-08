@@ -1,16 +1,18 @@
 import "../styles/shop.css";
 import { useEffect, useState } from "react";
 import { FaSearch } from "react-icons/fa";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { addItemToCart } from "../utils/cart";
-import { matchesCategory, readShopProducts } from "../utils/shopProducts";
+import { matchesCategory, readShopProducts, searchProducts } from "../utils/shopProducts";
 
 export default function Shop({ selectedCategory = "" }) {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [shopProducts, setShopProducts] = useState([]);
   const [feedback, setFeedback] = useState("");
   const [searchTerm, setSearchTerm] = useState(() => searchParams.get("search") ?? "");
   const [loading, setLoading] = useState(true);
+  const searchQuery = searchParams.get("search")?.trim() ?? "";
 
   useEffect(() => {
     let active = true;
@@ -18,7 +20,9 @@ export default function Shop({ selectedCategory = "" }) {
     async function syncProducts() {
       try {
         setLoading(true);
-        const products = await readShopProducts();
+        const products = searchQuery
+          ? await searchProducts(searchQuery)
+          : await readShopProducts();
 
         if (active) {
           setShopProducts(products);
@@ -39,11 +43,27 @@ export default function Shop({ selectedCategory = "" }) {
       window.removeEventListener("storage", syncProducts);
       window.removeEventListener("cozy-admin-products-updated", syncProducts);
     };
-  }, []);
+  }, [searchQuery]);
 
   useEffect(() => {
     setSearchTerm(searchParams.get("search") ?? "");
   }, [searchParams]);
+
+  function handleSearchSubmit(event) {
+    event.preventDefault();
+
+    const normalizedSearch = searchTerm.trim();
+    const params = new URLSearchParams(searchParams);
+
+    if (normalizedSearch) {
+      params.set("search", normalizedSearch);
+    } else {
+      params.delete("search");
+    }
+
+    const query = params.toString();
+    navigate(query ? `/shop?${query}` : "/shop");
+  }
 
   function handleAddToCart(product) {
     if (product.stock <= 0) {
@@ -96,15 +116,17 @@ export default function Shop({ selectedCategory = "" }) {
       <section className="shop-grid-section">
         {feedback ? <p className="shop-feedback">{feedback}</p> : null}
 
-        <label className="shop-search" aria-label="Search candles">
-          <FaSearch aria-hidden="true" />
+        <form className="shop-search" role="search" onSubmit={handleSearchSubmit} aria-label="Search candles">
+          <button type="submit" aria-label="Search candles">
+            <FaSearch aria-hidden="true" />
+          </button>
           <input
             type="search"
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
             placeholder="Search candles"
           />
-        </label>
+        </form>
 
         <div className="shop-grid">
           {loading ? (

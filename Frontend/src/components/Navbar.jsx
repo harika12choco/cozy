@@ -1,9 +1,9 @@
 import "../styles/Navbar.css";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getCartItems, syncCartWithServer } from "../utils/cart";
 import { auth, provider } from "../firebase";
 import { onAuthStateChanged, signInWithPopup } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
 import navLogo from "../assets/navlogo.png";
 import Sidebar from "./Sidebar";
@@ -43,6 +43,8 @@ function UserIcon() {
 
 export default function Navbar({ activePage, onNavigate }){
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const searchInputRef = useRef(null);
   const [cartCount, setCartCount] = useState(() =>
     getCartItems().reduce((total, item) => total + item.quantity, 0)
   );
@@ -51,6 +53,8 @@ export default function Navbar({ activePage, onNavigate }){
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [shopDropdownOpen, setShopDropdownOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchExpanded, setSearchExpanded] = useState(false);
+  const currentSearchParam = searchParams.get("search") ?? "";
 
   useEffect(() => {
     function syncCartCount() {
@@ -82,6 +86,10 @@ export default function Navbar({ activePage, onNavigate }){
     setAvatarFailed(false);
   }, [user?.photoURL]);
 
+  useEffect(() => {
+    setSearchTerm(currentSearchParam);
+  }, [currentSearchParam]);
+
   async function handleUserAction() {
     try {
       if (user) {
@@ -100,12 +108,23 @@ export default function Navbar({ activePage, onNavigate }){
 
     const normalizedSearch = searchTerm.trim();
     navigate(normalizedSearch ? `/shop?search=${encodeURIComponent(normalizedSearch)}` : "/shop");
+    setSearchExpanded(false);
     window.scrollTo({ top: 0, behavior: "auto" });
+  }
+
+  function handleSearchButtonClick(event) {
+    if (searchExpanded || searchTerm.trim()) {
+      return;
+    }
+
+    event.preventDefault();
+    setSearchExpanded(true);
+    window.setTimeout(() => searchInputRef.current?.focus(), 0);
   }
 
   return(
     <>
-      <nav className="navbar">
+      <nav className={`navbar ${searchExpanded ? "navbar-search-active" : ""}`}>
         <div className="navbar-left">
           <button
             type="button"
@@ -191,14 +210,28 @@ export default function Navbar({ activePage, onNavigate }){
           </button>
         </div>
 
-        <form className="navbar-search" role="search" onSubmit={handleSearchSubmit}>
-          <button type="submit" className="navbar-search-btn" aria-label="Search">
+        <form
+          className={`navbar-search ${searchExpanded ? "navbar-search-open" : ""}`}
+          role="search"
+          onSubmit={handleSearchSubmit}
+        >
+          <button
+            type="submit"
+            className="navbar-search-btn"
+            aria-label="Search"
+            onClick={handleSearchButtonClick}
+          >
             <FaSearch aria-hidden="true" />
           </button>
           <input
+            ref={searchInputRef}
             type="search"
             value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
+            onChange={(event) => {
+              setSearchTerm(event.target.value);
+              setSearchExpanded(true);
+            }}
+            onFocus={() => setSearchExpanded(true)}
             placeholder="Search candles"
             aria-label="Search candles"
           />

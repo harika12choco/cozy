@@ -1,4 +1,5 @@
 const PRODUCTION_PRODUCTS_API = "https://cozy-candles-backend.onrender.com/api/products";
+const DEVELOPMENT_PRODUCTS_API = "/api/products";
 
 function normalizeProductsApi(value) {
   const trimmed = String(value || "").trim().replace(/\/$/, "");
@@ -23,7 +24,7 @@ function resolveProductsApiBase() {
     return normalizeProductsApi(import.meta.env.VITE_API_URL);
   }
 
-  return PRODUCTION_PRODUCTS_API;
+  return import.meta.env.DEV ? DEVELOPMENT_PRODUCTS_API : PRODUCTION_PRODUCTS_API;
 }
 
 const API_BASE = resolveProductsApiBase();

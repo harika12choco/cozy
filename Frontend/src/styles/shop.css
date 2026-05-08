@@ -69,6 +69,19 @@
   font:600 15px/1.4 var(--sans-font);
 }
 
+.shop-search button{
+  width:28px;
+  height:28px;
+  flex:0 0 28px;
+  display:grid;
+  place-items:center;
+  border:0;
+  padding:0;
+  background:transparent;
+  color:var(--primary);
+  cursor:pointer;
+}
+
 .shop-search input::placeholder{
   color:rgba(42,26,25,0.52);
 }

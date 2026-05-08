@@ -1,4 +1,5 @@
 const PRODUCTION_BACKEND_API = "https://cozy-candles-backend.onrender.com/api";
+const DEVELOPMENT_BACKEND_API = "/api";
 
 function normalizeApiRoot(value) {
   const trimmed = String(value || "").trim().replace(/\/$/, "");
@@ -25,7 +26,7 @@ function resolveApiRoot() {
     return normalizeApiRoot(envApiRoot);
   }
 
-  return PRODUCTION_BACKEND_API.replace(/\/$/, "");
+  return import.meta.env.DEV ? DEVELOPMENT_BACKEND_API : PRODUCTION_BACKEND_API.replace(/\/$/, "");
 }
 
 const API_ROOT = resolveApiRoot();

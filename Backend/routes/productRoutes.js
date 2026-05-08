@@ -24,9 +24,9 @@ function sendCloudinarySignature(req, res) {
 router.get("/cloudinary/signature", authenticateAdmin, writeLimiter, sendCloudinarySignature);
 router.get("/products/cloudinary/signature", authenticateAdmin, writeLimiter, sendCloudinarySignature);
 
+router.get("/products/search", searchProducts);
 router.post("/products", authenticateAdmin, writeLimiter, addProduct);
 router.get("/products", getProducts);
-router.get("/products/search", searchProducts);
 router.get("/products/:id", getProductById);
 router.put("/products/:id", authenticateAdmin, writeLimiter, updateProduct);
 router.delete("/products/:id", authenticateAdmin, writeLimiter, deleteProduct);

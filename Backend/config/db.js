@@ -8,7 +8,9 @@ const connectDB = async () => {
       throw new Error("Missing MONGODB_URI (or legacy MONGO_URI) in environment");
     }
 
-    await mongoose.connect(mongoUri);
+    await mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 10000
+    });
     console.log("MongoDB Connected");
   } catch (error) {
     console.error("Database connection error:", error);
