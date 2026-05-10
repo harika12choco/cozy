@@ -12,12 +12,12 @@ import Products from "./components/Products"
 import ContactForm from "./components/ContactForm"
 import Footer from "./components/Footer"
 import FloatingWhatsApp from "./components/FloatingWhatsApp"
+import CinematicIntro from "./components/CinematicIntro"
 import Shop from "./components/shop"
 import Cart from "./components/Cart"
 import Profile from "./pages/Profile"
 import AdminPortal from "./admin/AdminPortal"
 import { findCategoryBySlug } from "./utils/menuData"
-import navLogo from "./assets/navlogo.png"
 import "./styles/Global.css"
 import "./styles/Home.css"
 
@@ -122,6 +122,7 @@ function PublicSite({ page }) {
 
   return (
     <>
+      {page === "home" && <CinematicIntro />}
       <Navbar activePage={activePage} onNavigate={handleNavigate}/>
       <CategoryNav onNavigate={handleNavigate}/>
       {page === "shop" ? (
