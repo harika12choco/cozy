@@ -82,7 +82,7 @@ export default function ContactForm() {
           <h3>Reach us at:</h3>
           <div>
             <span>Address</span>
-            <strong>Patna, Bihar</strong>
+            <strong>PC Colony, Kankarbagh Lohia Nagar,Patna ,Bihar 800020</strong>
           </div>
           <div>
             <span>Phone</span>
