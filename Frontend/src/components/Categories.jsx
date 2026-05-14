@@ -215,10 +215,10 @@ export default function Categories() {
               ref={category.isFirstClone ? firstCloneRef : null}
               type="button"
               onClick={() => handleNavigate(category.title)}
-              aria-label={`Shop ${category.title}`}
+              aria-label={`Shop ${category.title === "Floral & Aesthetic" ? "Floral Aesthetic" : category.title}`}
             >
               <img src={categoryImages[category.title]} alt="" />
-              <span>{category.title}</span>
+              <span>{category.title === "Floral & Aesthetic" ? "Floral Aesthetic" : category.title}</span>
             </button>
           ))}
         </div>

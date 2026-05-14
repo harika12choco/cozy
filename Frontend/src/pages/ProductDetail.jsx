@@ -6,6 +6,17 @@ import { fetchProductsByIds, matchesCategory, readShopProducts } from "../utils/
 
 const RECOMMENDATION_COUNT = 4;
 
+function pickRandomItems(items, count) {
+  const pool = [...items];
+
+  for (let index = pool.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [pool[index], pool[randomIndex]] = [pool[randomIndex], pool[index]];
+  }
+
+  return pool.slice(0, count);
+}
+
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -53,7 +64,22 @@ export default function ProductDetail() {
           return matchesCategory(item, selected.category);
         });
 
-        setRecommendations(related.slice(0, RECOMMENDATION_COUNT));
+        if (related.length >= RECOMMENDATION_COUNT) {
+          setRecommendations(related.slice(0, RECOMMENDATION_COUNT));
+          return;
+        }
+
+        const remaining = allProducts.filter((item) => {
+          if (item.id === selected.id) {
+            return false;
+          }
+
+          return !related.some((relatedItem) => relatedItem.id === item.id);
+        });
+
+        const fillCount = RECOMMENDATION_COUNT - related.length;
+        const filler = pickRandomItems(remaining, fillCount);
+        setRecommendations([...related, ...filler]);
       } catch (loadError) {
         if (active) {
           setError(loadError.message || "Unable to load product.");
