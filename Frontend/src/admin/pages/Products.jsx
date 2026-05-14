@@ -6,7 +6,6 @@ export default function Products({ onNavigate }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const refreshIntervalMs = 30000;
 
   useEffect(() => {
     let active = true;
@@ -32,15 +31,13 @@ export default function Products({ onNavigate }) {
     }
 
     loadProducts();
-    const intervalId = window.setInterval(loadProducts, refreshIntervalMs);
     window.addEventListener("cozy-admin-products-updated", loadProducts);
 
     return () => {
       active = false;
-      window.clearInterval(intervalId);
       window.removeEventListener("cozy-admin-products-updated", loadProducts);
     };
-  }, [refreshIntervalMs]);
+  }, []);
 
   const activeCount = useMemo(
     () => products.filter((product) => product.status === "active").length,
@@ -73,7 +70,8 @@ export default function Products({ onNavigate }) {
 
       const updated = await productService.update(id, {
         ...current,
-        bestSeller
+        bestSeller,
+        isBestSeller: bestSeller
       });
 
       setProducts((items) => items.map((product) => (product.id === id ? updated : product)));

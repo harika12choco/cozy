@@ -1,5 +1,6 @@
 import "../styles/Products.css";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { addItemToCart } from "../utils/cart";
 import { readBestSellerProducts } from "../utils/shopProducts";
 
@@ -7,7 +8,6 @@ export default function Products() {
   const [feedback, setFeedback] = useState("");
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const refreshIntervalMs = 30000;
 
   useEffect(() => {
     let active = true;
@@ -36,15 +36,12 @@ export default function Products() {
     loadProducts();
     window.addEventListener("cozy-admin-products-updated", loadProducts);
     window.addEventListener("storage", loadProducts);
-    const intervalId = window.setInterval(loadProducts, refreshIntervalMs);
-
     return () => {
       active = false;
       window.removeEventListener("cozy-admin-products-updated", loadProducts);
       window.removeEventListener("storage", loadProducts);
-      window.clearInterval(intervalId);
     };
-  }, [refreshIntervalMs]);
+  }, []);
 
   const addToCart = (product) => {
     if (product.stock <= 0) {
@@ -75,10 +72,14 @@ export default function Products() {
         ) : products.map((p) => (
           <article className="product" key={p.id}>
             <div className="product-image-wrap">
-              <img src={p.img ?? p.image} alt={p.name} />
+              <Link to={`/product/${p.productId || p.id}`} aria-label={`View ${p.name}`}>
+                <img src={p.img ?? p.image} alt={p.name} />
+              </Link>
             </div>
 
-            <h3>{p.name}</h3>
+            <h3>
+              <Link to={`/product/${p.productId || p.id}`}>{p.name}</Link>
+            </h3>
             <p>{p.price}</p>
             <p className="product-stock">
               {p.stock > 0 ? `${p.stock} items left` : "Out of Stock"}

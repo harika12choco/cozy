@@ -1,7 +1,7 @@
 import "../styles/shop.css";
 import { useEffect, useState } from "react";
 import { FaSearch } from "react-icons/fa";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { addItemToCart } from "../utils/cart";
 import { matchesCategory, readShopProducts, searchProducts } from "../utils/shopProducts";
 
@@ -13,7 +13,6 @@ export default function Shop({ selectedCategory = "" }) {
   const [searchTerm, setSearchTerm] = useState(() => searchParams.get("search") ?? "");
   const [loading, setLoading] = useState(true);
   const searchQuery = searchParams.get("search")?.trim() ?? "";
-  const refreshIntervalMs = 30000;
 
   useEffect(() => {
     let active = true;
@@ -38,15 +37,12 @@ export default function Shop({ selectedCategory = "" }) {
     syncProducts();
     window.addEventListener("storage", syncProducts);
     window.addEventListener("cozy-admin-products-updated", syncProducts);
-    const intervalId = window.setInterval(syncProducts, refreshIntervalMs);
-
     return () => {
       active = false;
       window.removeEventListener("storage", syncProducts);
       window.removeEventListener("cozy-admin-products-updated", syncProducts);
-      window.clearInterval(intervalId);
     };
-  }, [searchQuery, refreshIntervalMs]);
+  }, [searchQuery]);
 
   useEffect(() => {
     setSearchTerm(searchParams.get("search") ?? "");
@@ -137,11 +133,15 @@ export default function Shop({ selectedCategory = "" }) {
           ) : visibleProducts.length === 0 ? null : visibleProducts.map((product) => (
             <article className="shop-card" key={product.id}>
               <div className="shop-card-image">
-                <img src={product.img} alt={product.name} />
+                <Link to={`/product/${product.productId || product.id}`} aria-label={`View ${product.name}`}>
+                  <img src={product.img} alt={product.name} />
+                </Link>
               </div>
 
               <div className="shop-card-body">
-                <h3>{product.name}</h3>
+                <h3>
+                  <Link to={`/product/${product.productId || product.id}`}>{product.name}</Link>
+                </h3>
                 <div className="shop-card-footer">
                   <span className="shop-price">{product.price}</span>
                   <span className="shop-stock">

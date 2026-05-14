@@ -66,6 +66,7 @@ export default function Orders() {
         </div>
       </div>
 
+      {error ? <p className="products-feedback">{error}</p> : null}
       {loading ? <p>Loading orders...</p> : null}
       <OrderTable
         orders={orders}

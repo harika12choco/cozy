@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom"
 import Navbar from "./components/Navbar"
 import CategoryNav from "./components/CategoryNav"
@@ -16,6 +16,7 @@ import CinematicIntro from "./components/CinematicIntro"
 import Shop from "./components/shop"
 import Cart from "./components/Cart"
 import Profile from "./pages/Profile"
+import ProductDetail from "./pages/ProductDetail"
 import AdminPortal from "./admin/AdminPortal"
 import { findCategoryBySlug } from "./utils/menuData"
 import "./styles/Global.css"
@@ -30,7 +31,13 @@ function AdminEditProductRoute() {
 function PublicSite({ page }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const activePage = page === "shop" ? "shop" : page === "cart" ? "cart" : page === "profile" ? "profile" : "home";
+  const activePage = page === "shop" || page === "product"
+    ? "shop"
+    : page === "cart"
+    ? "cart"
+    : page === "profile"
+    ? "profile"
+    : "home";
   const selectedCategory = page === "shop"
     ? findCategoryBySlug(new URLSearchParams(location.search).get("category") ?? "")?.value ?? ""
     : "";
@@ -127,6 +134,8 @@ function PublicSite({ page }) {
       <CategoryNav onNavigate={handleNavigate}/>
       {page === "shop" ? (
         <Shop selectedCategory={selectedCategory} />
+      ) : page === "product" ? (
+        <ProductDetail />
       ) : page === "profile" ? (
         <Profile />
       ) : page === "cart" ? (
@@ -156,6 +165,7 @@ function App(){
     <Routes>
       <Route path="/" element={<PublicSite page="home" />} />
       <Route path="/shop" element={<PublicSite page="shop" />} />
+      <Route path="/product/:id" element={<PublicSite page="product" />} />
       <Route path="/cart" element={<PublicSite page="cart" />} />
       <Route path="/profile" element={<PublicSite page="profile" />} />
 

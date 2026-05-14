@@ -74,6 +74,8 @@ export default function Dashboard({ onNavigate }) {
           </div>
         </div>
 
+        {error ? <p className="products-feedback">{error}</p> : null}
+
         <div className="admin-quick-grid">
           <button type="button" onClick={() => onNavigate("dashboard")}>Refresh dashboard</button>
           <button type="button" onClick={() => window.open("/", "_blank", "noopener,noreferrer")}>Open storefront</button>

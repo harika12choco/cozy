@@ -10,7 +10,6 @@ export default function Collections(){
 const [featuredProducts, setFeaturedProducts] = useState([]);
 const [feedback, setFeedback] = useState("");
 const [loading, setLoading] = useState(true);
-const refreshIntervalMs = 30000;
 
 useEffect(() => {
 let active = true;
@@ -33,15 +32,12 @@ setLoading(false);
 syncFeaturedProducts();
 window.addEventListener("storage", syncFeaturedProducts);
 window.addEventListener("cozy-admin-products-updated", syncFeaturedProducts);
-const intervalId = window.setInterval(syncFeaturedProducts, refreshIntervalMs);
-
 return () => {
 active = false;
 window.removeEventListener("storage", syncFeaturedProducts);
 window.removeEventListener("cozy-admin-products-updated", syncFeaturedProducts);
-window.clearInterval(intervalId);
 };
-}, [refreshIntervalMs]);
+}, []);
 
 function handleAddToCart(product) {
 if (product.stock <= 0) {
@@ -89,14 +85,18 @@ return(
 ) : featuredProducts.map((product) => (
 <article className="collection-card" key={product.id}>
 <div className="collection-media">
+<Link to={`/product/${product.productId || product.id}`} aria-label={`View ${product.name}`}>
 <img
 src={product.img}
 alt={product.name}
 className="collection-img"
 />
+</Link>
 </div>
 <div className="collection-card-body">
-<h3>{product.name}</h3>
+<h3>
+<Link to={`/product/${product.productId || product.id}`}>{product.name}</Link>
+</h3>
 <div className="collection-card-footer">
 <span>{product.price}</span>
 <span className="collection-stock">

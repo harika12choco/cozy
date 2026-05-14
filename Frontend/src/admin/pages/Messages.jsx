@@ -72,6 +72,7 @@ export default function Messages() {
         </div>
       </div>
 
+      {error ? <p className="products-feedback">{error}</p> : null}
       {loading ? <p>Loading messages...</p> : null}
       <div className="admin-messages-grid">
         {messages.length ? (
