@@ -21,7 +21,7 @@ export default function Products() {
           return;
         }
 
-        setProducts(items.slice(0, 3));
+        setProducts(items);
       } catch {
         if (active) {
           setProducts([]);

@@ -180,6 +180,7 @@ function App(){
       <Route path="/admin/messages" element={<AdminPortal currentPage="messages" />} />
       <Route path="/admin/discounts" element={<AdminPortal currentPage="discounts" />} />
       <Route path="/admin/collections" element={<AdminPortal currentPage="collections" />} />
+      <Route path="/admin/site-images" element={<AdminPortal currentPage="site-images" />} />
       <Route path="/admin/*" element={<Navigate to="/" replace />} />
     </Routes>
   )

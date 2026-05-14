@@ -14,6 +14,11 @@
   padding:28px 24px;
   background:rgba(101,21,20,0.96);
   color:#fff7ef;
+  position:sticky;
+  top:0;
+  align-self:start;
+  height:100vh;
+  overflow-y:auto;
 }
 
 .admin-sidebar h2{
@@ -551,6 +556,11 @@
 @media (max-width: 1100px){
   .admin-shell{
     grid-template-columns:1fr;
+  }
+
+  .admin-sidebar{
+    position:relative;
+    height:auto;
   }
 
   .admin-card-grid,

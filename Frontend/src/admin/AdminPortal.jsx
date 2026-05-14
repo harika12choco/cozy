@@ -9,6 +9,7 @@ import EditProduct from "./pages/EditProduct";
 import Orders from "./pages/Orders";
 import Messages from "./pages/Messages";
 import OurCollections from "./pages/OurCollections";
+import SiteImages from "./pages/SiteImages";
 import { adminAuthService } from "./services/authService";
 
 const pageMeta = {
@@ -43,6 +44,10 @@ const pageMeta = {
   collections: {
     title: "Our Collections",
     subtitle: "View highlighted collection sections shown on storefront."
+  },
+  "site-images": {
+    title: "Site Images",
+    subtitle: "Update banners and category carousel images."
   }
 };
 
@@ -98,7 +103,8 @@ export default function AdminPortal({ currentPage = "dashboard", currentProductI
       "add-product": "/admin/products/new",
       orders: "/admin/orders",
       messages: "/admin/messages",
-      collections: "/admin/collections"
+      collections: "/admin/collections",
+      "site-images": "/admin/site-images"
     };
 
     if (page === "edit-product" && id) {
@@ -157,6 +163,9 @@ export default function AdminPortal({ currentPage = "dashboard", currentProductI
       break;
     case "collections":
       page = <OurCollections onNavigate={goTo} />;
+      break;
+    case "site-images":
+      page = <SiteImages />;
       break;
     case "dashboard":
     default:

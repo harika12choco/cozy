@@ -10,8 +10,9 @@ import giftingImage from "../assets/product categories/gifting collection.png";
 import jarBowlImage from "../assets/product categories/jar and bowl.png";
 import momentsImage from "../assets/product categories/moments and memories.png";
 import menuData, { slugifyCategory } from "../utils/menuData";
+import { loadSiteImages } from "../utils/siteImages";
 
-const categoryImages = {
+const defaultCategoryImages = {
   "Moments & Memories": momentsImage,
   "Gifting Collection": giftingImage,
   "Festive Collection": festiveImage,
@@ -38,6 +39,7 @@ export default function Categories() {
     canScrollLeft: false,
     canScrollRight: true
   });
+  const [imageOverrides, setImageOverrides] = useState(() => loadSiteImages().categoryImages || {});
 
   const animatedCategories = useMemo(
     () => [
@@ -50,6 +52,15 @@ export default function Categories() {
     ],
     []
   );
+
+  useEffect(() => {
+    function handleUpdate() {
+      setImageOverrides(loadSiteImages().categoryImages || {});
+    }
+
+    window.addEventListener("cozy-site-images-updated", handleUpdate);
+    return () => window.removeEventListener("cozy-site-images-updated", handleUpdate);
+  }, []);
 
   const getLoopMetrics = useCallback(() => {
     const track = categoryTrackRef.current;
@@ -217,7 +228,10 @@ export default function Categories() {
               onClick={() => handleNavigate(category.title)}
               aria-label={`Shop ${category.title === "Floral & Aesthetic" ? "Floral Aesthetic" : category.title}`}
             >
-              <img src={categoryImages[category.title]} alt="" />
+              <img
+                src={imageOverrides[category.title] || defaultCategoryImages[category.title]}
+                alt=""
+              />
               <span>{category.title === "Floral & Aesthetic" ? "Floral Aesthetic" : category.title}</span>
             </button>
           ))}

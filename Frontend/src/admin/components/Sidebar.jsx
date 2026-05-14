@@ -3,7 +3,8 @@ const navItems = [
   { key: "products", label: "Products" },
   { key: "orders", label: "Orders" },
   { key: "messages", label: "Messages" },
-  { key: "collections", label: "Collections" }
+  { key: "collections", label: "Collections" },
+  { key: "site-images", label: "Site Images" }
 ];
 
 export default function Sidebar({ currentPage, onNavigate, onLogout }) {
