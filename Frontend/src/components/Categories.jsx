@@ -10,7 +10,7 @@ import giftingImage from "../assets/product categories/gifting collection.png";
 import jarBowlImage from "../assets/product categories/jar and bowl.png";
 import momentsImage from "../assets/product categories/moments and memories.png";
 import menuData, { slugifyCategory } from "../utils/menuData";
-import { loadSiteImages } from "../utils/siteImages";
+import { fetchSiteImages } from "../services/siteImagesService";
 
 const defaultCategoryImages = {
   "Moments & Memories": momentsImage,
@@ -39,7 +39,7 @@ export default function Categories() {
     canScrollLeft: false,
     canScrollRight: true
   });
-  const [imageOverrides, setImageOverrides] = useState(() => loadSiteImages().categoryImages || {});
+  const [imageOverrides, setImageOverrides] = useState({});
 
   const animatedCategories = useMemo(
     () => [
@@ -54,12 +54,32 @@ export default function Categories() {
   );
 
   useEffect(() => {
-    function handleUpdate() {
-      setImageOverrides(loadSiteImages().categoryImages || {});
+    let active = true;
+
+    async function loadImages() {
+      try {
+        const data = await fetchSiteImages();
+        if (active) {
+          setImageOverrides(data?.categoryImages || {});
+        }
+      } catch {
+        if (active) {
+          setImageOverrides({});
+        }
+      }
     }
 
+    function handleUpdate() {
+      loadImages();
+    }
+
+    loadImages();
     window.addEventListener("cozy-site-images-updated", handleUpdate);
-    return () => window.removeEventListener("cozy-site-images-updated", handleUpdate);
+
+    return () => {
+      active = false;
+      window.removeEventListener("cozy-site-images-updated", handleUpdate);
+    };
   }, []);
 
   const getLoopMetrics = useCallback(() => {

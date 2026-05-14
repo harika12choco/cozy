@@ -56,6 +56,26 @@ function createProductImageSignature() {
   };
 }
 
+function createSiteImageSignature() {
+  const config = getCloudinaryConfig();
+
+  if (!config) {
+    throw new Error("Cloudinary is not configured. Add CLOUDINARY_URL to Backend/.env");
+  }
+
+  const timestamp = Math.round(Date.now() / 1000);
+  const folder = "cozy-candles/site-images";
+  const signature = createSignature({ folder, timestamp }, config.apiSecret);
+
+  return {
+    cloudName: config.cloudName,
+    apiKey: config.apiKey,
+    folder,
+    timestamp,
+    signature
+  };
+}
+
 async function uploadProductImage(image) {
   if (!isDataUri(image)) {
     return { image };
@@ -102,5 +122,6 @@ async function uploadProductImage(image) {
 
 module.exports = {
   createProductImageSignature,
+  createSiteImageSignature,
   uploadProductImage
 };

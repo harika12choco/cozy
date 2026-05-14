@@ -13,6 +13,7 @@ const connectDB = require("./config/db");
 const productRoutes = require("./routes/productRoutes");
 const cartRoutes = require("./routes/Cartroutes");
 const adminRoutes = require("./routes/adminRoutes");
+const siteImagesRoutes = require("./routes/siteImagesRoutes");
 
 const app = express();
 app.disable("x-powered-by");
@@ -100,6 +101,7 @@ app.get("/api/health", (req, res) => {
 
 app.use("/api", productRoutes);
 app.use("/api", adminRoutes);
+app.use("/api", siteImagesRoutes);
 app.use("/api/cart", cartRoutes);
 
 app.get("/", (req, res) => {

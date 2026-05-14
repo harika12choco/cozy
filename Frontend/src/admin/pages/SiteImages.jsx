@@ -1,25 +1,79 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import bannerFallback from "../../assets/banner.png";
 import menuData from "../../utils/menuData";
-import { loadSiteImages, saveSiteImages } from "../../utils/siteImages";
+import { siteImagesService } from "../services/siteImagesService";
 
 export default function SiteImages() {
   const categoryTitles = useMemo(
     () => menuData.map((section) => section.title),
     []
   );
-  const [form, setForm] = useState(() => {
-    const stored = loadSiteImages();
-    return {
-      bannerUrl: stored.bannerUrl || "",
-      categoryImages: { ...stored.categoryImages }
-    };
+  const [form, setForm] = useState({
+    bannerUrl: "",
+    categoryImages: {}
   });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploadingKey, setUploadingKey] = useState("");
+  const [error, setError] = useState("");
   const [feedback, setFeedback] = useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadImages() {
+      try {
+        setLoading(true);
+        setError("");
+        const data = await siteImagesService.get();
+
+        if (!active) {
+          return;
+        }
+
+        setForm({
+          bannerUrl: data.bannerUrl || "",
+          categoryImages: { ...(data.categoryImages || {}) }
+        });
+      } catch (loadError) {
+        if (active) {
+          setError(loadError.message);
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadImages();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function handleBannerChange(event) {
     const value = event.target.value;
     setForm((current) => ({ ...current, bannerUrl: value }));
+  }
+
+  async function handleBannerFileChange(event) {
+    const [file] = event.target.files ?? [];
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      setUploadingKey("banner");
+      const uploadedUrl = await siteImagesService.uploadImage(file);
+      setForm((current) => ({ ...current, bannerUrl: uploadedUrl }));
+    } catch {
+      setError("Unable to upload banner image.");
+    } finally {
+      setUploadingKey("");
+    }
   }
 
   function handleCategoryChange(title, value) {
@@ -32,7 +86,25 @@ export default function SiteImages() {
     }));
   }
 
-  function handleSave() {
+  async function handleCategoryFileChange(title, event) {
+    const [file] = event.target.files ?? [];
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      setUploadingKey(title);
+      const uploadedUrl = await siteImagesService.uploadImage(file);
+      handleCategoryChange(title, uploadedUrl);
+    } catch {
+      setError("Unable to upload category image.");
+    } finally {
+      setUploadingKey("");
+    }
+  }
+
+  async function handleSave() {
     const cleanedCategories = {};
 
     categoryTitles.forEach((title) => {
@@ -42,20 +114,37 @@ export default function SiteImages() {
       }
     });
 
-    saveSiteImages({
-      bannerUrl: String(form.bannerUrl ?? "").trim(),
-      categoryImages: cleanedCategories
-    });
-
-    setFeedback("Site images saved.");
-    window.setTimeout(() => setFeedback(""), 2000);
+    try {
+      setSaving(true);
+      setError("");
+      await siteImagesService.update({
+        bannerUrl: String(form.bannerUrl ?? "").trim(),
+        categoryImages: cleanedCategories
+      });
+      window.dispatchEvent(new Event("cozy-site-images-updated"));
+      setFeedback("Site images saved.");
+      window.setTimeout(() => setFeedback(""), 2000);
+    } catch (saveError) {
+      setError(saveError.message);
+    } finally {
+      setSaving(false);
+    }
   }
 
-  function handleReset() {
-    setForm({ bannerUrl: "", categoryImages: {} });
-    saveSiteImages({ bannerUrl: "", categoryImages: {} });
-    setFeedback("Reverted to default images.");
-    window.setTimeout(() => setFeedback(""), 2000);
+  async function handleReset() {
+    try {
+      setSaving(true);
+      setError("");
+      await siteImagesService.update({ bannerUrl: "", categoryImages: {} });
+      setForm({ bannerUrl: "", categoryImages: {} });
+      window.dispatchEvent(new Event("cozy-site-images-updated"));
+      setFeedback("Reverted to default images.");
+      window.setTimeout(() => setFeedback(""), 2000);
+    } catch (resetError) {
+      setError(resetError.message);
+    } finally {
+      setSaving(false);
+    }
   }
 
   const bannerPreview = form.bannerUrl.trim() || bannerFallback;
@@ -69,6 +158,7 @@ export default function SiteImages() {
         </div>
       </div>
 
+      {error ? <p className="products-feedback">{error}</p> : null}
       {feedback ? <p className="products-feedback">{feedback}</p> : null}
 
       <div className="admin-form-grid">
@@ -79,6 +169,17 @@ export default function SiteImages() {
             placeholder="https://..."
             value={form.bannerUrl}
             onChange={handleBannerChange}
+            disabled={loading}
+          />
+        </label>
+
+        <label className="admin-form-span">
+          Upload banner image
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleBannerFileChange}
+            disabled={loading || uploadingKey === "banner"}
           />
         </label>
 
@@ -97,23 +198,42 @@ export default function SiteImages() {
         </div>
 
         {categoryTitles.map((title) => (
-          <label className="admin-form-span" key={title}>
-            {title}
-            <input
-              type="url"
-              placeholder="https://..."
-              value={form.categoryImages[title] ?? ""}
-              onChange={(event) => handleCategoryChange(title, event.target.value)}
-            />
-          </label>
+          <div className="admin-form-span" key={title}>
+            <label>
+              {title} image URL
+              <input
+                type="url"
+                placeholder="https://..."
+                value={form.categoryImages[title] ?? ""}
+                onChange={(event) => handleCategoryChange(title, event.target.value)}
+                disabled={loading}
+              />
+            </label>
+            <label>
+              Upload {title} image
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(event) => handleCategoryFileChange(title, event)}
+                disabled={loading || uploadingKey === title}
+              />
+            </label>
+            {form.categoryImages[title] ? (
+              <img
+                src={form.categoryImages[title]}
+                alt={`${title} preview`}
+                style={{ width: "100%", maxHeight: "180px", objectFit: "cover", borderRadius: "16px" }}
+              />
+            ) : null}
+          </div>
         ))}
 
         <div className="admin-form-actions admin-form-span">
-          <button type="button" className="admin-secondary-btn" onClick={handleReset}>
+          <button type="button" className="admin-secondary-btn" onClick={handleReset} disabled={saving || loading}>
             Reset to Defaults
           </button>
-          <button type="button" className="btn" onClick={handleSave}>
-            Save Images
+          <button type="button" className="btn" onClick={handleSave} disabled={saving || loading}>
+            {saving ? "Saving..." : "Save Images"}
           </button>
         </div>
       </div>
