@@ -14,7 +14,7 @@ function DeleteIcon() {
 export default function OrderTable({ orders, onStatusChange, onDelete }) {
   return (
     <div className="admin-table-shell">
-      <table className="admin-table">
+      <table className="admin-table admin-orders-table">
         <thead>
           <tr>
             <th>Order ID</th>
@@ -31,33 +31,35 @@ export default function OrderTable({ orders, onStatusChange, onDelete }) {
         <tbody>
           {orders.map((order) => (
             <tr key={order.id}>
-              <td>{order.id}</td>
+              <td className="admin-order-id">{order.id}</td>
               <td>
                 <div className="admin-table-title">
                   <strong>{order.customer}</strong>
-                  <span>{order.phone || "No phone"}</span>
-                  <span>{order.address || "No address"}</span>
+                  <span className="admin-order-meta">Phone: {order.phone || "No phone"}</span>
+                  <span className="admin-order-meta">Address: {order.address || "No address"}</span>
                 </div>
               </td>
-              <td>{order.email || "No email"}</td>
-              <td>{order.date}</td>
+              <td className="admin-order-email">{order.email || "No email"}</td>
+              <td className="admin-order-date">{order.date}</td>
               <td>
-                <div style={{ maxHeight: "100px", overflowY: "auto", fontSize: "0.85em" }}>
+                <div className="admin-order-items">
                   {order.lineItems && order.lineItems.length > 0 ? (
-                    <ul style={{ paddingLeft: "15px", margin: 0 }}>
+                    <ul className="admin-order-items-list">
                       {order.lineItems.map((item, idx) => (
                         <li key={idx}>
-                          {item.name} x{item.quantity} ({item.price})
+                          <span>{item.name}</span>
+                          <span className="admin-order-items-qty">x{item.quantity}</span>
+                          <span className="admin-order-items-price">{item.price}</span>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <span>{order.items} items</span>
+                    <span className="admin-order-items-empty">{order.items} items</span>
                   )}
                 </div>
               </td>
-              <td>Rs {order.total}</td>
-              <td>{order.payment}</td>
+              <td className="admin-order-total">Rs {order.total}</td>
+              <td className="admin-order-payment">{order.payment}</td>
               <td>
                 <select
                   className="admin-select"

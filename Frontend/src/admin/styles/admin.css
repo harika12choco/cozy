@@ -285,6 +285,78 @@
   border-collapse:collapse;
 }
 
+.admin-orders-table{
+  min-width:1100px;
+}
+
+.admin-orders-table th,
+.admin-orders-table td{
+  padding:18px 16px;
+  font-size:15px;
+  line-height:1.6;
+}
+
+.admin-order-id{
+  font-family:var(--body-font);
+  font-weight:600;
+  color:#651514;
+  word-break:break-all;
+}
+
+.admin-order-meta{
+  color:rgba(42,26,25,0.68);
+  font-size:13px;
+  word-break:break-word;
+}
+
+.admin-order-email,
+.admin-order-payment{
+  word-break:break-word;
+}
+
+.admin-order-date,
+.admin-order-total{
+  white-space:nowrap;
+  font-weight:600;
+}
+
+.admin-order-items{
+  max-height:160px;
+  overflow:auto;
+  background:#fffaf6;
+  border-radius:12px;
+  padding:10px 12px;
+  border:1px solid rgba(101,21,20,0.08);
+}
+
+.admin-order-items-list{
+  list-style:none;
+  padding:0;
+  margin:0;
+  display:grid;
+  gap:8px;
+}
+
+.admin-order-items-list li{
+  display:grid;
+  grid-template-columns:minmax(140px, 1fr) auto auto;
+  gap:10px;
+  align-items:center;
+  font-size:14px;
+}
+
+.admin-order-items-qty,
+.admin-order-items-price{
+  color:#651514;
+  font-weight:600;
+  white-space:nowrap;
+}
+
+.admin-order-items-empty{
+  color:rgba(42,26,25,0.68);
+  font-weight:600;
+}
+
 .admin-table th,
 .admin-table td{
   padding:16px 12px;
@@ -592,5 +664,9 @@
   .admin-table th,
   .admin-table td{
     min-width:120px;
+  }
+
+  .admin-orders-table{
+    min-width:960px;
   }
 }
