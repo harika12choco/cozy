@@ -58,6 +58,41 @@ export default function SiteImages() {
     setForm((current) => ({ ...current, bannerUrl: value }));
   }
 
+  function buildPayload(nextForm) {
+    const cleanedCategories = {};
+
+    categoryTitles.forEach((title) => {
+      const url = String(nextForm.categoryImages[title] ?? "").trim();
+      if (url) {
+        cleanedCategories[title] = url;
+      }
+    });
+
+    return {
+      bannerUrl: String(nextForm.bannerUrl ?? "").trim(),
+      categoryImages: cleanedCategories
+    };
+  }
+
+  async function persistForm(nextForm, message = "Site images saved.") {
+    try {
+      setSaving(true);
+      setError("");
+      const savedImages = await siteImagesService.update(buildPayload(nextForm));
+      setForm({
+        bannerUrl: savedImages?.bannerUrl || "",
+        categoryImages: { ...(savedImages?.categoryImages || {}) }
+      });
+      window.dispatchEvent(new Event("cozy-site-images-updated"));
+      setFeedback(message);
+      window.setTimeout(() => setFeedback(""), 2000);
+    } catch (saveError) {
+      setError(saveError.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handleBannerFileChange(event) {
     const [file] = event.target.files ?? [];
 
@@ -68,7 +103,9 @@ export default function SiteImages() {
     try {
       setUploadingKey("banner");
       const uploadedUrl = await siteImagesService.uploadImage(file);
-      setForm((current) => ({ ...current, bannerUrl: uploadedUrl }));
+      const nextForm = { ...form, bannerUrl: uploadedUrl };
+      setForm(nextForm);
+      await persistForm(nextForm, "Banner updated.");
     } catch {
       setError("Unable to upload banner image.");
     } finally {
@@ -96,7 +133,15 @@ export default function SiteImages() {
     try {
       setUploadingKey(title);
       const uploadedUrl = await siteImagesService.uploadImage(file);
-      handleCategoryChange(title, uploadedUrl);
+      const nextForm = {
+        ...form,
+        categoryImages: {
+          ...form.categoryImages,
+          [title]: uploadedUrl
+        }
+      };
+      setForm(nextForm);
+      await persistForm(nextForm, `${title} updated.`);
     } catch {
       setError("Unable to upload category image.");
     } finally {
@@ -105,34 +150,7 @@ export default function SiteImages() {
   }
 
   async function handleSave() {
-    const cleanedCategories = {};
-
-    categoryTitles.forEach((title) => {
-      const url = String(form.categoryImages[title] ?? "").trim();
-      if (url) {
-        cleanedCategories[title] = url;
-      }
-    });
-
-    try {
-      setSaving(true);
-      setError("");
-      const savedImages = await siteImagesService.update({
-        bannerUrl: String(form.bannerUrl ?? "").trim(),
-        categoryImages: cleanedCategories
-      });
-      setForm({
-        bannerUrl: savedImages?.bannerUrl || "",
-        categoryImages: { ...(savedImages?.categoryImages || {}) }
-      });
-      window.dispatchEvent(new Event("cozy-site-images-updated"));
-      setFeedback("Site images saved.");
-      window.setTimeout(() => setFeedback(""), 2000);
-    } catch (saveError) {
-      setError(saveError.message);
-    } finally {
-      setSaving(false);
-    }
+    await persistForm(form);
   }
 
   async function handleReset() {
