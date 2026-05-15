@@ -117,9 +117,13 @@ export default function SiteImages() {
     try {
       setSaving(true);
       setError("");
-      await siteImagesService.update({
+      const savedImages = await siteImagesService.update({
         bannerUrl: String(form.bannerUrl ?? "").trim(),
         categoryImages: cleanedCategories
+      });
+      setForm({
+        bannerUrl: savedImages?.bannerUrl || "",
+        categoryImages: { ...(savedImages?.categoryImages || {}) }
       });
       window.dispatchEvent(new Event("cozy-site-images-updated"));
       setFeedback("Site images saved.");
@@ -135,8 +139,11 @@ export default function SiteImages() {
     try {
       setSaving(true);
       setError("");
-      await siteImagesService.update({ bannerUrl: "", categoryImages: {} });
-      setForm({ bannerUrl: "", categoryImages: {} });
+      const savedImages = await siteImagesService.update({ bannerUrl: "", categoryImages: {} });
+      setForm({
+        bannerUrl: savedImages?.bannerUrl || "",
+        categoryImages: { ...(savedImages?.categoryImages || {}) }
+      });
       window.dispatchEvent(new Event("cozy-site-images-updated"));
       setFeedback("Reverted to default images.");
       window.setTimeout(() => setFeedback(""), 2000);

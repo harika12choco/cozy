@@ -53,7 +53,16 @@ const pageMeta = {
 
 export default function AdminPortal({ currentPage = "dashboard", currentProductId = "" }) {
   const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState(() => adminAuthService.isAuthenticated());
+  const [isAuthenticated, setIsAuthenticated] = useState(() => (
+    currentPage === "login" ? false : adminAuthService.isAuthenticated()
+  ));
+
+  useEffect(() => {
+    if (currentPage === "login") {
+      adminAuthService.logout();
+      setIsAuthenticated(false);
+    }
+  }, [currentPage]);
 
   useEffect(() => {
     let active = true;
@@ -173,10 +182,6 @@ export default function AdminPortal({ currentPage = "dashboard", currentProductI
       break;
   }
   if (currentPage === "login") {
-    if (isAuthenticated) {
-      return <Navigate to="/admin/dashboard" replace />;
-    }
-
     return (
       <Login
         onLogin={async ({ username, password }) => {

@@ -169,7 +169,7 @@ function App(){
       <Route path="/cart" element={<PublicSite page="cart" />} />
       <Route path="/profile" element={<PublicSite page="profile" />} />
 
-      <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
+      <Route path="/admin" element={<AdminPortal currentPage="login" />} />
       <Route path="/admin/login" element={<AdminPortal currentPage="login" />} />
       <Route path="/admin/dashboard" element={<AdminPortal currentPage="dashboard" />} />
       <Route path="/admin/products" element={<AdminPortal currentPage="products" />} />

@@ -52,10 +52,13 @@ function normalizeSiteImages(doc) {
   }
 
   const plain = doc.toObject ? doc.toObject() : doc;
+  const categoryImages = plain.categoryImages instanceof Map
+    ? Object.fromEntries(plain.categoryImages)
+    : plain.categoryImages || {};
 
   return {
     bannerUrl: plain.bannerUrl || "",
-    categoryImages: plain.categoryImages || {}
+    categoryImages
   };
 }
 
