@@ -1,0 +1,140 @@
+.policy-page{
+  min-height:70vh;
+  padding:96px 10% 78px;
+  background:
+    radial-gradient(680px 280px at 12% 8%, rgba(101, 21, 20, 0.08), transparent 70%),
+    linear-gradient(180deg, rgba(251, 244, 236, 0.72), rgba(239, 225, 210, 0.92));
+  animation:policyFadeIn 420ms ease both;
+}
+
+.policy-hero{
+  max-width:920px;
+  margin:0 auto 34px;
+  text-align:center;
+}
+
+.policy-kicker{
+  margin:0 0 8px;
+  color:var(--primary);
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:0.16em;
+  text-transform:uppercase;
+}
+
+.policy-hero h1{
+  margin:0;
+  color:var(--heading-dark);
+  font-size:clamp(42px, 6vw, 72px);
+  line-height:1.02;
+}
+
+.policy-intro{
+  max-width:720px;
+  margin:18px auto 0;
+  color:var(--text-dark);
+  font-size:18px;
+  line-height:1.75;
+}
+
+.policy-content{
+  max-width:920px;
+  margin:0 auto;
+  padding:36px 42px;
+  border:1px solid rgba(101, 21, 20, 0.14);
+  border-radius:8px;
+  background:rgba(255, 250, 244, 0.82);
+  box-shadow:0 24px 70px rgba(71, 39, 31, 0.12);
+}
+
+.policy-section + .policy-section{
+  margin-top:30px;
+  padding-top:28px;
+  border-top:1px solid rgba(101, 21, 20, 0.12);
+}
+
+.policy-section h2{
+  margin:0 0 10px;
+  color:var(--primary);
+  font-family:var(--body-font);
+  font-size:17px;
+  font-weight:700;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+}
+
+.policy-section p{
+  margin:0;
+  color:var(--text-dark);
+  line-height:1.75;
+}
+
+.policy-section ul{
+  margin:12px 0 0;
+  padding-left:20px;
+}
+
+.policy-section li{
+  margin:7px 0;
+  color:var(--text-dark);
+  line-height:1.65;
+}
+
+.policy-contact-lines{
+  display:grid;
+  gap:6px;
+  margin-top:12px;
+}
+
+.policy-contact-lines a{
+  color:var(--primary);
+  font-weight:700;
+}
+
+.policy-actions{
+  display:flex;
+  justify-content:center;
+  gap:14px;
+  margin-top:30px;
+  flex-wrap:wrap;
+}
+
+.policy-actions a{
+  display:inline-flex;
+  min-height:44px;
+  align-items:center;
+  justify-content:center;
+  padding:0 22px;
+  border:1px solid rgba(101, 21, 20, 0.28);
+  border-radius:999px;
+  color:var(--primary);
+  font-weight:700;
+  transition:background 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.policy-actions a:hover{
+  background:var(--primary);
+  color:var(--cream);
+  transform:translateY(-2px);
+}
+
+@keyframes policyFadeIn{
+  from{
+    opacity:0;
+    transform:translateY(12px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+@media (max-width: 760px){
+  .policy-page{
+    padding:74px 6% 58px;
+  }
+
+  .policy-content{
+    padding:28px 22px;
+  }
+}

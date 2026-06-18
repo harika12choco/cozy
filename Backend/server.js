@@ -14,6 +14,8 @@ const productRoutes = require("./routes/productRoutes");
 const cartRoutes = require("./routes/Cartroutes");
 const adminRoutes = require("./routes/adminRoutes");
 const siteImagesRoutes = require("./routes/siteImagesRoutes");
+const optionRoutes = require("./routes/optionRoutes");
+const { seedDefaultFragrances } = require("./controllers/optionController");
 
 const app = express();
 app.disable("x-powered-by");
@@ -102,6 +104,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api", productRoutes);
 app.use("/api", adminRoutes);
 app.use("/api", siteImagesRoutes);
+app.use("/api", optionRoutes);
 app.use("/api/cart", cartRoutes);
 
 app.get("/", (req, res) => {
@@ -127,7 +130,8 @@ app.use((err, req, res, next) => {
 
 const port = process.env.PORT || 5000;
 
-connectDB().then(() => {
+connectDB().then(async () => {
+  await seedDefaultFragrances();
   app.listen(port, () => {
     console.log(`Server started on port ${port}`);
   });

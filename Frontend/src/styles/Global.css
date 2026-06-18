@@ -166,33 +166,29 @@ button,
 
 
 .scroll-reveal{
-  opacity:0;
-  transform:translateY(34px);
-  filter:blur(6px);
-  transition:
-    opacity 700ms ease,
-    transform 700ms ease,
-    filter 700ms ease !important;
-  transition-delay:var(--reveal-delay, 0ms) !important;
-  will-change:opacity, transform, filter;
+  opacity:1;
+  transform:none;
+  filter:none;
+  transition:none !important;
+  will-change:auto;
 }
 
 .scroll-reveal.scroll-visible{
   opacity:1;
-  transform:translateY(0);
+  transform:none;
   filter:blur(0);
 }
 
 .category-card.scroll-reveal,
 .collection-card.scroll-reveal,
 .product.scroll-reveal{
-  transform:translateY(28px) scale(0.96);
+  transform:none;
 }
 
 .category-card.scroll-reveal.scroll-visible,
 .collection-card.scroll-reveal.scroll-visible,
 .product.scroll-reveal.scroll-visible{
-  transform:translateY(0) scale(1);
+  transform:none;
 }
 
 @media (max-width: 640px){

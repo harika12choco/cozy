@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { productService } from "../services/productService";
+import { candleColorService, fragranceService } from "../services/optionService";
 import { categoryGroups } from "../../utils/menuData";
 
 export default function EditProduct({ productId, onNavigate }) {
@@ -13,29 +14,45 @@ export default function EditProduct({ productId, onNavigate }) {
     bestSeller: false,
     image: "",
     imageFile: null,
-    description: ""
+    description: "",
+    candleColors: [],
+    fragrances: []
   });
   const [imageName, setImageName] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [availableColors, setAvailableColors] = useState([]);
+  const [availableFragrances, setAvailableFragrances] = useState([]);
 
   useEffect(() => {
     let active = true;
 
-    async function loadProduct() {
+    async function loadData() {
       try {
         setLoading(true);
         setError("");
-        const item = await productService.getById(productId);
+
+        const [item, colors, frags] = await Promise.all([
+          productService.getById(productId),
+          candleColorService.list({ enabled: true }),
+          fragranceService.list({ enabled: true })
+        ]);
 
         if (!active) {
           return;
         }
 
+        setAvailableColors(colors);
+        setAvailableFragrances(frags);
         setProduct(item);
         if (item) {
-          setForm({ ...item, imageFile: null });
+          setForm({
+            ...item,
+            imageFile: null,
+            candleColors: item.candleColors || [],
+            fragrances: item.fragrances || []
+          });
         }
       } catch (loadError) {
         if (active) {
@@ -48,12 +65,32 @@ export default function EditProduct({ productId, onNavigate }) {
       }
     }
 
-    loadProduct();
+    loadData();
 
     return () => {
       active = false;
     };
   }, [productId]);
+
+  function toggleColor(color) {
+    setForm((current) => {
+      const exists = current.candleColors.some((c) => c.optionId === color.id);
+      const nextColors = exists
+        ? current.candleColors.filter((c) => c.optionId !== color.id)
+        : [...current.candleColors, { optionId: color.id, name: color.name, hexCode: color.hexCode }];
+      return { ...current, candleColors: nextColors };
+    });
+  }
+
+  function toggleFragrance(fragrance) {
+    setForm((current) => {
+      const exists = current.fragrances.some((f) => f.optionId === fragrance.id);
+      const nextFrags = exists
+        ? current.fragrances.filter((f) => f.optionId !== fragrance.id)
+        : [...current.fragrances, { optionId: fragrance.id, name: fragrance.name }];
+      return { ...current, fragrances: nextFrags };
+    });
+  }
 
   if (loading) {
     return (
@@ -191,6 +228,52 @@ export default function EditProduct({ productId, onNavigate }) {
           Description
           <textarea name="description" rows="5" value={form.description} onChange={updateField} required />
         </label>
+
+        <div className="admin-form-span admin-options-section">
+          <label>Available Colors</label>
+          <div className="admin-swatch-list">
+            {availableColors.map((color) => {
+              const isChecked = form.candleColors.some((c) => c.optionId === color.id);
+              return (
+                <button
+                  key={color.id}
+                  type="button"
+                  className={`admin-swatch-item ${isChecked ? "is-checked" : ""}`}
+                  onClick={() => toggleColor(color)}
+                >
+                  <span className="admin-swatch-color" style={{ backgroundColor: color.hexCode }} />
+                  <span className="admin-swatch-name">{color.name}</span>
+                </button>
+              );
+            })}
+            {availableColors.length === 0 && (
+              <p className="admin-options-empty">No active colors. Go to "Candle Colors" page to add some.</p>
+            )}
+          </div>
+        </div>
+
+        <div className="admin-form-span admin-options-section">
+          <label>Available Fragrances</label>
+          <div className="admin-swatch-list">
+            {availableFragrances.map((frag) => {
+              const isChecked = form.fragrances.some((f) => f.optionId === frag.id);
+              return (
+                <button
+                  key={frag.id}
+                  type="button"
+                  className={`admin-swatch-item ${isChecked ? "is-checked" : ""}`}
+                  onClick={() => toggleFragrance(frag)}
+                >
+                  <span className="admin-swatch-icon">{isChecked ? "☑" : "☐"}</span>
+                  <span className="admin-swatch-name">{frag.name}</span>
+                </button>
+              );
+            })}
+            {availableFragrances.length === 0 && (
+              <p className="admin-options-empty">No active fragrances. Go to "Fragrances" page to add some.</p>
+            )}
+          </div>
+        </div>
 
         {form.image ? (
           <div className="admin-form-span">

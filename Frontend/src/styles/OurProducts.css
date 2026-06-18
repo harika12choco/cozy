@@ -1,0 +1,27 @@
+.our-products-section {
+  background: transparent;
+  padding-top: 118px;
+}
+
+.our-products-title {
+  text-align: center;
+  color: var(--heading-dark);
+  margin: 0 0 32px;
+  font-size: 54px;
+  font-family: var(--display-font);
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.05;
+  text-transform: none;
+  letter-spacing: 0.5px;
+}
+
+@media (max-width: 640px) {
+  .our-products-section {
+    padding-top: 88px;
+  }
+
+  .our-products-title {
+    font-size: 38px;
+  }
+}

@@ -1,5 +1,63 @@
 const mongoose = require("mongoose");
 
+const selectedOptionSchema = new mongoose.Schema(
+  {
+    optionId: {
+      type: String,
+      default: ""
+    },
+    name: {
+      type: String,
+      default: "",
+      trim: true
+    },
+    hexCode: {
+      type: String,
+      default: "",
+      trim: true,
+      uppercase: true
+    },
+    priceAdjustment: {
+      type: Number,
+      default: 0
+    }
+  },
+  { _id: false }
+);
+
+const selectedVariantSchema = new mongoose.Schema(
+  {
+    optionId: {
+      type: String,
+      default: ""
+    },
+    name: {
+      type: String,
+      default: "",
+      trim: true
+    },
+    price: {
+      type: Number,
+      default: 0
+    },
+    weight: {
+      type: String,
+      default: "",
+      trim: true
+    },
+    sku: {
+      type: String,
+      default: "",
+      trim: true
+    },
+    stock: {
+      type: Number,
+      default: 0
+    }
+  },
+  { _id: false }
+);
+
 const cartItemSchema = new mongoose.Schema({
   key: {
     type: String,
@@ -15,6 +73,18 @@ const cartItemSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  basePrice: {
+    type: Number,
+    default: 0
+  },
+  fragranceExtraCharge: {
+    type: Number,
+    default: 0
+  },
+  finalPrice: {
+    type: Number,
+    default: 0
+  },
   price: {
     type: String,
     required: true
@@ -27,6 +97,18 @@ const cartItemSchema = new mongoose.Schema({
     type: Number,
     required: true,
     min: 1
+  },
+  selectedColor: {
+    type: selectedOptionSchema,
+    default: null
+  },
+  selectedFragrance: {
+    type: selectedOptionSchema,
+    default: null
+  },
+  selectedVariant: {
+    type: selectedVariantSchema,
+    default: null
   }
 });
 

@@ -1,10 +1,56 @@
 import "../styles/ProductDetail.css";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import {
+  FaBoxOpen,
+  FaCheck,
+  FaExpand,
+  FaGift,
+  FaHeart,
+  FaLeaf,
+  FaMinus,
+  FaPalette,
+  FaPenFancy,
+  FaPlus,
+  FaQuestionCircle,
+  FaRegEnvelope,
+  FaSeedling,
+  FaShoppingBag,
+  FaSpa,
+  FaTimes,
+  FaTruck
+} from "react-icons/fa";
 import { addItemToCart } from "../utils/cart";
 import { fetchProductsByIds, matchesCategory, readShopProducts } from "../utils/shopProducts";
+import {
+  calculateProductPrice,
+  formatProductPrice,
+  getFragrancePriceAdjustment,
+  getPurchasableBasePrice,
+  normalizeColorOption,
+  normalizeFragranceOption,
+  normalizeVariantOption,
+  parseProductPrice,
+  withCalculatedProductPrice
+} from "../utils/productPricing";
 
 const RECOMMENDATION_COUNT = 4;
+
+const featureItems = [
+  { label: "Handmade", Icon: FaHeart },
+  { label: "Premium Wax", Icon: FaLeaf },
+  { label: "Long Lasting", Icon: FaSeedling },
+  { label: "Perfect for Gifting", Icon: FaGift },
+  { label: "Made with Love", Icon: FaCheck }
+];
+
+const tabLabels = [
+  "Description",
+  "Care Instructions",
+  "Shipping Information",
+  "Customization Details",
+  "FAQs"
+];
 
 function pickRandomItems(items, count) {
   const pool = [...items];
@@ -17,6 +63,141 @@ function pickRandomItems(items, count) {
   return pool.slice(0, count);
 }
 
+function resolveImageSource(image) {
+  if (!image) {
+    return "";
+  }
+
+  if (typeof image === "string") {
+    return image;
+  }
+
+  return image.url ?? image.secureUrl ?? image.secure_url ?? image.image ?? "";
+}
+
+function getProductImages(product) {
+  if (!product) {
+    return [];
+  }
+
+  const candidates = [
+    product.featuredImage,
+    product.img,
+    product.image,
+    ...(Array.isArray(product.images) ? product.images : []),
+    ...(Array.isArray(product.galleryImages) ? product.galleryImages : [])
+  ];
+  const seen = new Set();
+
+  return candidates
+    .map(resolveImageSource)
+    .filter(Boolean)
+    .filter((image) => {
+      if (seen.has(image)) {
+        return false;
+      }
+
+      seen.add(image);
+      return true;
+    });
+}
+
+function getCollectionLabel(product) {
+  return (
+    product?.collectionName ||
+    product?.collection ||
+    (Array.isArray(product?.collections) ? product.collections[0] : "") ||
+    product?.category ||
+    "Signature Candle"
+  );
+}
+
+function optionKey(option, fallback) {
+  return String(option?.optionId || option?.id || option?._id || option?.name || fallback);
+}
+
+function getVariantOptions(product) {
+  const basePrice = getPurchasableBasePrice(product);
+
+  return (Array.isArray(product?.variants) ? product.variants : [])
+    .map((variant, index) => normalizeVariantOption(variant, `variant-${index}`, basePrice))
+    .filter(Boolean);
+}
+
+function getCustomizationItems(product, colors, fragrances) {
+  const configured = Array.isArray(product?.customizationOptions) ? product.customizationOptions : [];
+  const inferred = [
+    colors.length > 0 ? "Color" : "",
+    fragrances.length > 0 ? "Fragrance" : ""
+  ].filter(Boolean);
+  const seen = new Set();
+
+  return [...configured, ...inferred]
+    .map((item) => String(item).trim())
+    .filter(Boolean)
+    .filter((item) => {
+      const key = item.toLowerCase();
+
+      if (seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    });
+}
+
+function getCustomizationIcon(label) {
+  const value = label.toLowerCase();
+
+  if (value.includes("color")) {
+    return FaPalette;
+  }
+
+  if (value.includes("fragrance") || value.includes("scent")) {
+    return FaSpa;
+  }
+
+  if (value.includes("gift") || value.includes("pack")) {
+    return FaGift;
+  }
+
+  if (value.includes("message") || value.includes("tag")) {
+    return FaRegEnvelope;
+  }
+
+  if (value.includes("name") || value.includes("personal")) {
+    return FaPenFancy;
+  }
+
+  return FaSeedling;
+}
+
+function getDescriptionParagraphs(product) {
+  return [
+    product?.shortDescription,
+    product?.description || product?.note,
+    product?.tagline
+  ]
+    .map((item) => String(item || "").trim())
+    .filter(Boolean)
+    .filter((item, index, items) => items.indexOf(item) === index);
+}
+
+function getDiscountPercent(product, originalPrice, currentPrice) {
+  const configuredDiscount = Number(product?.offerPercentage ?? product?.discountPercentage ?? 0);
+
+  if (configuredDiscount > 0) {
+    return Math.round(configuredDiscount);
+  }
+
+  if (originalPrice > currentPrice) {
+    return Math.round(((originalPrice - currentPrice) / originalPrice) * 100);
+  }
+
+  return 0;
+}
+
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -26,6 +207,69 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [feedback, setFeedback] = useState("");
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [selectedVariant, setSelectedVariant] = useState(null);
+  const [selectedColor, setSelectedColor] = useState(null);
+  const [selectedFragrance, setSelectedFragrance] = useState(null);
+  const [quantity, setQuantity] = useState(1);
+  const [activeTab, setActiveTab] = useState(tabLabels[0]);
+
+  const productImages = useMemo(() => getProductImages(product), [product]);
+  const variantOptions = useMemo(() => getVariantOptions(product), [product]);
+  const colorOptions = useMemo(
+    () =>
+      (Array.isArray(product?.candleColors) ? product.candleColors : product?.colors ?? [])
+        .map((option, index) => normalizeColorOption(option, `color-${index}`))
+        .filter(Boolean),
+    [product]
+  );
+  const fragranceOptions = useMemo(
+    () =>
+      (Array.isArray(product?.fragrances) ? product.fragrances : [])
+        .map((option, index) => normalizeFragranceOption(option, `fragrance-${index}`))
+        .filter(Boolean),
+    [product]
+  );
+  const customizationItems = useMemo(
+    () => getCustomizationItems(product, colorOptions, fragranceOptions),
+    [product, colorOptions, fragranceOptions]
+  );
+  const descriptionParagraphs = useMemo(() => getDescriptionParagraphs(product), [product]);
+
+  useEffect(() => {
+    if (!product) {
+      return;
+    }
+
+    setSelectedVariant(variantOptions[0] ?? null);
+    setSelectedColor(colorOptions[0] ?? null);
+    setSelectedFragrance(fragranceOptions[0] ?? null);
+    setQuantity(1);
+    setSelectedImageIndex(0);
+    setActiveTab(tabLabels[0]);
+  }, [product, variantOptions, colorOptions, fragranceOptions]);
+
+  useEffect(() => {
+    if (selectedImageIndex >= productImages.length) {
+      setSelectedImageIndex(0);
+    }
+  }, [productImages.length, selectedImageIndex]);
+
+  useEffect(() => {
+    if (!lightboxOpen) {
+      return undefined;
+    }
+
+    function handleEscape(event) {
+      if (event.key === "Escape") {
+        setLightboxOpen(false);
+      }
+    }
+
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [lightboxOpen]);
 
   useEffect(() => {
     let active = true;
@@ -110,29 +354,132 @@ export default function ProductDetail() {
     window.scrollTo({ top: 0, behavior: "auto" });
   }, [productId]);
 
-  function handleAddToCart() {
+  function handleQuantityChange(nextQuantity) {
+    const stockLimit = getAvailableStock();
+    const cappedQuantity = Math.max(1, Math.min(nextQuantity, stockLimit || 1));
+    setQuantity(cappedQuantity);
+  }
+
+  function getAvailableStock() {
+    const variantStock = Number(selectedVariant?.stock ?? 0);
+
+    if (variantStock > 0) {
+      return variantStock;
+    }
+
+    return Math.max(0, Number(product?.stock ?? 0));
+  }
+
+  function handleAddToCart({ checkout = false } = {}) {
     if (!product) {
-      return;
+      return false;
     }
 
-    if (product.stock <= 0) {
+    const availableStock = getAvailableStock();
+
+    if (availableStock <= 0) {
       setFeedback("Out of stock");
-      return;
+      return false;
     }
 
-    addItemToCart({
+    if (quantity > availableStock) {
+      setFeedback(`Only ${availableStock} items left.`);
+      return false;
+    }
+
+    if (colorOptions.length > 0 && !selectedColor) {
+      setFeedback("Please select a candle color.");
+      return false;
+    }
+
+    if (fragranceOptions.length > 0 && !selectedFragrance) {
+      setFeedback("Please select a fragrance.");
+      return false;
+    }
+
+    if (variantOptions.length > 0 && !selectedVariant) {
+      setFeedback("Please select a variant.");
+      return false;
+    }
+
+    addItemToCart(withCalculatedProductPrice({
       ...product,
-      img: product.img ?? product.image
-    });
+      img: mainImage,
+      image: mainImage
+    }, selectedColor, selectedFragrance, selectedVariant, quantity));
 
     setFeedback(`${product.name} added to cart`);
     window.setTimeout(() => setFeedback(""), 1800);
+
+    if (checkout) {
+      navigate("/cart");
+    }
+
+    return true;
+  }
+
+  function renderTabContent() {
+    if (!product) {
+      return null;
+    }
+
+    if (activeTab === "Care Instructions") {
+      return (
+        <ul>
+          <li>Trim the wick before each burn.</li>
+          <li>Keep the candle on a heat-safe surface.</li>
+          <li>Do not leave a lit candle unattended.</li>
+        </ul>
+      );
+    }
+
+    if (activeTab === "Shipping Information") {
+      return (
+        <ul>
+          <li>Packed securely for handcrafted candle delivery.</li>
+          <li>Delivery timelines are confirmed after order placement.</li>
+          <li>Bulk and customized orders may need extra preparation time.</li>
+        </ul>
+      );
+    }
+
+    if (activeTab === "Customization Details") {
+      return (
+        <div className="product-detail-tab-options">
+          {selectedVariant ? <span>Variant: {selectedVariant.name}</span> : null}
+          {selectedColor ? <span>Color: {selectedColor.name}</span> : null}
+          {selectedFragrance ? <span>Fragrance: {selectedFragrance.name}</span> : null}
+          {customizationItems.length > 0 ? (
+            <span>Available: {customizationItems.join(", ")}</span>
+          ) : null}
+        </div>
+      );
+    }
+
+    if (activeTab === "FAQs") {
+      return (
+        <div className="product-detail-faq-list">
+          <p><strong>Can this be customized?</strong> Yes, available product options can be selected before adding to cart.</p>
+          <p><strong>Can I gift pack this?</strong> Gift packaging appears when enabled for this product.</p>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        {descriptionParagraphs.length > 0 ? (
+          descriptionParagraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)
+        ) : (
+          <p>A handcrafted candle made for beautiful gifting moments.</p>
+        )}
+      </>
+    );
   }
 
   if (loading) {
     return (
       <main className="product-detail-page">
-        <section className="product-detail-card">
+        <section className="product-detail-empty-state">
           <p className="product-detail-feedback">Loading product...</p>
         </section>
       </main>
@@ -142,7 +489,7 @@ export default function ProductDetail() {
   if (error || !product) {
     return (
       <main className="product-detail-page">
-        <section className="product-detail-card">
+        <section className="product-detail-empty-state">
           <p className="product-detail-feedback">{error || "Product not found."}</p>
           <button type="button" className="btn" onClick={() => navigate("/shop")}>
             Back to Shop
@@ -152,50 +499,276 @@ export default function ProductDetail() {
     );
   }
 
+  const mainImage = productImages[selectedImageIndex] ?? product.img ?? product.image;
+  const availableStock = getAvailableStock();
+  const isUnavailable = availableStock <= 0;
+  const collectionLabel = getCollectionLabel(product);
+  const originalBasePrice = selectedVariant?.price || parseProductPrice(product.basePrice ?? product.price);
+  const currentBasePrice = getPurchasableBasePrice(product, selectedVariant);
+  const unitPrice = calculateProductPrice(product, selectedColor, selectedFragrance, selectedVariant);
+  const fragranceAdjustment = getFragrancePriceAdjustment(selectedFragrance);
+  const originalUnitPrice = originalBasePrice + fragranceAdjustment;
+  const hasSalePrice = currentBasePrice > 0 && originalBasePrice > currentBasePrice;
+  const discountPercent = getDiscountPercent(product, originalUnitPrice, unitPrice);
+
   return (
     <main className="product-detail-page">
       <div className="product-detail-actions">
         <button type="button" className="product-detail-back" onClick={() => navigate(-1)}>
-          ← Back
+          &lt; Back
         </button>
         <Link className="product-detail-shop" to="/shop">
           Shop All
         </Link>
       </div>
 
-      {feedback ? <p className="product-detail-feedback">{feedback}</p> : null}
+      {feedback ? <p className="product-detail-feedback" role="status">{feedback}</p> : null}
 
       <section className="product-detail-card">
-        <div className="product-detail-media">
-          <img src={product.img ?? product.image} alt={product.name} />
+        <div className="product-detail-gallery" aria-label={`${product.name} images`}>
+          <div className="product-detail-thumbnail-rail">
+            {productImages.map((image, index) => (
+              <button
+                key={`${image}-${index}`}
+                type="button"
+                className={`product-detail-thumbnail ${index === selectedImageIndex ? "is-selected" : ""}`}
+                onClick={() => setSelectedImageIndex(index)}
+                aria-label={`View image ${index + 1}`}
+                aria-pressed={index === selectedImageIndex}
+              >
+                <img src={image} alt={`${product.name} thumbnail ${index + 1}`} />
+              </button>
+            ))}
+          </div>
+
+          <div className="product-detail-main-image">
+            <div className="product-detail-badges">
+              {product.bestSeller || product.isBestSeller ? <span>Best Seller</span> : null}
+              {collectionLabel ? <span>{collectionLabel}</span> : null}
+            </div>
+            <button
+              type="button"
+              className="product-detail-image-button"
+              onClick={() => setLightboxOpen(true)}
+              aria-label={`Open ${product.name} image preview`}
+            >
+              <img src={mainImage} alt={product.name} />
+            </button>
+            <button
+              type="button"
+              className="product-detail-lightbox-trigger"
+              onClick={() => setLightboxOpen(true)}
+              aria-label="Preview image"
+            >
+              <FaExpand aria-hidden="true" />
+            </button>
+          </div>
         </div>
 
         <div className="product-detail-info">
-          <p className="product-detail-category">{product.category || "Signature Candle"}</p>
           <h1>{product.name}</h1>
-          <p className="product-detail-price">{product.price}</p>
-          <p className="product-detail-stock">
-            {product.stock > 0 ? `${product.stock} items left` : "Out of stock"}
-          </p>
-          <p className="product-detail-description">
-            {product.note || "A cozy candle crafted for slow evenings and warm spaces."}
-          </p>
+
+          <div className="product-detail-price-block">
+            <div className="product-detail-price-row">
+              <span className="product-detail-current-price">{formatProductPrice(unitPrice)}</span>
+              {hasSalePrice ? (
+                <span className="product-detail-original-price">{formatProductPrice(originalUnitPrice)}</span>
+              ) : null}
+              {discountPercent > 0 ? (
+                <span className="product-detail-discount">{discountPercent}% off</span>
+              ) : null}
+            </div>
+            <p className={`product-detail-stock ${isUnavailable ? "is-out" : ""}`}>
+              <FaBoxOpen aria-hidden="true" />
+              {isUnavailable ? "Out of stock" : `${availableStock} items left`}
+            </p>
+          </div>
+
+          <div className="product-detail-description">
+            {descriptionParagraphs.length > 0 ? (
+              descriptionParagraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)
+            ) : (
+              <p>A handcrafted candle made for beautiful gifting moments.</p>
+            )}
+          </div>
+
+          {variantOptions.length > 0 ? (
+            <section className="product-detail-control-section">
+              <h2>Variants</h2>
+              <div className="product-detail-variant-grid">
+                {variantOptions.map((variant, index) => {
+                  const isSelected = optionKey(selectedVariant, "") === optionKey(variant, index);
+
+                  return (
+                    <button
+                      key={optionKey(variant, index)}
+                      type="button"
+                      className={`product-detail-variant-card ${isSelected ? "is-selected" : ""}`}
+                      onClick={() => {
+                        setSelectedVariant(variant);
+                        setQuantity(1);
+                      }}
+                      aria-pressed={isSelected}
+                    >
+                      <span className="product-detail-option-check">{isSelected ? <FaCheck aria-hidden="true" /> : null}</span>
+                      <span>{variant.name}</span>
+                      <strong>{formatProductPrice(variant.price || currentBasePrice)}</strong>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
+
+          {customizationItems.length > 0 ? (
+            <section className="product-detail-control-section">
+              <h2>Customization</h2>
+              <div className="product-detail-customization-row">
+                {customizationItems.map((item) => {
+                  const Icon = getCustomizationIcon(item);
+
+                  return (
+                    <div className="product-detail-custom-card" key={item}>
+                      <Icon aria-hidden="true" />
+                      <span>{item}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
+
+          {colorOptions.length > 0 ? (
+            <section className="product-detail-control-section">
+              <h2>Available Colors</h2>
+              <div className="product-detail-colors-list">
+                {colorOptions.map((color, index) => {
+                  const isSelected = optionKey(selectedColor, "") === optionKey(color, index);
+
+                  return (
+                    <button
+                      key={optionKey(color, index)}
+                      type="button"
+                      className={`product-detail-color-btn ${isSelected ? "is-selected" : ""}`}
+                      onClick={() => setSelectedColor(color)}
+                      aria-pressed={isSelected}
+                    >
+                      <span
+                        className="product-detail-color-swatch"
+                        style={{ backgroundColor: color.hexCode || "#efe7dc" }}
+                      >
+                        {isSelected ? <FaCheck aria-hidden="true" /> : null}
+                      </span>
+                      <span>{color.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
+
+          {fragranceOptions.length > 0 ? (
+            <section className="product-detail-control-section">
+              <h2>Available Fragrances</h2>
+              <div className="product-detail-fragrances-list">
+                {fragranceOptions.map((fragrance, index) => {
+                  const isSelected = optionKey(selectedFragrance, "") === optionKey(fragrance, index);
+
+                  return (
+                    <button
+                      key={optionKey(fragrance, index)}
+                      type="button"
+                      className={`product-detail-frag-btn ${isSelected ? "is-selected" : ""}`}
+                      onClick={() => setSelectedFragrance(fragrance)}
+                      aria-pressed={isSelected}
+                    >
+                      {fragrance.name}
+                      {Number(fragrance.priceAdjustment ?? 0) > 0 ? (
+                        <span>+{formatProductPrice(fragrance.priceAdjustment)}</span>
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
+
+          <div className="product-detail-purchase-row">
+            <div className="product-detail-quantity" aria-label="Quantity selector">
+              <button type="button" onClick={() => handleQuantityChange(quantity - 1)} disabled={quantity <= 1}>
+                <FaMinus aria-hidden="true" />
+              </button>
+              <span>{quantity}</span>
+              <button
+                type="button"
+                onClick={() => handleQuantityChange(quantity + 1)}
+                disabled={isUnavailable || quantity >= availableStock}
+              >
+                <FaPlus aria-hidden="true" />
+              </button>
+            </div>
+          </div>
 
           <div className="product-detail-cta">
             <button
               type="button"
-              className="btn"
-              onClick={handleAddToCart}
-              disabled={product.stock <= 0}
+              className="product-detail-primary-btn"
+              onClick={() => handleAddToCart()}
+              disabled={isUnavailable}
             >
-              Add to Cart
+              <FaShoppingBag aria-hidden="true" />
+              Add To Cart
+            </button>
+            <button
+              type="button"
+              className="product-detail-secondary-btn"
+              onClick={() => handleAddToCart({ checkout: true })}
+              disabled={isUnavailable}
+            >
+              Buy Now
             </button>
           </div>
         </div>
       </section>
 
+      <section className="product-detail-section product-detail-features" aria-label="Product features">
+        {featureItems.map(({ label, Icon }) => (
+          <div className="product-detail-feature" key={label}>
+            <Icon aria-hidden="true" />
+            <span>{label}</span>
+          </div>
+        ))}
+      </section>
+
+      <section className="product-detail-section product-detail-tabs">
+        <div className="product-detail-tab-list" role="tablist" aria-label="Product information">
+          {tabLabels.map((label) => (
+            <button
+              key={label}
+              type="button"
+              className={activeTab === label ? "is-active" : ""}
+              onClick={() => setActiveTab(label)}
+              role="tab"
+              aria-selected={activeTab === label}
+            >
+              {label === "Shipping Information" ? <FaTruck aria-hidden="true" /> : null}
+              {label === "FAQs" ? <FaQuestionCircle aria-hidden="true" /> : null}
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="product-detail-tab-panel" role="tabpanel">
+          {renderTabContent()}
+        </div>
+      </section>
+
       <section className="product-detail-section">
-        <h2>Recommended in {product.category || "this collection"}</h2>
+        <div className="product-detail-section-head">
+          <div>
+            <p>Related Products</p>
+            <h2>More from {collectionLabel}</h2>
+          </div>
+        </div>
         {recommendations.length === 0 ? (
           <p className="product-detail-feedback">No recommendations available.</p>
         ) : (
@@ -216,6 +789,15 @@ export default function ProductDetail() {
           </div>
         )}
       </section>
+
+      {lightboxOpen ? (
+        <div className="product-detail-lightbox" role="dialog" aria-modal="true" onClick={() => setLightboxOpen(false)}>
+          <button type="button" aria-label="Close preview" onClick={() => setLightboxOpen(false)}>
+            <FaTimes aria-hidden="true" />
+          </button>
+          <img src={mainImage} alt={product.name} onClick={(event) => event.stopPropagation()} />
+        </div>
+      ) : null}
     </main>
   );
 }

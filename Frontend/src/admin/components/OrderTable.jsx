@@ -47,9 +47,23 @@ export default function OrderTable({ orders, onStatusChange, onDelete }) {
                     <ul className="admin-order-items-list">
                       {order.lineItems.map((item, idx) => (
                         <li key={idx}>
-                          <span>{item.name}</span>
+                          <span>{item.productName || item.name}</span>
                           <span className="admin-order-items-qty">x{item.quantity}</span>
-                          <span className="admin-order-items-price">{item.price}</span>
+                          <span className="admin-order-items-price">{item.price || `Rs ${item.finalPrice || 0}`}</span>
+                          {item.selectedColor?.name ? (
+                            <span className="admin-order-items-option">Color: {item.selectedColor.name}</span>
+                          ) : null}
+                          {item.selectedVariant?.name ? (
+                            <span className="admin-order-items-option">Variant: {item.selectedVariant.name}</span>
+                          ) : null}
+                          {item.selectedFragrance?.name ? (
+                            <span className="admin-order-items-option">
+                              Fragrance: {item.selectedFragrance.name}
+                              {Number(item.fragranceExtraCharge ?? item.selectedFragrance.priceAdjustment ?? 0) > 0
+                                ? ` (+Rs ${item.fragranceExtraCharge ?? item.selectedFragrance.priceAdjustment})`
+                                : ""}
+                            </span>
+                          ) : null}
                         </li>
                       ))}
                     </ul>

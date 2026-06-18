@@ -1,6 +1,9 @@
 const Order = require("../models/Order");
 const Product = require("../models/productModel");
 const mongoose = require("mongoose");
+const { getStaticProductById, isStaticProductId } = require("../utils/staticProducts");
+const { getFragranceDisplayName, getFragrancePriceAdjustment, parseProductPrice } = require("../utils/productPricing");
+const variantPricePattern = /(?:rs\.?|inr|₹)\s*([0-9]+(?:\.[0-9]+)?)(?:\s*[-–]\s*([0-9]+(?:\.[0-9]+)?))?/i;
 
 function isValidPincode(value) {
   return /^[0-9]{6}$/.test(String(value || "").trim());
@@ -28,17 +31,116 @@ function normalizeLineItems(items) {
   }
 
   return items
-    .map((item) => ({
-      productId: String(item.productId ?? item.id ?? "").trim(),
-      name: String(item.name ?? "").trim(),
-      price: String(item.price ?? "").trim(),
-      quantity: Number(item.quantity ?? 0)
-    }))
+    .map((item) => {
+      const productId = String(item.productId ?? item.id ?? "").trim();
+      const staticProduct = getStaticProductById(productId);
+      const selectedColor = normalizeSelectedOption(item.selectedColor, "color");
+      const selectedFragrance = normalizeSelectedOption(item.selectedFragrance, "fragrance");
+      const selectedVariant = normalizeSelectedVariant(item.selectedVariant);
+      const productName = String(staticProduct?.name ?? item.productName ?? item.name ?? "").trim();
+      const basePrice = parseProductPrice(selectedVariant?.price || item.basePrice || staticProduct?.basePrice);
+      const fragranceExtraCharge = item.fragranceExtraCharge !== undefined
+        ? parseProductPrice(item.fragranceExtraCharge)
+        : getFragrancePriceAdjustment(selectedFragrance);
+      const fallbackFinalPrice = parseProductPrice(item.finalPrice ?? item.price);
+      const finalPrice = basePrice > 0 ? basePrice + fragranceExtraCharge : fallbackFinalPrice;
+
+      return {
+        productId,
+        productName,
+        name: productName,
+        basePrice,
+        fragranceExtraCharge,
+        finalPrice,
+        price: `Rs ${finalPrice}`,
+        quantity: Number(item.quantity ?? 0),
+        selectedColor,
+        selectedFragrance,
+        selectedVariant
+      };
+    })
     .filter((item) => item.name && item.price && item.quantity > 0);
+}
+
+function normalizeSelectedOption(value, optionType = "fragrance") {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const name = optionType === "fragrance"
+    ? getFragranceDisplayName(value)
+    : String(value.name ?? "").trim();
+
+  if (!name) {
+    return null;
+  }
+
+  return {
+    optionId: String(value.optionId ?? value.id ?? value._id ?? "").trim(),
+    name,
+    hexCode: String(value.hexCode ?? "").trim().toUpperCase(),
+    priceAdjustment: optionType === "fragrance" ? getFragrancePriceAdjustment(value) : 0
+  };
+}
+
+function slugify(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function normalizeSelectedVariant(value) {
+  if (!value) {
+    return null;
+  }
+
+  if (typeof value === "string") {
+    const match = value.match(variantPricePattern);
+    const name = match ? value.slice(0, match.index).trim() : value.trim();
+
+    if (!name) {
+      return null;
+    }
+
+    return {
+      optionId: slugify(name),
+      name,
+      price: match ? parseProductPrice(match[1]) : 0,
+      weight: "",
+      sku: "",
+      stock: 0
+    };
+  }
+
+  const name = String(value.name ?? "").trim();
+
+  if (!name) {
+    return null;
+  }
+
+  return {
+    optionId: String(value.optionId ?? value.id ?? value._id ?? slugify(name)).trim(),
+    name,
+    price: parseProductPrice(value.price),
+    weight: String(value.weight ?? "").trim(),
+    sku: String(value.sku ?? "").trim(),
+    stock: Math.max(0, Number(value.stock ?? 0))
+  };
 }
 
 async function resolveProductId(item) {
   if (item.productId) {
+    if (isStaticProductId(item.productId)) {
+      return item.productId;
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(item.productId)) {
+      return "";
+    }
+
     return item.productId;
   }
 
@@ -56,6 +158,10 @@ async function reserveStock(lineItems) {
   try {
     await session.withTransaction(async () => {
       for (const item of lineItems) {
+        if (isStaticProductId(item.productId)) {
+          continue;
+        }
+
         const productId = await resolveProductId(item);
 
         if (!productId) {
@@ -89,6 +195,10 @@ async function reserveStock(lineItems) {
 
   try {
     for (const item of lineItems) {
+      if (isStaticProductId(item.productId)) {
+        continue;
+      }
+
       const productId = await resolveProductId(item);
 
       if (!productId) {
@@ -122,7 +232,7 @@ async function reserveStock(lineItems) {
 async function releaseStock(lineItems) {
   await Promise.all(
     lineItems
-      .filter((item) => item.productId)
+      .filter((item) => item.productId && !isStaticProductId(item.productId) && mongoose.Types.ObjectId.isValid(item.productId))
       .map((item) =>
         Product.findByIdAndUpdate(item.productId, { $inc: { stock: item.quantity } })
       )
@@ -152,6 +262,9 @@ const createOrder = async (req, res) => {
     }
 
     payload.lineItems = lineItems;
+    payload.items = lineItems.reduce((total, item) => total + item.quantity, 0);
+    payload.total = lineItems.reduce((total, item) => total + item.finalPrice * item.quantity, 0);
+    payload.paymentAmount = payload.total;
 
     try {
       await reserveStock(lineItems);

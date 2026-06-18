@@ -1,14 +1,89 @@
 const mongoose = require("mongoose");
 
+const selectedOptionSchema = new mongoose.Schema(
+  {
+    optionId: {
+      type: String,
+      default: ""
+    },
+    name: {
+      type: String,
+      default: "",
+      trim: true
+    },
+    hexCode: {
+      type: String,
+      default: "",
+      trim: true,
+      uppercase: true
+    },
+    priceAdjustment: {
+      type: Number,
+      default: 0
+    }
+  },
+  { _id: false }
+);
+
+const selectedVariantSchema = new mongoose.Schema(
+  {
+    optionId: {
+      type: String,
+      default: ""
+    },
+    name: {
+      type: String,
+      default: "",
+      trim: true
+    },
+    price: {
+      type: Number,
+      default: 0
+    },
+    weight: {
+      type: String,
+      default: "",
+      trim: true
+    },
+    sku: {
+      type: String,
+      default: "",
+      trim: true
+    },
+    stock: {
+      type: Number,
+      default: 0
+    }
+  },
+  { _id: false }
+);
+
 const orderLineItemSchema = new mongoose.Schema(
   {
     productId: {
       type: String,
       default: ""
     },
+    productName: {
+      type: String,
+      default: "",
+      trim: true
+    },
     name: {
       type: String,
       required: true
+    },
+    basePrice: {
+      type: Number,
+      default: 0
+    },
+    fragranceExtraCharge: {
+      type: Number,
+      default: 0
+    },
+    finalPrice: {
+      type: Number,
+      default: 0
     },
     price: {
       type: String,
@@ -18,6 +93,18 @@ const orderLineItemSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 1
+    },
+    selectedColor: {
+      type: selectedOptionSchema,
+      default: null
+    },
+    selectedFragrance: {
+      type: selectedOptionSchema,
+      default: null
+    },
+    selectedVariant: {
+      type: selectedVariantSchema,
+      default: null
     }
   },
   { _id: false }
@@ -59,6 +146,11 @@ const orderSchema = new mongoose.Schema(
     total: {
       type: Number,
       required: true,
+      min: 0
+    },
+    paymentAmount: {
+      type: Number,
+      default: 0,
       min: 0
     },
     payment: {

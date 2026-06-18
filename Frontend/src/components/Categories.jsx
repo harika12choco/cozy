@@ -34,7 +34,9 @@ export default function Categories() {
   const firstCloneRef = useRef(null);
   const animationFrameRef = useRef(null);
   const isPausedRef = useRef(false);
+  const isWindowScrollingRef = useRef(false);
   const resumeTimeoutRef = useRef(null);
+  const scrollPauseTimeoutRef = useRef(null);
   const [arrowState, setArrowState] = useState({
     canScrollLeft: false,
     canScrollRight: true
@@ -134,7 +136,7 @@ export default function Categories() {
     function animateCategories() {
       const metrics = getLoopMetrics();
 
-      if (!isPausedRef.current && metrics) {
+      if (!isPausedRef.current && !isWindowScrollingRef.current && metrics) {
         track.scrollLeft += scrollSpeed;
 
         if (track.scrollLeft >= metrics.loopWidth) {
@@ -147,16 +149,27 @@ export default function Categories() {
       animationFrameRef.current = window.requestAnimationFrame(animateCategories);
     }
 
+    function handleWindowScroll() {
+      isWindowScrollingRef.current = true;
+      window.clearTimeout(scrollPauseTimeoutRef.current);
+      scrollPauseTimeoutRef.current = window.setTimeout(() => {
+        isWindowScrollingRef.current = false;
+      }, 260);
+    }
+
     updateArrowState();
     track.addEventListener("scroll", updateArrowState, { passive: true });
     window.addEventListener("resize", updateArrowState);
+    window.addEventListener("scroll", handleWindowScroll, { passive: true });
     animationFrameRef.current = window.requestAnimationFrame(animateCategories);
 
     return () => {
       window.cancelAnimationFrame(animationFrameRef.current);
       window.clearTimeout(resumeTimeoutRef.current);
+      window.clearTimeout(scrollPauseTimeoutRef.current);
       track.removeEventListener("scroll", updateArrowState);
       window.removeEventListener("resize", updateArrowState);
+      window.removeEventListener("scroll", handleWindowScroll);
       track.style.scrollSnapType = originalScrollSnapType;
     };
   }, [getLoopMetrics, updateArrowState]);

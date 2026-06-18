@@ -1,35 +1,37 @@
 import { Link } from "react-router-dom";
 import { FaFacebook, FaInstagram } from "react-icons/fa";
+import footerLogo from "../assets/navlogo.png";
 import "../styles/Footer.css";
 
 export default function Footer() {
+  const storeLinks = [
+    { label: "Home", to: "/" },
+    { label: "About", to: "/#about" },
+    { label: "Shop", to: "/shop" },
+    { label: "Contact", to: "/#contact" }
+  ];
+
+  const helpLinks = [
+    { label: "Login & Account", to: "/profile" },
+    { label: "Privacy Policy", to: "/privacy-policy" },
+    { label: "Refund & Return Policy", to: "/refund-return-policy" },
+    { label: "Terms & Conditions", to: "/terms-conditions" },
+    { label: "Shipping & Delivery Policy", to: "/shipping-delivery-policy" },
+    { label: "Contact Us", to: "/#contact" }
+  ];
+
   return (
     <footer className="footer">
       <div className="footer-container">
-        <div className="footer-brand">
-          <h2>Cozy Candle</h2>
+        <div className="footer-column footer-brand">
+          <Link to="/" className="footer-logo-link" aria-label="Cozy Candle home">
+            <img src={footerLogo} alt="Cozy Candle" className="footer-logo" />
+          </Link>
           <p>
             Handcrafted candles designed to bring warmth, peace and comfort to your
             space.
           </p>
-        </div>
-
-        <div className="footer-links">
-          <h3>Quick Links</h3>
-
-          <ul>
-            <li><Link to="/">Home</Link></li>
-            <li><Link to="/shop">Shop</Link></li>
-            <li><Link to="/#collections">Collections</Link></li>
-            <li><Link to="/#about">About</Link></li>
-            <li><Link to="/#contact">Contact</Link></li>
-          </ul>
-        </div>
-
-        <div className="footer-social">
-          <h3>Follow Us</h3>
-
-          <div className="icons">
+          <div className="footer-social" aria-label="Social links">
             <a
               href="https://www.instagram.com/cozycandle_byakanksha?igsh=MWt2dmgzamJybDFlNQ=="
               target="_blank"
@@ -48,6 +50,24 @@ export default function Footer() {
             </a>
           </div>
         </div>
+
+        <nav className="footer-column footer-links" aria-label="Store">
+          <h3>Store</h3>
+          <ul>
+            {storeLinks.map((link) => (
+              <li key={link.label}><Link to={link.to}>{link.label}</Link></li>
+            ))}
+          </ul>
+        </nav>
+
+        <nav className="footer-column footer-links footer-help" aria-label="Help">
+          <h3>Help</h3>
+          <ul>
+            {helpLinks.map((link) => (
+              <li key={link.label}><Link to={link.to}>{link.label}</Link></li>
+            ))}
+          </ul>
+        </nav>
       </div>
 
       <div className="footer-bottom">

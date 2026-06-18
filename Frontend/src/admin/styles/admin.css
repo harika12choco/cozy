@@ -670,3 +670,176 @@
     min-width:960px;
   }
 }
+
+.admin-options-section {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+.admin-swatch-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.admin-swatch-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fffdf9;
+  border: 1px solid rgba(101, 21, 20, 0.12);
+  border-radius: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: #651514;
+  transition: all 0.2s ease;
+}
+.admin-swatch-item:hover {
+  background: #fff7f2;
+  border-color: #651514;
+  transform: translateY(-1px);
+}
+.admin-swatch-item.is-checked {
+  background: #fff2e8;
+  border-color: #651514;
+  box-shadow: 0 4px 12px rgba(101, 21, 20, 0.08);
+}
+.admin-swatch-color {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  display: inline-block;
+  flex-shrink: 0;
+}
+.admin-swatch-icon {
+  font-size: 16px;
+  color: #651514;
+  display: inline-flex;
+  align-items: center;
+}
+.admin-options-empty {
+  font-style: italic;
+  color: rgba(42, 26, 25, 0.58);
+  margin: 4px 0 0;
+  font-size: 14px;
+}
+
+/* ── Inline option controls ──────────────────────────────────────── */
+.admin-options-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+.admin-options-inline input[type="text"] {
+  flex: 1;
+  min-width: 140px;
+  padding: 8px 12px;
+  border: 1px solid rgba(101, 21, 20, 0.18);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  background: #fffdf9;
+  color: #2a1a19;
+}
+.admin-options-inline input[type="color"] {
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(101, 21, 20, 0.18);
+  border-radius: 8px;
+  padding: 2px;
+  cursor: pointer;
+  background: #fffdf9;
+}
+
+/* ── Fragrance dropdown ──────────────────────────────────────────── */
+.admin-fragrance-dropdown {
+  flex: 1;
+  min-width: 220px;
+  padding: 8px 12px;
+  border: 1px solid rgba(101, 21, 20, 0.18);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  background: #fffdf9;
+  color: #2a1a19;
+  cursor: pointer;
+}
+.admin-fragrance-dropdown:focus {
+  outline: none;
+  border-color: #651514;
+  box-shadow: 0 0 0 3px rgba(101, 21, 20, 0.08);
+}
+
+/* ── Success / error feedback ────────────────────────────────────── */
+.admin-option-feedback {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  animation: adminFeedbackIn 0.25s ease-out;
+}
+.admin-option-feedback.success {
+  color: #15803d;
+  background: #dcfce7;
+}
+.admin-option-feedback.error {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+@keyframes adminFeedbackIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Selected items summary ──────────────────────────────────────── */
+.admin-selected-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #fff7f2;
+  border: 1px solid rgba(101, 21, 20, 0.1);
+  border-radius: 10px;
+  font-size: 13px;
+}
+.admin-selected-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 12px;
+  background: #fff;
+  border: 1px solid rgba(101, 21, 20, 0.15);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #651514;
+}
+.admin-tag-remove {
+  background: none;
+  border: none;
+  color: #b91c1c;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  font-family: inherit;
+  transition: color 0.15s;
+}
+.admin-tag-remove:hover {
+  color: #651514;
+}
+
+/* ── Check mark inside swatch ────────────────────────────────────── */
+.admin-swatch-check {
+  font-size: 14px;
+  font-weight: 700;
+  color: #15803d;
+  margin-left: auto;
+}

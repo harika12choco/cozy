@@ -10,12 +10,8 @@ import {
 } from "../utils/cart";
 import { orderService } from "../admin/services/orderService";
 import { fetchProductsByIds } from "../utils/shopProducts";
+import { formatProductPrice, getCartLineFinalPrice, getCartLineTotal } from "../utils/productPricing";
 import "../styles/Cart.css";
-
-function parsePrice(price) {
-  const numericPrice = Number(String(price).replace(/[^\d.]/g, ""));
-  return Number.isNaN(numericPrice) ? 0 : numericPrice;
-}
 
 export default function Cart() {
   const [cartItems, setCartItems] = useState(() => getCartItems());
@@ -120,7 +116,7 @@ export default function Cart() {
   const totalPrice = useMemo(
     () =>
       cartItems.reduce(
-        (total, item) => total + parsePrice(item.price) * item.quantity,
+        (total, item) => total + getCartLineTotal(item),
         0
       ),
     [cartItems]
@@ -269,11 +265,19 @@ export default function Cart() {
         status: "pending",
         placedByUid: user?.uid || null,
         placedByName: user?.displayName || customer.name,
+        paymentAmount: totalPrice,
         lineItems: cartItems.map((item) => ({
           productId: item.productId,
+          productName: item.name,
           name: item.name,
-          price: item.price,
-          quantity: item.quantity
+          basePrice: item.basePrice,
+          fragranceExtraCharge: item.fragranceExtraCharge ?? item.selectedFragrance?.priceAdjustment ?? 0,
+          finalPrice: getCartLineFinalPrice(item),
+          price: formatProductPrice(getCartLineFinalPrice(item)),
+          quantity: item.quantity,
+          selectedColor: item.selectedColor,
+          selectedFragrance: item.selectedFragrance,
+          selectedVariant: item.selectedVariant
         }))
       });
 
@@ -291,9 +295,21 @@ Order Details
       cartItems.forEach((item, index) => {
         message += `
 ${index + 1}. ${item.name}
-Price: ${item.price}
+Price: ${formatProductPrice(getCartLineFinalPrice(item))}
 Quantity: ${item.quantity}
 `;
+        if (item.selectedColor) {
+          message += `Color: ${item.selectedColor.name}\n`;
+        }
+        if (item.selectedVariant) {
+          message += `Variant: ${item.selectedVariant.name}\n`;
+        }
+        if (item.selectedFragrance) {
+          message += `Fragrance: ${item.selectedFragrance.name}\n`;
+          if ((item.fragranceExtraCharge ?? item.selectedFragrance.priceAdjustment ?? 0) > 0) {
+            message += `Fragrance extra: Rs ${item.fragranceExtraCharge ?? item.selectedFragrance.priceAdjustment}\n`;
+          }
+        }
       });
 
       message += `
@@ -374,7 +390,30 @@ Please confirm my order.
 
                 <div className="cart-item-details">
                   <h2>{item.name}</h2>
-                  <p>{item.price}</p>
+                  <p>{formatProductPrice(getCartLineFinalPrice(item))}</p>
+                  {item.selectedColor ? (
+                    <p className="cart-item-option">
+                      <strong>Color:</strong>{" "}
+                      <span
+                        className="cart-item-color-preview"
+                        style={{ backgroundColor: item.selectedColor.hexCode }}
+                      />{" "}
+                      {item.selectedColor.name}
+                    </p>
+                  ) : null}
+                  {item.selectedVariant ? (
+                    <p className="cart-item-option">
+                      <strong>Variant:</strong> {item.selectedVariant.name}
+                    </p>
+                  ) : null}
+                  {item.selectedFragrance ? (
+                    <p className="cart-item-option">
+                      <strong>Fragrance:</strong> {item.selectedFragrance.name}
+                      {(item.fragranceExtraCharge ?? item.selectedFragrance.priceAdjustment ?? 0) > 0 ? (
+                        <span> (+Rs {item.fragranceExtraCharge ?? item.selectedFragrance.priceAdjustment})</span>
+                      ) : null}
+                    </p>
+                  ) : null}
                   {item.productId ? (
                     <p className="cart-stock">
                       {stockMap[item.productId] > 0

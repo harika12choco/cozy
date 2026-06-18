@@ -10,7 +10,9 @@ import Orders from "./pages/Orders";
 import Messages from "./pages/Messages";
 import OurCollections from "./pages/OurCollections";
 import SiteImages from "./pages/SiteImages";
+import OptionManagement from "./pages/OptionManagement";
 import { adminAuthService } from "./services/authService";
+import { candleColorService, fragranceService } from "./services/optionService";
 
 const pageMeta = {
   login: {
@@ -48,6 +50,14 @@ const pageMeta = {
   "site-images": {
     title: "Site Images",
     subtitle: "Update banners and category carousel images."
+  },
+  "candle-colors": {
+    title: "Candle Colors",
+    subtitle: "Manage the candle color palette available for products."
+  },
+  fragrances: {
+    title: "Fragrances",
+    subtitle: "Manage fragrance options customers can choose from."
   }
 };
 
@@ -114,6 +124,9 @@ export default function AdminPortal({ currentPage = "dashboard", currentProductI
       messages: "/admin/messages",
       collections: "/admin/collections",
       "site-images": "/admin/site-images"
+      ,
+      "candle-colors": "/admin/candle-colors",
+      fragrances: "/admin/fragrances"
     };
 
     if (page === "edit-product" && id) {
@@ -175,6 +188,26 @@ export default function AdminPortal({ currentPage = "dashboard", currentProductI
       break;
     case "site-images":
       page = <SiteImages />;
+      break;
+    case "candle-colors":
+      page = (
+        <OptionManagement
+          title="Candle Colors"
+          description="Add, edit, disable, or delete candle color choices."
+          service={candleColorService}
+          hasColorPicker
+        />
+      );
+      break;
+    case "fragrances":
+      page = (
+        <OptionManagement
+          title="Fragrances"
+          description="Add, edit, search, disable, or delete fragrance choices."
+          service={fragranceService}
+          searchable
+        />
+      );
       break;
     case "dashboard":
     default:

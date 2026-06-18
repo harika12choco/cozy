@@ -1,6 +1,6 @@
 import "../styles/Products.css";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import ProductChoiceCard from "./ProductChoiceCard";
 import { addItemToCart } from "../utils/cart";
 import { readBestSellerProducts } from "../utils/shopProducts";
 
@@ -17,11 +17,9 @@ export default function Products() {
         setLoading(true);
         const items = await readBestSellerProducts();
 
-        if (!active) {
-          return;
+        if (active) {
+          setProducts(items);
         }
-
-        setProducts(items);
       } catch {
         if (active) {
           setProducts([]);
@@ -70,31 +68,13 @@ export default function Products() {
         ) : products.length === 0 ? (
           <p className="products-feedback">No products available.</p>
         ) : products.map((p) => (
-          <article className="product" key={p.id}>
-            <div className="product-image-wrap">
-              <Link to={`/product/${p.productId || p.id}`} aria-label={`View ${p.name}`}>
-                <img src={p.img ?? p.image} alt={p.name} />
-              </Link>
-            </div>
-
-            <h3>
-              <Link to={`/product/${p.productId || p.id}`}>{p.name}</Link>
-            </h3>
-            <p>{p.price}</p>
-            <p className="product-stock">
-              {p.stock > 0 ? `${p.stock} items left` : "Out of Stock"}
-            </p>
-
-            <button
-              className="btn"
-              type="button"
-              onClick={() => addToCart(p)}
-              disabled={p.stock <= 0}
-            >
-              Add to Cart
-            </button>
-
-          </article>
+          <ProductChoiceCard
+            key={p.id}
+            product={p}
+            onAddToCart={addToCart}
+            variant="bestseller"
+            showSafety={false}
+          />
         ))}
       </div>
     </section>

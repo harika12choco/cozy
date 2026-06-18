@@ -1,4 +1,14 @@
 import { auth } from "../firebase";
+import {
+  formatProductPrice,
+  getCartLineFinalPrice,
+  getFragrancePriceAdjustment,
+  getPurchasableBasePrice,
+  normalizeColorOption,
+  normalizeFragranceOption,
+  normalizeVariantOption,
+  parseProductPrice
+} from "./productPricing";
 
 const CART_STORAGE_KEY = "cozy-candles-cart";
 const PRODUCTION_BACKEND_API = "https://cozy-candles-backend.onrender.com/api";
@@ -51,9 +61,27 @@ function parseStoredCart(savedCart) {
 function normalizeCartItem(product) {
   const itemId = String(product.itemId ?? product._id ?? "").trim();
   const productId = String(product.productId ?? product.id ?? product._id ?? "").trim();
-  const price = String(product.price ?? "").trim();
   const name = String(product.name ?? "").trim();
-  const key = String(product.key ?? [productId || name, price].filter(Boolean).join("::")).trim();
+  const selectedColor = normalizeColorOption(product.selectedColor);
+  const selectedFragrance = normalizeFragranceOption(product.selectedFragrance);
+  const selectedVariant = normalizeVariantOption(product.selectedVariant);
+  const basePrice = product.basePrice !== undefined
+    ? parseProductPrice(product.basePrice)
+    : getPurchasableBasePrice(product, selectedVariant);
+  const fragranceExtraCharge = product.fragranceExtraCharge !== undefined
+    ? parseProductPrice(product.fragranceExtraCharge)
+    : getFragrancePriceAdjustment(selectedFragrance);
+  const finalPrice = product.basePrice !== undefined
+    ? basePrice + fragranceExtraCharge
+    : getCartLineFinalPrice({
+        ...product,
+        selectedFragrance
+      });
+  const price = formatProductPrice(finalPrice);
+  const colorKey = selectedColor?.optionId || selectedColor?.name || "";
+  const fragranceKey = selectedFragrance?.optionId || selectedFragrance?.name || "";
+  const variantKey = selectedVariant?.optionId || selectedVariant?.name || "";
+  const key = String(product.key ?? [productId || name, price, variantKey, colorKey, fragranceKey].filter(Boolean).join("::")).trim();
 
   return {
     itemId,
@@ -61,8 +89,14 @@ function normalizeCartItem(product) {
     productId,
     name,
     price,
+    finalPrice,
+    basePrice,
+    fragranceExtraCharge,
     img: product.img ?? product.image ?? "",
-    quantity: Math.max(1, Number(product.quantity ?? 1))
+    quantity: Math.max(1, Number(product.quantity ?? 1)),
+    selectedColor,
+    selectedFragrance,
+    selectedVariant
   };
 }
 
@@ -161,8 +195,9 @@ async function fetchUserCart(user) {
 }
 
 async function replaceUserCart(user, cartItems) {
+  const normalizedCartItems = normalizeCartItems(cartItems);
   const payload = {
-    items: normalizeCartItems(cartItems)
+    items: normalizedCartItems
   };
 
   const savedCart = await requestCart(user, "/", {
@@ -184,8 +219,17 @@ async function addItemToServer(user, cartItem) {
     method: "POST",
     body: JSON.stringify({
       productId: cartItem.productId,
+      name: cartItem.name,
+      img: cartItem.img,
+      basePrice: cartItem.basePrice,
+      finalPrice: cartItem.finalPrice,
+      fragranceExtraCharge: cartItem.fragranceExtraCharge,
+      price: cartItem.price,
       quantity: cartItem.quantity ?? 1,
-      key: cartItem.key
+      key: cartItem.key,
+      selectedColor: cartItem.selectedColor,
+      selectedFragrance: cartItem.selectedFragrance,
+      selectedVariant: cartItem.selectedVariant
     })
   });
 
@@ -195,6 +239,10 @@ async function addItemToServer(user, cartItem) {
 }
 
 async function updateServerItem(user, itemId, quantity) {
+  if (!itemId) {
+    return normalizeCartItems(readCart());
+  }
+
   const savedCart = await requestCart(user, `/${encodeURIComponent(itemId)}`, {
     method: "PUT",
     body: JSON.stringify({ quantity })
@@ -206,6 +254,10 @@ async function updateServerItem(user, itemId, quantity) {
 }
 
 async function removeServerItem(user, itemId) {
+  if (!itemId) {
+    return normalizeCartItems(readCart());
+  }
+
   const savedCart = await requestCart(user, `/${encodeURIComponent(itemId)}`, {
     method: "DELETE"
   });
@@ -229,7 +281,7 @@ export function addItemToCart(product) {
         item.key === nextItem.key
           ? {
               ...item,
-              quantity: item.quantity + 1
+              quantity: item.quantity + nextItem.quantity
             }
           : item
       )

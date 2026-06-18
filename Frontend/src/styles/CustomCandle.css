@@ -1,0 +1,303 @@
+.custom-candle{
+  position:relative;
+  overflow:hidden;
+  padding:78px 7% 86px;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.76), transparent 28%),
+    radial-gradient(circle at 86% 14%, rgba(122, 20, 19, 0.08), transparent 24%),
+    linear-gradient(180deg, #f8efe6 0%, #efe0d1 100%);
+}
+
+.custom-candle::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0.3;
+  background-image:
+    linear-gradient(rgba(112, 76, 55, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(112, 76, 55, 0.06) 1px, transparent 1px);
+  background-size:42px 42px;
+  mask-image:linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent);
+}
+
+.custom-candle-inner{
+  position:relative;
+  z-index:1;
+  max-width:1180px;
+  margin:0 auto;
+}
+
+.custom-candle-heading{
+  max-width:720px;
+  margin:0 auto 44px;
+  text-align:center;
+}
+
+.custom-candle-heading span{
+  display:block;
+  margin-bottom:8px;
+  color:#7a1413;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:0.24em;
+  text-transform:uppercase;
+}
+
+.custom-candle-heading h2{
+  margin:0;
+  color:#2f201c;
+  font-family:var(--display-font);
+  font-size:clamp(46px, 6vw, 82px);
+  font-weight:400;
+  line-height:0.95;
+  letter-spacing:0;
+}
+
+.custom-candle-heading p{
+  max-width:620px;
+  margin:18px auto 0;
+  color:#4f3a32;
+  font-size:clamp(15px, 1.25vw, 18px);
+  font-weight:600;
+  line-height:1.65;
+}
+
+.custom-candle-layout{
+  display:grid;
+  grid-template-columns:minmax(360px, 0.9fr) minmax(360px, 1fr);
+  align-items:center;
+  gap:clamp(34px, 5vw, 70px);
+}
+
+.atelier-desk{
+  position:relative;
+  min-height:520px;
+  border-radius:42px 12px 42px 12px;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.72), transparent 28%),
+    linear-gradient(145deg, rgba(255, 250, 244, 0.64), rgba(232, 205, 181, 0.52));
+  box-shadow:0 30px 70px rgba(70, 42, 26, 0.16);
+}
+
+.atelier-desk::before,
+.atelier-desk::after{
+  content:"";
+  position:absolute;
+  pointer-events:none;
+}
+
+.atelier-desk::before{
+  width:146px;
+  height:220px;
+  left:18px;
+  bottom:10px;
+  background:url("../assets/flower.png") center / contain no-repeat;
+  opacity:0.5;
+  mix-blend-mode:multiply;
+  transform:rotate(-18deg);
+}
+
+.atelier-desk::after{
+  width:112px;
+  height:112px;
+  right:26px;
+  top:24px;
+  background:url("../assets/stamp.png") center / contain no-repeat;
+  filter:drop-shadow(0 14px 22px rgba(70, 42, 26, 0.16));
+}
+
+.atelier-note{
+  position:absolute;
+  width:178px;
+  min-height:112px;
+  padding:18px 18px 16px;
+  border:1px solid rgba(255, 250, 244, 0.68);
+  border-radius:16px 6px 16px 6px;
+  background:rgba(255, 250, 244, 0.78);
+  box-shadow:0 18px 36px rgba(70, 42, 26, 0.13);
+  transition:transform 220ms ease, box-shadow 220ms ease;
+}
+
+.atelier-note:hover{
+  transform:translateY(-8px) rotate(0deg);
+  box-shadow:0 26px 44px rgba(70, 42, 26, 0.18);
+}
+
+.atelier-note span{
+  color:#7a1413;
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+}
+
+.atelier-note p{
+  margin:8px 0 0;
+  color:#4f3a32;
+  font-size:13px;
+  font-weight:600;
+  line-height:1.45;
+}
+
+.atelier-note-1{ left:30px; top:64px; transform:rotate(-5deg); }
+.atelier-note-2{ right:34px; top:136px; transform:rotate(4deg); }
+.atelier-note-3{ left:44px; bottom:128px; transform:rotate(3deg); }
+.atelier-note-4{ right:46px; bottom:66px; transform:rotate(-4deg); }
+.atelier-note-5{ left:50%; bottom:26px; transform:translateX(-50%) rotate(2deg); }
+
+.custom-journey{
+  display:grid;
+  gap:14px;
+}
+
+.journey-step{
+  position:relative;
+  display:grid;
+  grid-template-columns:54px 1fr;
+  gap:18px;
+  align-items:start;
+  padding:18px 22px;
+  border:1px solid rgba(151, 94, 55, 0.18);
+  border-radius:18px 6px 18px 6px;
+  background:rgba(255, 250, 244, 0.5);
+}
+
+.journey-step:not(:last-of-type)::after{
+  content:"";
+  position:absolute;
+  left:48px;
+  bottom:-16px;
+  width:1px;
+  height:16px;
+  background:rgba(122, 20, 19, 0.28);
+}
+
+.journey-step > span{
+  display:grid;
+  place-items:center;
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  background:#7a1413;
+  color:#fff5eb;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:0.08em;
+}
+
+.journey-step h3{
+  margin:0;
+  color:#2f201c;
+  font-size:18px;
+  font-weight:800;
+  line-height:1.2;
+}
+
+.journey-step p{
+  margin:6px 0 0;
+  color:#5a4a42;
+  font-size:14px;
+  font-weight:600;
+  line-height:1.45;
+}
+
+.custom-order-btn{
+  justify-self:start;
+  margin-top:10px;
+  padding:14px 30px;
+  border-radius:999px;
+  background:#7a1413;
+  color:#fffaf2;
+  font-size:15px;
+  font-weight:800;
+  text-decoration:none;
+  box-shadow:0 16px 30px rgba(93, 16, 15, 0.16);
+  transition:transform 180ms ease, background 180ms ease;
+}
+
+.custom-order-btn:hover{
+  background:#5d100f;
+  transform:translateY(-2px);
+}
+
+@media (max-width: 960px){
+  .custom-candle{
+    padding:64px 6% 70px;
+  }
+
+  .custom-candle-layout{
+    grid-template-columns:1fr;
+  }
+
+  .atelier-desk{
+    min-height:500px;
+  }
+}
+
+@media (max-width: 620px){
+  .custom-candle{
+    padding:54px 5% 58px;
+  }
+
+  .custom-candle-heading{
+    margin-bottom:30px;
+  }
+
+  .atelier-desk{
+    display:grid;
+    gap:12px;
+    min-height:auto;
+    padding:26px 18px;
+    border-radius:28px 8px 28px 8px;
+  }
+
+  .atelier-desk::before{
+    width:104px;
+    height:150px;
+    left:auto;
+    right:10px;
+    bottom:4px;
+  }
+
+  .atelier-desk::after{
+    width:86px;
+    height:86px;
+    right:12px;
+    top:12px;
+  }
+
+  .atelier-note,
+  .atelier-note-1,
+  .atelier-note-2,
+  .atelier-note-3,
+  .atelier-note-4,
+  .atelier-note-5{
+    position:relative;
+    inset:auto;
+    left:auto;
+    right:auto;
+    top:auto;
+    bottom:auto;
+    width:auto;
+    transform:none;
+  }
+
+  .atelier-note{
+    min-height:auto;
+  }
+
+  .journey-step{
+    grid-template-columns:46px 1fr;
+    padding:16px;
+  }
+
+  .journey-step::after{
+    display:none;
+  }
+
+  .custom-order-btn{
+    justify-self:stretch;
+    text-align:center;
+  }
+}

@@ -137,7 +137,7 @@
 
 .shop-card-body h3{
   margin:10px 0 8px;
-  color:var(--heading-dark);
+  color: #000000;
   font-family: var(--display-font);
   font-size:23px;
   line-height:1.55;
@@ -147,6 +147,58 @@
   font-style: normal;
 }
 
+.shop-card-body h3 a {
+  color: #000000;
+  text-decoration: none;
+}
+
+.shop-card-body h3 a:hover {
+  color: var(--primary);
+}
+
+
+.shop-fragrances-text {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin: 8px 0 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6f6661;
+}
+
+.shop-color-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin: 12px 0 14px;
+}
+
+.color-swatch-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.color-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #e0ddd7;
+  cursor: pointer;
+  background-color: #e0e0e0;
+  padding: 0;
+}
+
+.swatch-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6f6661;
+  max-width: 45px;
+}
 .shop-card-footer{
   display:flex;
   flex-direction:column;
@@ -155,7 +207,7 @@
 }
 
 .shop-price{
-  color:#6f6661;
+  color: #000000;
   font-weight:700;
   font-size:14px;
   font-family: var(--sans-font);

@@ -3,6 +3,8 @@ const navItems = [
   { key: "products", label: "Products" },
   { key: "orders", label: "Orders" },
   { key: "messages", label: "Messages" },
+  { key: "candle-colors", label: "Candle Colors" },
+  { key: "fragrances", label: "Fragrances" },
   { key: "collections", label: "Collections" },
   { key: "site-images", label: "Site Images" }
 ];

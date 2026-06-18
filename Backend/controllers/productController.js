@@ -1,5 +1,8 @@
 const Product = require("../models/productModel");
 const { uploadProductImage } = require("../services/cloudinaryService");
+const mongoose = require("mongoose");
+const { getStaticProductById } = require("../utils/staticProducts");
+const { getFragranceDisplayName, getFragrancePriceAdjustment } = require("../utils/productPricing");
 
 async function prepareProductPayload(payload) {
   const imageUpload = await uploadProductImage(payload.image);
@@ -9,10 +12,44 @@ async function prepareProductPayload(payload) {
 
   return {
     ...payload,
+    basePrice: Number(payload.basePrice ?? payload.price ?? 0),
     bestSeller: normalizedBestSeller,
     isBestSeller: normalizedBestSeller,
+    candleColors: normalizeProductOptions(payload.candleColors, true),
+    fragrances: normalizeProductOptions(payload.fragrances, false),
     ...imageUpload
   };
+}
+
+function normalizeProductOptions(options, includeHex) {
+  if (!Array.isArray(options)) {
+    return [];
+  }
+
+  const seen = new Set();
+
+  return options
+    .map((option) => {
+      const rawName = String(option?.name ?? "").trim();
+      const name = includeHex ? rawName : getFragranceDisplayName(option);
+      const optionId = String(option?.optionId ?? option?.id ?? option?._id ?? "").trim();
+      const hexCode = includeHex ? String(option?.hexCode ?? "").trim().toUpperCase() : "";
+      const key = optionId || name.toLowerCase();
+
+      if (!name || seen.has(key)) {
+        return null;
+      }
+
+      seen.add(key);
+
+      return {
+        optionId,
+        name,
+        hexCode: includeHex && /^#[0-9A-F]{6}$/.test(hexCode) ? hexCode : "",
+        priceAdjustment: includeHex ? 0 : getFragrancePriceAdjustment(option)
+      };
+    })
+    .filter(Boolean);
 }
 
 function normalizeProductResponse(product) {
@@ -24,8 +61,20 @@ function normalizeProductResponse(product) {
 
   return {
     ...normalized,
+    basePrice: Number(normalized.basePrice ?? normalized.price ?? 0),
     isBestSeller: Boolean(normalized.isBestSeller ?? normalized.bestSeller),
-    bestSeller: Boolean(normalized.bestSeller ?? normalized.isBestSeller)
+    bestSeller: Boolean(normalized.bestSeller ?? normalized.isBestSeller),
+    candleColors: Array.isArray(normalized.candleColors) ? normalized.candleColors : [],
+    colors: Array.isArray(normalized.colors) && normalized.colors.length > 0
+      ? normalized.colors
+      : Array.isArray(normalized.candleColors)
+      ? normalized.candleColors
+      : [],
+    fragrances: Array.isArray(normalized.fragrances) ? normalized.fragrances : [],
+    burnTime: normalized.burnTime ?? "",
+    weight: normalized.weight ?? "",
+    variants: Array.isArray(normalized.variants) ? normalized.variants : [],
+    customizationOptions: Array.isArray(normalized.customizationOptions) ? normalized.customizationOptions : []
   };
 }
 
@@ -71,6 +120,10 @@ const getProducts = async (req, res) => {
       .split(",")
       .map((id) => id.trim())
       .filter(Boolean);
+    const staticMatches = ids.length > 0
+      ? ids.map(getStaticProductById).filter(Boolean).map(normalizeProductResponse)
+      : [];
+    const dbIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id));
 
     const filter = {};
 
@@ -79,15 +132,15 @@ const getProducts = async (req, res) => {
     }
 
     if (ids.length > 0) {
-      filter._id = { $in: ids };
+      filter._id = { $in: dbIds };
     }
 
     if (bestSeller !== null) {
       res.set("Cache-Control", "no-store");
     }
 
-    const products = await Product.find(filter);
-    res.json(products.map(normalizeProductResponse));
+    const products = ids.length > 0 && dbIds.length === 0 ? [] : await Product.find(filter);
+    res.json([...staticMatches, ...products.map(normalizeProductResponse)]);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -121,6 +174,16 @@ const searchProducts = async (req, res) => {
 // Get product by ID
 const getProductById = async (req, res) => {
   try {
+    const staticProduct = getStaticProductById(req.params.id);
+
+    if (staticProduct) {
+      return res.json(normalizeProductResponse(staticProduct));
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json(null);
+    }
+
     const product = await Product.findById(req.params.id);
     res.json(normalizeProductResponse(product));
   } catch (error) {
