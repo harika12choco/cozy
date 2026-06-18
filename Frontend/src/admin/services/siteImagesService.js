@@ -32,7 +32,7 @@ async function uploadImage(file) {
 
 export const siteImagesService = {
   async get() {
-    return requestJson("/site-images");
+    return requestJson("/site-images", { cache: "no-store" });
   },
 
   async update(payload) {

@@ -1,27 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Categories.css";
-import festiveImage from "../assets/product categories/festive collection.png";
-import floralImage from "../assets/product categories/Floral and aesthetic.png";
-import giftingImage from "../assets/product categories/gifting collection.png";
-import jarBowlImage from "../assets/product categories/jar and bowl.png";
-import momentsImage from "../assets/product categories/moment and memories.png";
-import dessertImage from "../assets/product categories/dessert.jpeg";
-import customizedImage from "../assets/product categories/customized.jpeg";
-import weddingEventImage from "../assets/product categories/wedding and events.jpeg";
 import menuData, { slugifyCategory } from "../utils/menuData";
 import { fetchSiteImages } from "../services/siteImagesService";
-
-const defaultCategoryImages = {
-  "Moments & Memories": momentsImage,
-  "Gifting Collection": giftingImage,
-  "Festive Collection": festiveImage,
-  "Dessert Candle Collection": dessertImage,
-  "Floral & Aesthetic": floralImage,
-  "Jar & Bowl Collection": jarBowlImage,
-  Customized: customizedImage,
-  "Wedding & Event": weddingEventImage
-};
 
 const floralStartIndex = menuData.findIndex((category) => category.title === "Floral & Aesthetic");
 const displayCategories = floralStartIndex > -1
@@ -261,10 +242,7 @@ export default function Categories() {
               onClick={() => handleNavigate(category.title)}
               aria-label={`Shop ${category.title === "Floral & Aesthetic" ? "Floral Aesthetic" : category.title}`}
             >
-              <img
-                src={imageOverrides[category.title] || defaultCategoryImages[category.title]}
-                alt=""
-              />
+              <img src={imageOverrides[category.title] || ""} alt="" />
               <span>{category.title === "Floral & Aesthetic" ? "Floral Aesthetic" : category.title}</span>
             </button>
           ))}

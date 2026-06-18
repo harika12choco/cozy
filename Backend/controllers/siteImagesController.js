@@ -1,5 +1,16 @@
 const SiteImages = require("../models/SiteImages");
 
+const DEFAULT_CATEGORY_IMAGE_SOURCES = {
+  "Moments & Memories": process.env.SITE_IMAGE_CATEGORY_MOMENTS_MEMORIES,
+  "Gifting Collection": process.env.SITE_IMAGE_CATEGORY_GIFTING_COLLECTION,
+  "Festive Collection": process.env.SITE_IMAGE_CATEGORY_FESTIVE_COLLECTION,
+  "Dessert Candle Collection": process.env.SITE_IMAGE_CATEGORY_DESSERT_CANDLE_COLLECTION,
+  "Floral & Aesthetic": process.env.SITE_IMAGE_CATEGORY_FLORAL_AESTHETIC,
+  "Jar & Bowl Collection": process.env.SITE_IMAGE_CATEGORY_JAR_BOWL_COLLECTION,
+  Customized: process.env.SITE_IMAGE_CATEGORY_CUSTOMIZED,
+  "Wedding & Event": process.env.SITE_IMAGE_CATEGORY_WEDDING_EVENT
+};
+
 const MAX_URL_LENGTH = 2048;
 const MAX_CATEGORY_IMAGES = 50;
 
@@ -46,15 +57,32 @@ function normalizeCategoryImages(input) {
   }, {});
 }
 
+function getDefaultCategoryImages() {
+  return Object.entries(DEFAULT_CATEGORY_IMAGE_SOURCES).reduce((accumulator, [key, value]) => {
+    const url = normalizeUrl(value);
+
+    if (url) {
+      accumulator[key] = url;
+    }
+
+    return accumulator;
+  }, {});
+}
+
 function normalizeSiteImages(doc) {
   if (!doc) {
-    return { bannerUrl: "", categoryImages: {} };
+    return { bannerUrl: "", categoryImages: getDefaultCategoryImages() };
   }
 
   const plain = doc.toObject ? doc.toObject() : doc;
-  const categoryImages = plain.categoryImages instanceof Map
+  const storedCategoryImages = plain.categoryImages instanceof Map
     ? Object.fromEntries(plain.categoryImages)
     : plain.categoryImages || {};
+  const defaultCategoryImages = getDefaultCategoryImages();
+  const categoryImages = {
+    ...defaultCategoryImages,
+    ...storedCategoryImages
+  };
 
   return {
     bannerUrl: plain.bannerUrl || "",
@@ -65,6 +93,9 @@ function normalizeSiteImages(doc) {
 async function getSiteImages(req, res) {
   try {
     const doc = await SiteImages.findOne();
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.set("Pragma", "no-cache");
+    res.set("Expires", "0");
     res.json(normalizeSiteImages(doc));
   } catch (error) {
     res.status(500).json({ error: error.message });
