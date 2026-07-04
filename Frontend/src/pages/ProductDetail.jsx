@@ -1,5 +1,5 @@
 import "../styles/ProductDetail.css";
-import { useEffect, useMemo, useState } from "react";
+import { createElement, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   FaBoxOpen,
@@ -734,7 +734,7 @@ export default function ProductDetail() {
       <section className="product-detail-section product-detail-features" aria-label="Product features">
         {featureItems.map(({ label, Icon }) => (
           <div className="product-detail-feature" key={label}>
-            <Icon aria-hidden="true" />
+            {createElement(Icon, { "aria-hidden": true })}
             <span>{label}</span>
           </div>
         ))}

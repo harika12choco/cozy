@@ -1,33 +1,6 @@
-const PRODUCTION_PRODUCTS_API = "https://cozy-candles-backend.onrender.com/api/products";
-const DEVELOPMENT_PRODUCTS_API = "/api/products";
+import { resolveProductsApiUrl } from "../../utils/apiConfig";
 
-function normalizeProductsApi(value) {
-  const trimmed = String(value || "").trim().replace(/\/$/, "");
-
-  if (!trimmed) {
-    return "";
-  }
-
-  if (/\/api\/products$/i.test(trimmed)) {
-    return trimmed;
-  }
-
-  if (/\/api$/i.test(trimmed)) {
-    return `${trimmed}/products`;
-  }
-
-  return `${trimmed}/api/products`;
-}
-
-function resolveProductsApiBase() {
-  if (import.meta.env.VITE_API_URL) {
-    return normalizeProductsApi(import.meta.env.VITE_API_URL);
-  }
-
-  return import.meta.env.DEV ? DEVELOPMENT_PRODUCTS_API : PRODUCTION_PRODUCTS_API;
-}
-
-const API_BASE = resolveProductsApiBase();
+const API_BASE = resolveProductsApiUrl();
 const API_ROOT = API_BASE.replace(/\/products\/?$/, "");
 const ADMIN_TOKEN_STORAGE_KEY = "cozy-admin-token";
 

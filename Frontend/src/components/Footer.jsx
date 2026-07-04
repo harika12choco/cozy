@@ -1,9 +1,11 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FaFacebook, FaInstagram } from "react-icons/fa";
 import footerLogo from "../assets/navlogo.png";
 import "../styles/Footer.css";
 
 export default function Footer() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const storeLinks = [
     { label: "Home", to: "/" },
     { label: "About", to: "/#about" },
@@ -20,6 +22,22 @@ export default function Footer() {
     { label: "Contact Us", to: "/#contact" }
   ];
 
+  function handleLinkClick(event, to) {
+    if (to !== "/") {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (location.pathname === "/" && !location.hash) {
+      window.scrollTo({ top: 0, behavior: "auto" });
+      return;
+    }
+
+    navigate("/");
+    window.setTimeout(() => window.scrollTo({ top: 0, behavior: "auto" }), 0);
+  }
+
   return (
     <footer className="footer">
       <div className="footer-container">
@@ -33,7 +51,7 @@ export default function Footer() {
           </p>
           <div className="footer-social" aria-label="Social links">
             <a
-              href="https://www.instagram.com/cozycandle_byakanksha?igsh=MWt2dmgzamJybDFlNQ=="
+              href="https://www.instagram.com/cozycandle.in?igsh=MWt2dmgzamJybDFlNQ=="
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram"
@@ -55,7 +73,7 @@ export default function Footer() {
           <h3>Store</h3>
           <ul>
             {storeLinks.map((link) => (
-              <li key={link.label}><Link to={link.to}>{link.label}</Link></li>
+              <li key={link.label}><Link to={link.to} onClick={(event) => handleLinkClick(event, link.to)}>{link.label}</Link></li>
             ))}
           </ul>
         </nav>
@@ -64,7 +82,7 @@ export default function Footer() {
           <h3>Help</h3>
           <ul>
             {helpLinks.map((link) => (
-              <li key={link.label}><Link to={link.to}>{link.label}</Link></li>
+              <li key={link.label}><Link to={link.to} onClick={(event) => handleLinkClick(event, link.to)}>{link.label}</Link></li>
             ))}
           </ul>
         </nav>

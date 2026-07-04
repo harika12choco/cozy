@@ -70,8 +70,11 @@ export default function AdminPortal({ currentPage = "dashboard", currentProductI
   useEffect(() => {
     if (currentPage === "login") {
       adminAuthService.logout();
-      setIsAuthenticated(false);
+      const timeout = window.setTimeout(() => setIsAuthenticated(false), 0);
+      return () => window.clearTimeout(timeout);
     }
+
+    return undefined;
   }, [currentPage]);
 
   useEffect(() => {

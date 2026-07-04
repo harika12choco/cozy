@@ -116,21 +116,21 @@ const catalogProductDefinitions = [
   {
     id: "golden-toast-champagne-candle",
     name: "Golden Toast Champagne Candle",
-    basePrice: 869,
+    basePrice: 899,
     description:
       "Inspired by sparkling champagne, handcrafted candle in an elegant flute glass with realistic bubble detailing.",
     fragrances: ["Vanilla Musk", "White Jasmine", "Lavender Bliss", "Oud Musk", "Wood Musk", "Rose Petals"],
     colors: ["Champagne Gold", "Rose Pink", "Pearl White", "Amber Gold", "Silver", "Yellow"],
     weight: "180-220g",
     burnTime: "",
-    variants: ["Single Piece", "Set of 2", "Gift Box Set of 2"],
+    variants: ["Single Piece Rs 899", "Set of 2 Rs 1599", "Gift Box Set Rs 1899"],
     customizationOptions: ["Color", "Fragrance", "Gift Packaging", "Message Card"],
     tagline: "Raise a toast to every special moment with the warm glow of our Champagne Candle."
   },
   {
     id: "blush-bloom-botanical-candle",
     name: "Blush Bloom Botanical Candle",
-    basePrice: 929,
+    basePrice: 1200,
     description: "Luxury handcrafted candle adorned with dried flowers, rose petals, and gold accents.",
     fragrances: [
       "Rose Bouquet",
@@ -158,7 +158,7 @@ const catalogProductDefinitions = [
   {
     id: "crimson-lotus-bowl-candle",
     name: "Crimson Lotus Bowl Candle",
-    basePrice: 969,
+    basePrice: 850,
     description: "Handcrafted candle featuring a blooming lotus flower inside a clear glass bowl.",
     fragrances: [
       "Red Rose",
@@ -179,7 +179,7 @@ const catalogProductDefinitions = [
     ],
     weight: "250-350g",
     burnTime: "35-50 Hours",
-    variants: ["Single Wick", "Double Wick", "Gift Box Edition"],
+    variants: ["Single Wick Rs 850", "Double Wick Rs 1050", "Gift Box Rs 1150"],
     customizationOptions: ["Color", "Fragrance", "Gift Packaging", "Message Card"],
     tagline: "A bold lotus in full bloom-crafted to bring beauty, warmth, and fragrance to every corner of your home."
   },
@@ -221,7 +221,7 @@ const catalogProductDefinitions = [
       "Set of 2 Rs 619-719",
       "Set of 3 Rs 869-1019",
       "Set of 6 Rs 1569-1869",
-      "Custom Gift Box Set Available"
+      "Gift Box Set Rs 469"
     ],
     customizationOptions: ["Color", "Fragrance", "Gift Box Set", "Custom Orders"],
     tagline:
@@ -231,7 +231,7 @@ const catalogProductDefinitions = [
     id: "blush-bloom-wax-sachet",
     name: "Blush Bloom Wax Sachet",
     bestSeller: false,
-    basePrice: 219,
+    basePrice: 220,
     description:
       "Handcrafted floral wax sachet designed to add a soft fragrance and elegant touch to wardrobes, drawers, cupboards, and gifting hampers.",
     fragrances: [
@@ -248,7 +248,7 @@ const catalogProductDefinitions = [
     colors: ["Blush Pink", "Lavender", "Ivory White", "Sage Green", "Baby Blue", "Peach"],
     weight: "35-45g",
     burnTime: "Decorative non-burning product",
-    variants: ["Single Sachet Rs 219-269", "Bulk & Return Gift Orders"],
+    variants: ["Single Sachet Rs 220", "Bulk Order MOQ 10 Rs 180"],
     customizationOptions: [
       "Color Customization",
       "Fragrance Customization",
@@ -293,7 +293,7 @@ const bestSellerProductDefinitions = [
     sku: "CC-TEDDY-01",
     name: "Rose Teddy Bear Candle",
     collection: "Teddy Bear Collection",
-    basePrice: 219,
+    basePrice: 220,
     description: "Handcrafted teddy bear candle with beautiful rose texture detailing.",
     fragrances: [
       "Rose",
@@ -317,7 +317,7 @@ const bestSellerProductDefinitions = [
     ],
     weight: "",
     burnTime: "",
-    variants: ["Single Teddy Rs 219", "Set of 2 Rs 320", "Set of 3 Rs 669", "Set of 6 Rs 1769"],
+    variants: ["Set of 1 Rs 220", "Set of 2 Rs 350", "Set of 3 Rs 650", "Set of 6 Rs 1200"],
     customizationOptions: ["Color", "Fragrance", "Gift Packaging", "Message Card"],
     tagline: "A soft, rose-textured teddy candle made for sweet gifting moments."
   },
@@ -326,7 +326,7 @@ const bestSellerProductDefinitions = [
     sku: "CC-SUNFLOWER-01",
     name: "Sunflower Bloom Candle",
     collection: "Floral Candle Collection",
-    basePrice: 319,
+    basePrice: 320,
     description: "Beautiful sunflower-inspired decorative candle with detailed petals and textured center.",
     fragrances: [
       "Vanilla",
@@ -351,7 +351,7 @@ const bestSellerProductDefinitions = [
     ],
     weight: "",
     burnTime: "",
-    variants: ["Single Rs 319-369", "Set of 2 Rs 519-719", "Set of 3 Rs 819-919", "Set of 6 Rs 1369-1569"],
+    variants: ["Single Rs 320", "Set of 2 Rs 520", "Set of 3 Rs 819-919", "Set of 6 Rs 1369-1569"],
     customizationOptions: ["Color", "Fragrance", "Gift Packaging", "Message Card"],
     tagline: "A cheerful floral candle with sculpted petals and a sunny handcrafted finish."
   },
@@ -360,7 +360,7 @@ const bestSellerProductDefinitions = [
     sku: "CC-ICEDLATTE-01",
     name: "Iced Latte Collection Candle",
     collection: "Cafe Collection",
-    basePrice: 469,
+    basePrice: 450,
     description: "Handcrafted cafe-inspired candles designed to look like realistic iced beverages.",
     fragrances: [
       "Strawberry",
@@ -389,8 +389,8 @@ const bestSellerProductDefinitions = [
     ],
     weight: "",
     burnTime: "",
-    variants: ["Single Rs 469-569", "Set of 2 Rs 819-969", "Set of 3 Rs 1369", "Set of 6 Rs 2169-2569"],
-    customizationOptions: ["Color", "Fragrance", "Gift Packaging", "Message Card"],
+    variants: ["1 Piece Rs 450", "2 Piece Rs 900", "4 Piece Rs 1200", "6 Piece Rs 1999"],
+    customizationOptions: ["Color", "Fragrance", "Single Color Set", "Different Color Set", "Gift Packaging", "Message Card"],
     tagline: "Cafe-inspired candle art with creamy colors and dessert-shop fragrance options."
   },
   {
@@ -398,7 +398,7 @@ const bestSellerProductDefinitions = [
     sku: "CC-MOCHA-01",
     name: "Mocha Delight Dessert Candle",
     collection: "Dessert Candle Collection",
-    basePrice: 520,
+    basePrice: 550,
     description:
       "Luxury dessert-inspired candle featuring whipped wax topping, coffee beans, and chocolate details.",
     fragrances: ["Coffee", "Mocha Latte", "Chocolate", "Cappuccino", "Vanilla Coffee", "Hazelnut Coffee", "Vanilla"],
@@ -411,7 +411,7 @@ const bestSellerProductDefinitions = [
     ],
     weight: "",
     burnTime: "",
-    variants: ["Set of 2 Rs 520", "Set of 4 Rs 870", "Set of 6 Rs 1270"],
+    variants: ["Set of 2 Rs 550", "Set of 4 Rs 849", "Set of 6 Rs 1249"],
     customizationOptions: ["Color", "Fragrance", "Gift Packaging", "Message Card"],
     tagline: "A dessert-style candle with rich mocha tones and a decadent handcrafted finish."
   },
@@ -420,14 +420,14 @@ const bestSellerProductDefinitions = [
     sku: "CC-NAME-01",
     name: "Personalized Floral Name Candle",
     collection: "Personalized Candles Collection",
-    basePrice: 569,
+    basePrice: 550,
     description:
       "Customized floral name candle with personalized lettering and handcrafted decorative flowers.",
     fragrances: ["Vanilla", "Strawberry", "Rose", "Lavender", "Jasmine", "Sandalwood", "Ocean Breeze"],
     colors: ["Baby Pink", "Ivory White", "Lavender", "Peach", "Baby Blue", "Green", "Lilac", "Beige"],
     weight: "",
     burnTime: "",
-    variants: ["3-5 Letters Rs 569-769", "6-8 Letters Rs 869-1169", "9-12 Letters Rs 1269-1769"],
+    variants: ["3-5 Letters Rs 550", "6-10 Letters Rs 899", "10-15 Letters Rs 1499"],
     customizationOptions: ["Color", "Fragrance", "Name Personalization", "Gift Packaging", "Message Card"],
     tagline: "A personalized floral keepsake candle shaped around a custom name."
   }

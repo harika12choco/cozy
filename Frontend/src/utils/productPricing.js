@@ -11,7 +11,7 @@ export const PREMIUM_FRAGRANCE_EXTRA_CHARGE = 80;
 
 const baseFragrances = new Set(["vanilla", "vanila", "jasmine", "lavender", "unscented", "unscented option available"]);
 const priceSuffixPattern = /\s*\+\s*(?:rs\.?|inr)?\s*([0-9]+(?:\.[0-9]+)?)\s*$/i;
-const variantPricePattern = /(?:rs\.?|inr|₹)\s*([0-9]+(?:\.[0-9]+)?)(?:\s*[-–]\s*([0-9]+(?:\.[0-9]+)?))?/i;
+const variantPricePattern = /(?:rs\.?|inr|\u20b9)\s*([0-9]+(?:\.[0-9]+)?)(?:\s*[-\u2013]\s*([0-9]+(?:\.[0-9]+)?))?/i;
 
 function splitPriceSuffix(value) {
   const rawName = String(value ?? "").trim();
@@ -214,7 +214,7 @@ export function getPurchasableBasePrice(product, selectedVariant = null) {
 
 export function calculateProductPrice(product, selectedColor = null, selectedFragrance = null, selectedVariant = null) {
   const basePrice = getPurchasableBasePrice(product, selectedVariant);
-  return basePrice + getFragrancePriceAdjustment(selectedFragrance);
+  return basePrice + getColorPriceAdjustment(selectedColor) + getFragrancePriceAdjustment(selectedFragrance);
 }
 
 export function getCalculatedProductPrice(product, selectedColor = null, selectedFragrance = null, selectedVariant = null) {

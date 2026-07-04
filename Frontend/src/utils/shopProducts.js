@@ -5,37 +5,9 @@ import img4 from "../assets/product categories/dessert.jpeg";
 import img5 from "../assets/product categories/gifting collection.png";
 import img6 from "../assets/product categories/festive collection.png";
 import menuData from "./menuData";
+import { resolveProductsApiUrl } from "./apiConfig";
 import { isStaticProductId, readStaticBestSellerProducts, readStaticProducts } from "./staticProducts";
 import { normalizeColorOption, normalizeFragranceOption, parseProductPrice } from "./productPricing";
-
-const PRODUCTION_PRODUCTS_API = "https://cozy-candles-backend.onrender.com/api/products";
-const DEVELOPMENT_PRODUCTS_API = "/api/products";
-
-function normalizeProductsApi(value) {
-  const trimmed = String(value || "").trim().replace(/\/$/, "");
-
-  if (!trimmed) {
-    return "";
-  }
-
-  if (/\/api\/products$/i.test(trimmed)) {
-    return trimmed;
-  }
-
-  if (/\/api$/i.test(trimmed)) {
-    return `${trimmed}/products`;
-  }
-
-  return `${trimmed}/api/products`;
-}
-
-function resolveProductsApiUrl() {
-  if (import.meta.env.VITE_API_URL) {
-    return normalizeProductsApi(import.meta.env.VITE_API_URL);
-  }
-
-  return import.meta.env.DEV ? DEVELOPMENT_PRODUCTS_API : PRODUCTION_PRODUCTS_API;
-}
 
 const PRODUCTS_API_URL = resolveProductsApiUrl();
 

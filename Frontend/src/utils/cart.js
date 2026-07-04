@@ -1,4 +1,5 @@
 import { auth } from "../firebase";
+import { resolveApiRoot } from "./apiConfig";
 import {
   formatProductPrice,
   getCartLineFinalPrice,
@@ -11,38 +12,7 @@ import {
 } from "./productPricing";
 
 const CART_STORAGE_KEY = "cozy-candles-cart";
-const PRODUCTION_BACKEND_API = "https://cozy-candles-backend.onrender.com/api";
-const DEVELOPMENT_BACKEND_API = "/api";
-
-function normalizeApiRoot(value) {
-  const trimmed = String(value || "").trim().replace(/\/$/, "");
-
-  if (!trimmed) {
-    return "";
-  }
-
-  if (/\/api\/products$/i.test(trimmed)) {
-    return trimmed.replace(/\/products$/i, "");
-  }
-
-  if (/\/api$/i.test(trimmed)) {
-    return trimmed;
-  }
-
-  return `${trimmed}/api`;
-}
-
-function resolveCartApiRoot() {
-  const envApiRoot = import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL?.replace(/\/products\/?$/, "");
-
-  if (envApiRoot) {
-    return normalizeApiRoot(envApiRoot);
-  }
-
-  return import.meta.env.DEV ? DEVELOPMENT_BACKEND_API : PRODUCTION_BACKEND_API.replace(/\/$/, "");
-}
-
-const CART_API_ROOT = resolveCartApiRoot();
+const CART_API_ROOT = resolveApiRoot();
 
 function parseStoredCart(savedCart) {
   if (!savedCart) {

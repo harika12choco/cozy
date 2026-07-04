@@ -70,7 +70,6 @@ const policies = {
       {
         heading: "Return Shipping Charges",
         items: [
-          "If the product is defective, damaged, or incorrect, return shipping charges will be borne by us.",
           "For any other approved return reason, shipping charges will be the customer's responsibility."
         ]
       },

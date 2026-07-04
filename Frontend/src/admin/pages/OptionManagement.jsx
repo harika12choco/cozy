@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 const blankForm = {
   name: "",
@@ -31,7 +31,7 @@ export default function OptionManagement({
     return items.filter((item) => item.name.toLowerCase().includes(query));
   }, [items, search]);
 
-  async function loadItems() {
+  const loadItems = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
@@ -42,11 +42,11 @@ export default function OptionManagement({
     } finally {
       setLoading(false);
     }
-  }
+  }, [search, searchable, service]);
 
   useEffect(() => {
     loadItems();
-  }, []);
+  }, [loadItems]);
 
   useEffect(() => {
     if (!searchable) {
@@ -55,7 +55,7 @@ export default function OptionManagement({
 
     const timeout = window.setTimeout(loadItems, 250);
     return () => window.clearTimeout(timeout);
-  }, [search, searchable]);
+  }, [loadItems, searchable]);
 
   function resetForm() {
     setForm(blankForm);

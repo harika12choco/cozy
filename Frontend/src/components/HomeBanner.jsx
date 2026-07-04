@@ -1,5 +1,5 @@
 import "../styles/HomeBanner.css";
-import storyImage from "../assets/home image.png";
+import storyImage from "../assets/ourstory.jpeg";
 
 export default function HomeBanner() {
   return (
