@@ -15,6 +15,7 @@ const cartRoutes = require("./routes/Cartroutes");
 const adminRoutes = require("./routes/adminRoutes");
 const siteImagesRoutes = require("./routes/siteImagesRoutes");
 const optionRoutes = require("./routes/optionRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
 const { seedDefaultFragrances } = require("./controllers/optionController");
 
 const app = express();
@@ -106,6 +107,7 @@ app.use("/api", adminRoutes);
 app.use("/api", siteImagesRoutes);
 app.use("/api", optionRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/payment", paymentRoutes);
 
 app.get("/", (req, res) => {
   res.send(`Server Running - ${API_VERSION}`);

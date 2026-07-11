@@ -48,8 +48,10 @@
 }
 
 .footer-logo-link{
-  display:inline-flex;
+  display:flex;
   align-items:center;
+  justify-content:center;
+  width:min(330px, 100%);
   margin-bottom:18px;
 }
 

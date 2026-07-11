@@ -8,16 +8,50 @@ import {
   syncCartWithServer,
   updateCartItemQuantity
 } from "../utils/cart";
-import { orderService } from "../admin/services/orderService";
+import {
+  createCodOrder,
+  createRazorpayOrder,
+  verifyRazorpayPayment
+} from "../services/checkoutService";
 import { fetchProductsByIds } from "../utils/shopProducts";
 import { formatProductPrice, getCartLineFinalPrice, getCartLineTotal } from "../utils/productPricing";
 import "../styles/Cart.css";
 
+const RAZORPAY_CHECKOUT_URL = "https://checkout.razorpay.com/v1/checkout.js";
+const PAYMENT_METHODS = {
+  RAZORPAY: "razorpay",
+  COD: "cod"
+};
+const DELIVERY_CHARGE = 0;
+
+function loadRazorpayCheckout() {
+  if (window.Razorpay) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve, reject) => {
+    const existingScript = document.querySelector(`script[src="${RAZORPAY_CHECKOUT_URL}"]`);
+
+    if (existingScript) {
+      existingScript.addEventListener("load", resolve, { once: true });
+      existingScript.addEventListener("error", () => reject(new Error("Unable to load Razorpay Checkout.")), { once: true });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = RAZORPAY_CHECKOUT_URL;
+    script.async = true;
+    script.onload = resolve;
+    script.onerror = () => reject(new Error("Unable to load Razorpay Checkout."));
+    document.body.appendChild(script);
+  });
+}
+
 export default function Cart() {
   const [cartItems, setCartItems] = useState(() => getCartItems());
-  const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderError, setOrderError] = useState("");
   const [placingOrder, setPlacingOrder] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHODS.RAZORPAY);
   const [customer, setCustomer] = useState({
     name: "",
     phone: "",
@@ -205,20 +239,36 @@ export default function Cart() {
     );
   }
 
-  const placeOrderWhatsApp = async () => {
+  function getOrderLineItems() {
+    return cartItems.map((item) => ({
+      productId: item.productId,
+      productName: item.name,
+      name: item.name,
+      basePrice: item.basePrice,
+      fragranceExtraCharge: item.fragranceExtraCharge ?? item.selectedFragrance?.priceAdjustment ?? 0,
+      finalPrice: getCartLineFinalPrice(item),
+      price: formatProductPrice(getCartLineFinalPrice(item)),
+      quantity: item.quantity,
+      selectedColor: item.selectedColor,
+      selectedFragrance: item.selectedFragrance,
+      selectedVariant: item.selectedVariant
+    }));
+  }
+
+  function validateCheckoutDetails() {
     if (cartItems.length === 0) {
       alert("Your cart is empty.");
-      return;
+      return false;
     }
 
     if (outOfStockItems.length > 0) {
       setOrderError("Some items are out of stock. Please update your cart.");
-      return;
+      return false;
     }
 
     if (!customer.name || !customer.phone || !customer.address || !customer.pincode) {
       alert("Please fill all delivery details.");
-      return;
+      return false;
     }
 
     if (!/^[0-9]{10}$/.test(customer.phone)) {
@@ -226,7 +276,7 @@ export default function Cart() {
         ...current,
         phone: "Please enter a valid 10-digit phone number."
       }));
-      return;
+      return false;
     }
 
     if (!/^[0-9]{6}$/.test(customer.pincode)) {
@@ -234,99 +284,144 @@ export default function Cart() {
         ...current,
         pincode: "Please enter a valid 6-digit pincode."
       }));
-      return;
+      return false;
     }
 
     if (customer.address.length > 200) {
       alert("Address is too long. Please shorten it.");
-      return;
+      return false;
     }
 
-    const defaultWhatsAppNumber = "+91 70707 59111";
-    const rawNumber = String(import.meta.env.VITE_WHATSAPP_NUMBER || defaultWhatsAppNumber);
-    const phone = rawNumber.replace(/\D/g, "");
-    const orderDate = new Date().toISOString().slice(0, 10);
+    return true;
+  }
+
+  function buildOrderPayload(paymentOverrides) {
+    const now = new Date();
+    const subtotal = totalPrice;
+    const total = subtotal + DELIVERY_CHARGE;
     const email = user?.email || "";
+    const lineItems = getOrderLineItems();
+    const quantity = lineItems.reduce((totalQuantity, item) => totalQuantity + item.quantity, 0);
+
+    return {
+      customer: customer.name.trim(),
+      customerName: customer.name.trim(),
+      email,
+      phone: customer.phone,
+      address: customer.address.trim(),
+      pincode: customer.pincode,
+      date: now.toISOString().slice(0, 10),
+      orderDate: now.toISOString(),
+      items: quantity,
+      quantity,
+      subtotal,
+      deliveryCharge: DELIVERY_CHARGE,
+      total,
+      paymentAmount: total,
+      status: "pending",
+      placedByUid: user?.uid || null,
+      placedByName: user?.displayName || customer.name.trim(),
+      lineItems,
+      products: lineItems,
+      ...paymentOverrides
+    };
+  }
+
+  async function openRazorpayCheckout(razorpayOrder) {
+    const key = import.meta.env.VITE_RAZORPAY_KEY_ID;
+
+    if (!key) {
+      throw new Error("Razorpay Key ID is missing. Add VITE_RAZORPAY_KEY_ID in frontend env.");
+    }
+
+    await loadRazorpayCheckout();
+
+    return new Promise((resolve, reject) => {
+      let completed = false;
+      const checkout = new window.Razorpay({
+        key,
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
+        name: "Cozy Candle",
+        description: "Order Payment",
+        order_id: razorpayOrder.id,
+        prefill: {
+          name: customer.name,
+          email: user?.email || "",
+          contact: customer.phone
+        },
+        theme: {
+          color: "#651514"
+        },
+        modal: {
+          ondismiss: () => {
+            if (!completed) {
+              reject(new Error("Payment was cancelled."));
+            }
+          }
+        },
+        handler: (response) => {
+          completed = true;
+          resolve(response);
+        }
+      });
+
+      checkout.on("payment.failed", (response) => {
+        completed = true;
+        reject(new Error(response?.error?.description || "Payment failed. Please try again."));
+      });
+
+      checkout.open();
+    });
+  }
+
+  function clearCartAndRedirect(order) {
+    let nextCart = getCartItems();
+
+    cartItems.forEach((item) => {
+      nextCart = removeCartItem(item.key);
+    });
+
+    setCartItems(nextCart);
+    navigate("/order-success", {
+      replace: true,
+      state: {
+        orderId: order?._id || order?.id || "",
+        paymentMethod: order?.paymentMethod || "",
+        paymentStatus: order?.paymentStatus || ""
+      }
+    });
+  }
+
+  const placeOrder = async () => {
+    if (!validateCheckoutDetails()) {
+      return;
+    }
 
     try {
       setPlacingOrder(true);
       setOrderError("");
 
-      await orderService.create({
-        customer: customer.name,
-        email,
-        phone: customer.phone,
-        address: customer.address,
-        pincode: customer.pincode,
-        date: orderDate,
-        items: cartItems.reduce((total, item) => total + item.quantity, 0),
-        total: totalPrice,
-        payment: "WhatsApp",
-        status: "pending",
-        placedByUid: user?.uid || null,
-        placedByName: user?.displayName || customer.name,
-        paymentAmount: totalPrice,
-        lineItems: cartItems.map((item) => ({
-          productId: item.productId,
-          productName: item.name,
-          name: item.name,
-          basePrice: item.basePrice,
-          fragranceExtraCharge: item.fragranceExtraCharge ?? item.selectedFragrance?.priceAdjustment ?? 0,
-          finalPrice: getCartLineFinalPrice(item),
-          price: formatProductPrice(getCartLineFinalPrice(item)),
-          quantity: item.quantity,
-          selectedColor: item.selectedColor,
-          selectedFragrance: item.selectedFragrance,
-          selectedVariant: item.selectedVariant
-        }))
+      if (paymentMethod === PAYMENT_METHODS.COD) {
+        const savedOrder = await createCodOrder(buildOrderPayload({
+          paymentMethod: "Cash on Delivery (COD)",
+          paymentStatus: "Pending (COD)",
+          payment: "Pending (COD)"
+        }));
+        clearCartAndRedirect(savedOrder);
+        return;
+      }
+
+      const onlineOrderPayload = buildOrderPayload({
+        paymentMethod: "Razorpay",
+        paymentStatus: "Pending",
+        payment: "Pending"
       });
+      const razorpayOrder = await createRazorpayOrder(onlineOrderPayload);
+      const paymentResponse = await openRazorpayCheckout(razorpayOrder);
+      const verification = await verifyRazorpayPayment(paymentResponse, onlineOrderPayload);
 
-      let message = `Cozy Candles Order
-
-Name: ${customer.name}
-Email: ${email || "Not shared"}
-Phone: ${customer.phone}
-Address: ${customer.address}
-Pincode: ${customer.pincode}
-
-Order Details
-`;
-
-      cartItems.forEach((item, index) => {
-        message += `
-${index + 1}. ${item.name}
-Price: ${formatProductPrice(getCartLineFinalPrice(item))}
-Quantity: ${item.quantity}
-`;
-        if (item.selectedColor) {
-          message += `Color: ${item.selectedColor.name}\n`;
-        }
-        if (item.selectedVariant) {
-          message += `Variant: ${item.selectedVariant.name}\n`;
-        }
-        if (item.selectedFragrance) {
-          message += `Fragrance: ${item.selectedFragrance.name}\n`;
-          if ((item.fragranceExtraCharge ?? item.selectedFragrance.priceAdjustment ?? 0) > 0) {
-            message += `Fragrance extra: Rs ${item.fragranceExtraCharge ?? item.selectedFragrance.priceAdjustment}\n`;
-          }
-        }
-      });
-
-      message += `
-Total: Rs ${totalPrice}
-
-Please confirm my order.
-`;
-
-      const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-
-      window.open(url, "_blank");
-      let nextCart = getCartItems();
-      cartItems.forEach((item) => {
-        nextCart = removeCartItem(item.key);
-      });
-      setCartItems(nextCart);
-      setOrderPlaced(true);
+      clearCartAndRedirect(verification.order);
     } catch (error) {
       setOrderError(error.message || "We could not place your order right now.");
     } finally {
@@ -347,7 +442,7 @@ Please confirm my order.
     );
   }
 
-  if (orderPlaced) {
+  /*
     return (
       <main className="cart-page">
         <section className="cart-empty" role="status" aria-live="polite">
@@ -363,6 +458,7 @@ Please confirm my order.
       </main>
     );
   }
+  */
 
   return (
     <main className="cart-page">
@@ -514,6 +610,30 @@ Please confirm my order.
               {validationErrors.pincode ? <p className="products-feedback">{validationErrors.pincode}</p> : null}
             </div>
 
+            <div className="payment-method-section">
+              <h3>Payment Method</h3>
+              <label className="payment-method-option">
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value={PAYMENT_METHODS.RAZORPAY}
+                  checked={paymentMethod === PAYMENT_METHODS.RAZORPAY}
+                  onChange={() => setPaymentMethod(PAYMENT_METHODS.RAZORPAY)}
+                />
+                <span>Razorpay (Online Payment)</span>
+              </label>
+              <label className="payment-method-option">
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value={PAYMENT_METHODS.COD}
+                  checked={paymentMethod === PAYMENT_METHODS.COD}
+                  onChange={() => setPaymentMethod(PAYMENT_METHODS.COD)}
+                />
+                <span>Cash on Delivery (COD)</span>
+              </label>
+            </div>
+
             <div className="cart-total">
               <span>Total</span>
               <strong>Rs {totalPrice}</strong>
@@ -528,10 +648,10 @@ Please confirm my order.
             <button
               className="btn"
               type="button"
-              onClick={placeOrderWhatsApp}
+              onClick={placeOrder}
               disabled={placingOrder || outOfStockItems.length > 0}
             >
-              {placingOrder ? "Placing Order..." : "Place Order on WhatsApp"}
+              {placingOrder ? "Placing Order..." : "Place Order"}
             </button>
           </aside>
         </section>

@@ -21,6 +21,7 @@ import Cart from "./components/Cart"
 import Profile from "./pages/Profile"
 import ProductDetail from "./pages/ProductDetail"
 import PolicyPage from "./pages/PolicyPage"
+import OrderSuccess from "./pages/OrderSuccess"
 import AdminPortal from "./admin/AdminPortal"
 import { findCategoryBySlug } from "./utils/menuData"
 import "./styles/Global.css"
@@ -192,6 +193,7 @@ function App(){
       <Route path="/shop" element={<PublicSite page="shop" />} />
       <Route path="/product/:id" element={<PublicSite page="product" />} />
       <Route path="/cart" element={<PublicSite page="cart" />} />
+      <Route path="/order-success" element={<OrderSuccess />} />
       <Route path="/profile" element={<PublicSite page="profile" />} />
       <Route path="/privacy-policy" element={<PublicSite page="policy" policySlug="privacy-policy" />} />
       <Route path="/refund-return-policy" element={<PublicSite page="policy" policySlug="refund-return-policy" />} />

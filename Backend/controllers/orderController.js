@@ -5,6 +5,30 @@ const { getStaticProductById, isStaticProductId } = require("../utils/staticProd
 const { getFragranceDisplayName, getFragrancePriceAdjustment, parseProductPrice } = require("../utils/productPricing");
 const variantPricePattern = /(?:rs\.?|inr|₹)\s*([0-9]+(?:\.[0-9]+)?)(?:\s*[-–]\s*([0-9]+(?:\.[0-9]+)?))?/i;
 
+function createHttpError(status, message) {
+  const error = new Error(message);
+  error.status = status;
+  return error;
+}
+
+function toNonNegativeNumber(value) {
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) && numberValue > 0 ? numberValue : 0;
+}
+
+function getOrderDate(value) {
+  const parsed = value ? new Date(value) : new Date();
+  return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+}
+
+function getOrderDateString(value) {
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+
+  return getOrderDate(value).toISOString().slice(0, 10);
+}
+
 function isValidPincode(value) {
   return /^[0-9]{6}$/.test(String(value || "").trim());
 }
@@ -14,12 +38,56 @@ function normalizeOrderPayload(payload = {}, partial = false) {
     ...payload
   };
 
+  if (!partial || payload.customer !== undefined || payload.customerName !== undefined) {
+    const customerName = String(payload.customerName ?? payload.customer ?? "").trim();
+    normalized.customer = customerName;
+    normalized.customerName = customerName;
+  }
+
+  if (!partial || payload.email !== undefined) {
+    normalized.email = String(payload.email || "").trim();
+  }
+
   if (!partial || payload.pincode !== undefined) {
     normalized.pincode = String(payload.pincode || "").trim();
   }
 
   if (!partial || payload.phone !== undefined) {
     normalized.phone = String(payload.phone || "").trim();
+  }
+
+  if (!partial || payload.address !== undefined) {
+    normalized.address = String(payload.address || "").trim();
+  }
+
+  if (!partial || payload.date !== undefined || payload.orderDate !== undefined) {
+    const dateValue = payload.orderDate ?? payload.date;
+    normalized.date = getOrderDateString(dateValue);
+    normalized.orderDate = getOrderDate(dateValue);
+  }
+
+  if (!partial || payload.deliveryCharge !== undefined) {
+    normalized.deliveryCharge = toNonNegativeNumber(payload.deliveryCharge);
+  }
+
+  if (!partial || payload.paymentMethod !== undefined) {
+    normalized.paymentMethod = String(payload.paymentMethod || "").trim();
+  }
+
+  if (!partial || payload.paymentStatus !== undefined) {
+    normalized.paymentStatus = String(payload.paymentStatus || "").trim();
+  }
+
+  if (!partial || payload.payment !== undefined || payload.paymentStatus !== undefined) {
+    normalized.payment = String(payload.payment ?? payload.paymentStatus ?? "Pending").trim();
+  }
+
+  if (!partial || payload.razorpayOrderId !== undefined) {
+    normalized.razorpayOrderId = String(payload.razorpayOrderId || "").trim();
+  }
+
+  if (!partial || payload.razorpayPaymentId !== undefined) {
+    normalized.razorpayPaymentId = String(payload.razorpayPaymentId || "").trim();
   }
 
   return normalized;
@@ -131,6 +199,48 @@ function normalizeSelectedVariant(value) {
   };
 }
 
+function prepareOrderPayload(payload = {}) {
+  const normalized = normalizeOrderPayload(payload, false);
+  const lineItems = normalizeLineItems(normalized.lineItems ?? normalized.products ?? []);
+
+  if (!normalized.customer) {
+    throw createHttpError(400, "Customer name is required.");
+  }
+
+  if (!isValidPincode(normalized.pincode)) {
+    throw createHttpError(400, "Pincode must be exactly 6 digits.");
+  }
+
+  if (lineItems.length === 0) {
+    throw createHttpError(400, "Order items are required.");
+  }
+
+  const quantity = lineItems.reduce((total, item) => total + item.quantity, 0);
+  const subtotal = lineItems.reduce((total, item) => total + item.finalPrice * item.quantity, 0);
+  const deliveryCharge = toNonNegativeNumber(normalized.deliveryCharge);
+  const total = subtotal + deliveryCharge;
+  const paymentMethod = normalized.paymentMethod || normalized.payment || "Cash on Delivery (COD)";
+  const paymentStatus = normalized.paymentStatus || normalized.payment || "Pending";
+
+  return {
+    ...normalized,
+    customerName: normalized.customerName || normalized.customer,
+    lineItems,
+    products: lineItems,
+    items: quantity,
+    quantity,
+    subtotal,
+    deliveryCharge,
+    total,
+    paymentAmount: total,
+    paymentMethod,
+    paymentStatus,
+    payment: normalized.payment || paymentStatus,
+    date: normalized.date || getOrderDateString(normalized.orderDate),
+    orderDate: normalized.orderDate || getOrderDate(normalized.date)
+  };
+}
+
 async function resolveProductId(item) {
   if (item.productId) {
     if (isStaticProductId(item.productId)) {
@@ -239,6 +349,27 @@ async function releaseStock(lineItems) {
   );
 }
 
+async function saveOrderFromPayload(payload = {}) {
+  const orderPayload = prepareOrderPayload(payload);
+
+  try {
+    await reserveStock(orderPayload.lineItems);
+  } catch (stockError) {
+    throw createHttpError(409, stockError.message || "Out of stock");
+  }
+
+  const order = new Order(orderPayload);
+
+  try {
+    await order.save();
+  } catch (saveError) {
+    await releaseStock(orderPayload.lineItems);
+    throw saveError;
+  }
+
+  return order;
+}
+
 const listOrders = async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });
@@ -250,40 +381,10 @@ const listOrders = async (req, res) => {
 
 const createOrder = async (req, res) => {
   try {
-    const payload = normalizeOrderPayload(req.body, false);
-    const lineItems = normalizeLineItems(payload.lineItems ?? []);
-
-    if (!isValidPincode(payload.pincode)) {
-      return res.status(400).json({ error: "Pincode must be exactly 6 digits." });
-    }
-
-    if (lineItems.length === 0) {
-      return res.status(400).json({ error: "Order items are required." });
-    }
-
-    payload.lineItems = lineItems;
-    payload.items = lineItems.reduce((total, item) => total + item.quantity, 0);
-    payload.total = lineItems.reduce((total, item) => total + item.finalPrice * item.quantity, 0);
-    payload.paymentAmount = payload.total;
-
-    try {
-      await reserveStock(lineItems);
-    } catch (stockError) {
-      return res.status(409).json({ error: stockError.message || "Out of stock" });
-    }
-
-    const order = new Order(payload);
-
-    try {
-      await order.save();
-    } catch (saveError) {
-      await releaseStock(lineItems);
-      throw saveError;
-    }
-
+    const order = await saveOrderFromPayload(req.body);
     res.status(201).json(order);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 };
 
@@ -336,5 +437,7 @@ module.exports = {
   listOrders,
   createOrder,
   updateOrder,
-  deleteOrder
+  deleteOrder,
+  prepareOrderPayload,
+  saveOrderFromPayload
 };

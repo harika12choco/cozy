@@ -117,6 +117,11 @@ const orderSchema = new mongoose.Schema(
       required: true,
       trim: true
     },
+    customerName: {
+      type: String,
+      default: "",
+      trim: true
+    },
     email: {
       type: String,
       default: ""
@@ -143,6 +148,21 @@ const orderSchema = new mongoose.Schema(
       required: true,
       min: 0
     },
+    quantity: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    subtotal: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    deliveryCharge: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
     total: {
       type: Number,
       required: true,
@@ -156,6 +176,26 @@ const orderSchema = new mongoose.Schema(
     payment: {
       type: String,
       default: "Pending"
+    },
+    paymentMethod: {
+      type: String,
+      default: "Cash on Delivery (COD)",
+      trim: true
+    },
+    paymentStatus: {
+      type: String,
+      default: "Pending",
+      trim: true
+    },
+    razorpayOrderId: {
+      type: String,
+      default: "",
+      trim: true
+    },
+    razorpayPaymentId: {
+      type: String,
+      default: "",
+      trim: true
     },
     status: {
       type: String,
@@ -173,6 +213,14 @@ const orderSchema = new mongoose.Schema(
     lineItems: {
       type: [orderLineItemSchema],
       default: []
+    },
+    products: {
+      type: [orderLineItemSchema],
+      default: []
+    },
+    orderDate: {
+      type: Date,
+      default: Date.now
     }
   },
   {
