@@ -19,6 +19,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
+console.log("DEBUG: Firebase Project ID loaded:", import.meta.env.VITE_FIREBASE_PROJECT_ID ? "YES" : "NO");
+
 export const auth = getAuth(app);
 export const provider = new GoogleAuthProvider();
 provider.setCustomParameters({
