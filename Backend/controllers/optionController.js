@@ -1,5 +1,6 @@
 const CandleColor = require("../models/CandleColor");
 const Fragrance = require("../models/Fragrance");
+const { sendError } = require("../utils/errorResponse");
 
 const DEFAULT_FRAGRANCES = [
   "Honey",
@@ -93,7 +94,7 @@ function buildOptionController(Model, { hasHex = false } = {}) {
         const items = await Model.find(filter).sort({ name: 1 });
         res.json(items.map(normalizeEntity));
       } catch (error) {
-        res.status(500).json({ error: error.message });
+        sendError(res, error);
       }
     },
 
@@ -175,7 +176,7 @@ function buildOptionController(Model, { hasHex = false } = {}) {
 
         res.status(204).send();
       } catch (error) {
-        res.status(500).json({ error: error.message });
+        sendError(res, error);
       }
     }
   };

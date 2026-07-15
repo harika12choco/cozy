@@ -3,6 +3,7 @@ const Product = require("../models/productModel");
 const mongoose = require("mongoose");
 const { getStaticProductById, isStaticProductId } = require("../utils/staticProducts");
 const { getFragranceDisplayName, getFragrancePriceAdjustment, parseProductPrice } = require("../utils/productPricing");
+const { sendError } = require("../utils/errorResponse");
 const variantPricePattern = /(?:rs\.?|inr|₹)\s*([0-9]+(?:\.[0-9]+)?)(?:\s*[-–]\s*([0-9]+(?:\.[0-9]+)?))?/i;
 
 function createHttpError(status, message) {
@@ -375,7 +376,7 @@ const listOrders = async (req, res) => {
     const orders = await Order.find().sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendError(res, error);
   }
 };
 
@@ -411,7 +412,7 @@ const updateOrder = async (req, res) => {
 
     res.json(order);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendError(res, error);
   }
 };
 
@@ -429,7 +430,7 @@ const deleteOrder = async (req, res) => {
 
     res.status(204).send();
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendError(res, error);
   }
 };
 

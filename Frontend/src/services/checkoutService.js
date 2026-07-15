@@ -1,4 +1,5 @@
 import { resolveApiRoot } from "../utils/apiConfig";
+import { auth } from "../firebase";
 
 const API_ROOT = resolveApiRoot();
 
@@ -39,9 +40,26 @@ async function requestJson(path, options = {}) {
   return response.json();
 }
 
+/**
+ * CRIT-3 FIX (frontend): Gets a fresh Firebase ID token to authenticate
+ * the order request. POST /api/orders now requires a valid user token.
+ */
+async function getAuthHeader() {
+  const user = auth.currentUser;
+  if (!user) return {};
+  try {
+    const token = await user.getIdToken();
+    return { "Authorization": `Bearer ${token}` };
+  } catch {
+    return {};
+  }
+}
+
 export async function createCodOrder(order) {
+  const authHeader = await getAuthHeader();
   return requestJson("/orders", {
     method: "POST",
+    headers: authHeader,
     body: JSON.stringify(order)
   });
 }

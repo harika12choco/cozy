@@ -1,7 +1,8 @@
 const express = require("express");
 const { authenticateAdmin } = require("../middleware/adminAuth");
+const { authenticateUser } = require("../middleware/userAuth");
 const { loginAdmin, verifyAdminToken } = require("../controllers/adminAuthController");
-const { loginLimiter, writeLimiter } = require("../middleware/rateLimiter");
+const { loginLimiter, writeLimiter, messageLimiter } = require("../middleware/rateLimiter");
 
 const {
   listOrders,
@@ -23,14 +24,14 @@ router.post("/admin/auth/login", loginLimiter, loginAdmin);
 router.get("/admin/verify-token", authenticateAdmin, verifyAdminToken);
 
 router.get("/orders", authenticateAdmin, listOrders);
-router.post("/orders", writeLimiter, createOrder);
+// CRIT-3 FIX: POST /orders now requires a verified Firebase user token
+router.post("/orders", authenticateUser, writeLimiter, createOrder);
 router.put("/orders/:id", authenticateAdmin, writeLimiter, updateOrder);
 router.delete("/orders/:id", authenticateAdmin, writeLimiter, deleteOrder);
 
-
-
 router.get("/messages", authenticateAdmin, listMessages);
-router.post("/messages", writeLimiter, createMessage);
+// HIGH-4 FIX: strict messageLimiter (5/10 min) instead of writeLimiter (120/min)
+router.post("/messages", messageLimiter, createMessage);
 router.put("/messages/:id", authenticateAdmin, writeLimiter, updateMessage);
 router.delete("/messages/:id", authenticateAdmin, writeLimiter, deleteMessage);
 

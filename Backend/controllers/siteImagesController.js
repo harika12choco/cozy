@@ -1,4 +1,5 @@
 const SiteImages = require("../models/SiteImages");
+const { sendError } = require("../utils/errorResponse");
 
 const DEFAULT_CATEGORY_IMAGE_SOURCES = {
   "Moments & Memories": process.env.SITE_IMAGE_CATEGORY_MOMENTS_MEMORIES,
@@ -98,7 +99,7 @@ async function getSiteImages(req, res) {
     res.set("Expires", "0");
     res.json(normalizeSiteImages(doc));
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendError(res, error);
   }
 }
 
@@ -117,7 +118,7 @@ async function updateSiteImages(req, res) {
 
     res.json(normalizeSiteImages(doc));
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendError(res, error);
   }
 }
 

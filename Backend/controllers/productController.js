@@ -3,6 +3,7 @@ const { uploadProductImage } = require("../services/cloudinaryService");
 const mongoose = require("mongoose");
 const { getStaticProductById } = require("../utils/staticProducts");
 const { getFragranceDisplayName, getFragrancePriceAdjustment } = require("../utils/productPricing");
+const { sendError } = require("../utils/errorResponse");
 
 async function prepareProductPayload(payload) {
   const imageUpload = await uploadProductImage(payload.image);
@@ -108,7 +109,7 @@ const addProduct = async (req, res) => {
       product: normalizeProductResponse(product)
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendError(res, error);
   }
 };
 
@@ -142,7 +143,7 @@ const getProducts = async (req, res) => {
     const products = ids.length > 0 && dbIds.length === 0 ? [] : await Product.find(filter);
     res.json([...staticMatches, ...products.map(normalizeProductResponse)]);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendError(res, error);
   }
 };
 
@@ -167,7 +168,7 @@ const searchProducts = async (req, res) => {
 
     res.json(products.map(normalizeProductResponse));
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendError(res, error);
   }
 };
 
@@ -187,7 +188,7 @@ const getProductById = async (req, res) => {
     const product = await Product.findById(req.params.id);
     res.json(normalizeProductResponse(product));
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendError(res, error);
   }
 };
 
@@ -206,7 +207,7 @@ const updateProduct = async (req, res) => {
 
     res.json(normalizeProductResponse(product));
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendError(res, error);
   }
 };
 
@@ -216,7 +217,7 @@ const deleteProduct = async (req, res) => {
     await Product.findByIdAndDelete(req.params.id);
     res.json({ message: "Product deleted" });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendError(res, error);
   }
 };
 

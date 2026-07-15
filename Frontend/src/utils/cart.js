@@ -116,19 +116,27 @@ function mergeCartItems(primaryItems, secondaryItems) {
   return Array.from(merged.values());
 }
 
-function getUserHeaders(user) {
+/**
+ * CRIT-2 FIX (frontend): Gets a fresh Firebase ID token and returns it
+ * as an Authorization header. The backend verifies the token
+ * cryptographically — no header can be forged by a third party.
+ */
+async function getUserHeaders(user) {
   if (!user?.uid) {
     return null;
   }
-
-  return {
-    "x-user-id": user.uid,
-    "x-user-email": user.email ?? ""
-  };
+  try {
+    const token = await user.getIdToken();
+    return {
+      "Authorization": `Bearer ${token}`
+    };
+  } catch {
+    return null;
+  }
 }
 
 async function requestCart(user, path, options = {}) {
-  const headers = getUserHeaders(user);
+  const headers = await getUserHeaders(user);
 
   if (!headers) {
     throw new Error("User authentication required");

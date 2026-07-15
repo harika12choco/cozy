@@ -1,5 +1,6 @@
 const Message = require("../models/Message");
 const mongoose = require("mongoose");
+const { sendError } = require("../utils/errorResponse");
 
 function isValidIndianMobile(value) {
   return /^[6-9][0-9]{9}$/.test(String(value || "").trim());
@@ -10,42 +11,63 @@ const listMessages = async (req, res) => {
     const messages = await Message.find().sort({ createdAt: -1 });
     res.json(messages);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendError(res, error);
   }
 };
 
 const createMessage = async (req, res) => {
   try {
-    const payload = {
-      ...req.body,
-      phone: String(req.body?.phone || "").trim()
-    };
+    const phone = String(req.body?.phone || "").trim();
 
-    if (!isValidIndianMobile(payload.phone)) {
+    if (!isValidIndianMobile(phone)) {
       return res.status(400).json({ error: "Please enter a valid 10-digit mobile number." });
     }
 
-    const message = new Message(payload);
+    // Only accept the known safe fields — never spread entire req.body
+    const message = new Message({
+      name: String(req.body?.name || "").trim(),
+      email: String(req.body?.email || "").trim(),
+      phone,
+      message: String(req.body?.message || "").trim()
+    });
+
     await message.save();
     res.status(201).json(message);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendError(res, error);
   }
 };
 
+/**
+ * HIGH-2 FIX: Only whitelisted fields are updated.
+ * Previously the entire req.body was spread into the update payload.
+ */
 const updateMessage = async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(400).json({ error: "Invalid message id" });
     }
 
-    const payload = {
-      ...req.body,
-      ...(req.body?.phone !== undefined ? { phone: String(req.body.phone || "").trim() } : {})
-    };
+    const payload = {};
 
-    if (payload.phone !== undefined && !isValidIndianMobile(payload.phone)) {
-      return res.status(400).json({ error: "Please enter a valid 10-digit mobile number." });
+    if (req.body?.name !== undefined)
+      payload.name = String(req.body.name).trim();
+
+    if (req.body?.email !== undefined)
+      payload.email = String(req.body.email).trim();
+
+    if (req.body?.message !== undefined)
+      payload.message = String(req.body.message).trim();
+
+    if (req.body?.status !== undefined && ["new", "read"].includes(req.body.status))
+      payload.status = req.body.status;
+
+    if (req.body?.phone !== undefined) {
+      const phone = String(req.body.phone || "").trim();
+      if (!isValidIndianMobile(phone)) {
+        return res.status(400).json({ error: "Please enter a valid 10-digit mobile number." });
+      }
+      payload.phone = phone;
     }
 
     const message = await Message.findByIdAndUpdate(req.params.id, payload, {
@@ -59,7 +81,7 @@ const updateMessage = async (req, res) => {
 
     res.json(message);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendError(res, error);
   }
 };
 
@@ -77,7 +99,7 @@ const deleteMessage = async (req, res) => {
 
     res.status(204).send();
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendError(res, error);
   }
 };
 

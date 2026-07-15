@@ -5,12 +5,14 @@ const messageSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
+      maxlength: 128
     },
     email: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
+      maxlength: 254
     },
     phone: {
       type: String,
@@ -21,7 +23,8 @@ const messageSchema = new mongoose.Schema(
     message: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
+      maxlength: 2000
     },
     createdAt: {
       type: Date,

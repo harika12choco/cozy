@@ -115,20 +115,24 @@ const orderSchema = new mongoose.Schema(
     customer: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
+      maxlength: 128
     },
     customerName: {
       type: String,
       default: "",
-      trim: true
+      trim: true,
+      maxlength: 128
     },
     email: {
       type: String,
-      default: ""
+      default: "",
+      maxlength: 254
     },
     phone: {
       type: String,
-      default: ""
+      default: "",
+      maxlength: 20
     },
     pincode: {
       type: String,
@@ -137,7 +141,8 @@ const orderSchema = new mongoose.Schema(
     },
     address: {
       type: String,
-      default: ""
+      default: "",
+      maxlength: 500
     },
     date: {
       type: String,
@@ -180,12 +185,14 @@ const orderSchema = new mongoose.Schema(
     paymentMethod: {
       type: String,
       default: "Cash on Delivery (COD)",
-      trim: true
+      trim: true,
+      maxlength: 64
     },
     paymentStatus: {
       type: String,
       default: "Pending",
-      trim: true
+      trim: true,
+      maxlength: 64
     },
     razorpayOrderId: {
       type: String,

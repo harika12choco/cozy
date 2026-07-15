@@ -1,5 +1,9 @@
 const crypto = require("crypto");
 const Razorpay = require("razorpay");
+const mongoose = require("mongoose");
+const Product = require("../models/productModel");
+const { getStaticProductById, isStaticProductId } = require("../utils/staticProducts");
+const { getFragrancePriceAdjustment, parseProductPrice } = require("../utils/productPricing");
 const {
   prepareOrderPayload,
   saveOrderFromPayload
@@ -78,10 +82,84 @@ function getPaymentErrorMessage(error) {
     || "Payment request failed.";
 }
 
+/**
+ * HIGH-3 FIX: Compute the authoritative order total from server-side prices.
+ * Re-fetches prices from static product list or MongoDB — never trusts
+ * client-supplied basePrice / finalPrice values.
+ *
+ * Returns the server-computed total in rupees.
+ */
+async function computeServerSideTotal(lineItems, deliveryCharge = 0) {
+  let subtotal = 0;
+
+  for (const item of lineItems) {
+    const productId = String(item.productId || "").trim();
+    let basePrice = 0;
+
+    const staticProduct = getStaticProductById(productId);
+
+    if (staticProduct) {
+      // Static product — resolve variant price
+      if (item.selectedVariant?.name) {
+        const variant = (staticProduct.variants || []).find(
+          (v) => v.name === item.selectedVariant.name
+        );
+        basePrice = parseProductPrice(
+          variant?.price || staticProduct.salePrice || staticProduct.basePrice || staticProduct.price
+        );
+      } else {
+        basePrice = parseProductPrice(
+          staticProduct.salePrice || staticProduct.basePrice || staticProduct.price
+        );
+      }
+    } else if (productId && mongoose.Types.ObjectId.isValid(productId)) {
+      // DB product — fetch authoritative price
+      const product = await Product.findById(productId).lean();
+
+      if (!product) {
+        throw createPaymentError(400, `Product not found: ${productId}`);
+      }
+
+      if (item.selectedVariant?.name) {
+        const variant = (product.variants || []).find(
+          (v) => v.name === item.selectedVariant.name && v.enabled !== false
+        );
+        basePrice = parseProductPrice(
+          variant?.price || product.salePrice || product.basePrice || product.price
+        );
+      } else {
+        basePrice = parseProductPrice(
+          product.salePrice || product.basePrice || product.price
+        );
+      }
+    } else {
+      // Cannot verify price — reject the request
+      throw createPaymentError(400, `Cannot verify price for item: ${item.name || productId}`);
+    }
+
+    // Fragrance adjustment — cap at 0 minimum, trust server-stored value via priceAdjustment
+    const fragranceCharge = Math.max(
+      0,
+      getFragrancePriceAdjustment(item.selectedFragrance)
+    );
+
+    const quantity = Math.max(1, Math.floor(Number(item.quantity) || 1));
+    subtotal += (basePrice + fragranceCharge) * quantity;
+  }
+
+  return subtotal + Math.max(0, Number(deliveryCharge) || 0);
+}
+
 const createRazorpayOrder = async (req, res) => {
   try {
     const orderPayload = prepareOrderPayload(getOrderPayloadFromRequest(req.body));
-    const amount = toRazorpayAmount(orderPayload.total);
+
+    // HIGH-3 FIX: Use server-side computed total, not client-supplied total
+    const serverTotal = await computeServerSideTotal(
+      orderPayload.lineItems,
+      orderPayload.deliveryCharge
+    );
+    const amount = toRazorpayAmount(serverTotal);
 
     if (amount <= 0) {
       throw createPaymentError(400, "Order total must be greater than zero.");
@@ -124,7 +202,14 @@ const verifyRazorpayPayment = async (req, res) => {
     }
 
     const orderPayload = prepareOrderPayload(getOrderPayloadFromRequest(req.body));
-    const expectedAmount = toRazorpayAmount(orderPayload.total);
+
+    // HIGH-3 FIX: Re-compute expected amount server-side before confirming with Razorpay
+    const serverTotal = await computeServerSideTotal(
+      orderPayload.lineItems,
+      orderPayload.deliveryCharge
+    );
+    const expectedAmount = toRazorpayAmount(serverTotal);
+
     const razorpay = getRazorpayInstance();
     const payment = await razorpay.payments.fetch(razorpayPaymentId);
 
