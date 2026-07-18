@@ -20,23 +20,9 @@ const imageMap = {
   "/src/assets/candles/6.png": img6
 };
 
-const hiddenStorefrontProductNames = new Set([
-  "champagne glow candle",
-  "lotus aura candle",
-  "velvet petals",
-  "mini floral satche",
-  "mini floral sachet",
-  "lotus boat candle",
-  "sweet love candle box",
-  "peony"
-]);
+const hiddenStorefrontProductNames = new Set([]);
 
-const hiddenStorefrontProductNameParts = [
-  "mini floral satche",
-  "mini floral sachet",
-  "lotus boat candle",
-  "sweet love candle box"
-];
+const hiddenStorefrontProductNameParts = [];
 
 function normalizeProductName(value) {
   return String(value ?? "").trim().replace(/\s+/g, " ").toLowerCase();
@@ -46,15 +32,11 @@ export function isPublicStorefrontProduct(product) {
   const productName = normalizeProductName(product?.name);
   const productStatus = String(product?.status ?? "active").trim().toLowerCase();
   const productImage = String(product?.image ?? product?.img ?? "").trim().toLowerCase();
-  const isHiddenProduct =
-    hiddenStorefrontProductNames.has(productName) ||
-    hiddenStorefrontProductNameParts.some((namePart) => productName.includes(namePart));
 
   return (
     productStatus !== "draft" &&
     productStatus !== "test" &&
     productName !== "test" &&
-    !isHiddenProduct &&
     !productImage.includes("test")
   );
 }
@@ -206,55 +188,63 @@ async function fetchProducts(options = {}) {
 }
 
 export async function readShopProducts() {
-  const staticProducts = [...readStaticProducts(), ...readStaticBestSellerProducts()];
-
   try {
     const products = await fetchProducts();
-    return [...staticProducts, ...formatShopProducts(products)];
+    const formatted = formatShopProducts(products);
+    if (formatted.length > 0) {
+      return formatted;
+    }
   } catch (error) {
     console.error("Unable to load products:", error);
-    return staticProducts;
   }
+  return [...readStaticProducts(), ...readStaticBestSellerProducts()];
 }
 
 export async function readBestSellerProducts() {
-  const staticProducts = readStaticBestSellerProducts();
-
   try {
     const products = await fetchProducts({ bestSeller: true });
-    return [...staticProducts, ...formatShopProducts(products)];
+    const formatted = formatShopProducts(products);
+    if (formatted.length > 0) {
+      return formatted;
+    }
   } catch (error) {
     console.error("Unable to load best sellers:", error);
-    return staticProducts;
   }
+  return readStaticBestSellerProducts();
 }
 
 export async function searchProducts(query) {
+  try {
+    const products = await fetchProducts({ search: query });
+    const formatted = formatShopProducts(products);
+    if (formatted.length > 0) {
+      return formatted;
+    }
+  } catch (error) {
+    console.error("Unable to search products:", error);
+  }
   const normalizedQuery = String(query ?? "").trim().toLowerCase();
-  const staticMatches = [...readStaticProducts(), ...readStaticBestSellerProducts()].filter((product) =>
+  return [...readStaticProducts(), ...readStaticBestSellerProducts()].filter((product) =>
     [product.name, product.description, product.category, product.price]
       .filter(Boolean)
       .some((value) => String(value).toLowerCase().includes(normalizedQuery))
   );
-
-  try {
-    const products = await fetchProducts({ search: query });
-    return [...staticMatches, ...formatShopProducts(products)];
-  } catch (error) {
-    console.error("Unable to search products:", error);
-    return staticMatches;
-  }
 }
 
 export async function fetchProductsByIds(ids) {
   try {
     const idList = Array.isArray(ids) ? ids.map((id) => String(id)) : [];
-    const staticProducts = readStaticProducts({ includeHidden: true }).filter((product) => idList.includes(product.id));
     const apiIds = idList.filter((id) => !isStaticProductId(id));
-    const products = apiIds.length > 0 ? await fetchProducts({ ids: apiIds }) : [];
-    return [...staticProducts, ...formatShopProducts(products)];
+    if (apiIds.length > 0) {
+      const products = await fetchProducts({ ids: apiIds });
+      const formatted = formatShopProducts(products);
+      if (formatted.length > 0) {
+        return formatted;
+      }
+    }
   } catch (error) {
     console.error("Unable to load products by ids:", error);
-    return readStaticProducts({ includeHidden: true }).filter((product) => ids.includes(product.id));
   }
+  const idList = Array.isArray(ids) ? ids.map((id) => String(id)) : [];
+  return readStaticProducts({ includeHidden: true }).filter((product) => idList.includes(product.id));
 }
