@@ -344,7 +344,7 @@ router.put("/:itemId", async (req, res) => {
     }
 
     if (quantity <= 0) {
-      item.remove();
+      item.deleteOne();
     } else {
       item.set(buildCartItemSnapshot(product, {
         ...item.toObject(),
@@ -369,7 +369,7 @@ router.delete("/:itemId", async (req, res) => {
       return res.status(404).json({ error: "Cart item not found" });
     }
 
-    item.remove();
+    item.deleteOne();
     await cart.save();
     res.json(buildCartResponse(cart, req.user.id, req.user.email));
   } catch (error) {
