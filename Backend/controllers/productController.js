@@ -74,8 +74,7 @@ function normalizeProductResponse(product) {
     fragrances: Array.isArray(normalized.fragrances) ? normalized.fragrances : [],
     burnTime: normalized.burnTime ?? "",
     weight: normalized.weight ?? "",
-    variants: Array.isArray(normalized.variants) ? normalized.variants : [],
-    customizationOptions: Array.isArray(normalized.customizationOptions) ? normalized.customizationOptions : []
+    variants: Array.isArray(normalized.variants) ? normalized.variants : []
   };
 }
 

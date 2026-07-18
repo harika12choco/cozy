@@ -37,6 +37,15 @@ export default function OrderTable({ orders, onStatusChange, onDelete }) {
                   <strong>{order.customer}</strong>
                   <span className="admin-order-meta">Phone: {order.phone || "No phone"}</span>
                   <span className="admin-order-meta">Address: {order.address || "No address"}</span>
+                  <span className="admin-order-meta">
+                    Gift Wrap: {order.giftWrap || (order.lineItems && order.lineItems.some(item => item.giftWrap)) ? "Yes" : "No"}
+                  </span>
+                  {(order.recipientName || order.giftMessage) ? (
+                    <div style={{ marginTop: "4px", padding: "4px 8px", backgroundColor: "#fff5f5", borderRadius: "4px", borderLeft: "3px solid var(--primary)", fontSize: "12px" }}>
+                      {order.recipientName ? <div className="admin-order-meta" style={{ margin: "0" }}><strong>To:</strong> {order.recipientName}</div> : null}
+                      {order.giftMessage ? <div className="admin-order-meta" style={{ margin: "2px 0 0 0" }}><strong>Msg:</strong> {order.giftMessage}</div> : null}
+                    </div>
+                  ) : null}
                 </div>
               </td>
               <td className="admin-order-email">{order.email || "No email"}</td>

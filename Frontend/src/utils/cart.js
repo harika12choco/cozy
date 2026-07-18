@@ -2,7 +2,6 @@ import { auth } from "../firebase";
 import { resolveApiRoot } from "./apiConfig";
 import {
   formatProductPrice,
-  getCartLineFinalPrice,
   getFragrancePriceAdjustment,
   getPurchasableBasePrice,
   normalizeColorOption,

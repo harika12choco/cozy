@@ -64,6 +64,9 @@ export default function Cart() {
     pincode: ""
   });
   const [stockMap, setStockMap] = useState({});
+  const [recipientName, setRecipientName] = useState("");
+  const [giftMessage, setGiftMessage] = useState("");
+  const hasGiftWrap = cartItems.some((item) => item.giftWrap);
 
   const navigate = useNavigate();
   const [user, setUser] = useState(() => auth.currentUser);
@@ -257,7 +260,9 @@ export default function Cart() {
       quantity: item.quantity,
       selectedColor: item.selectedColor,
       selectedFragrance: item.selectedFragrance,
-      selectedVariant: item.selectedVariant
+      selectedVariant: item.selectedVariant,
+      giftWrap: !!item.giftWrap,
+      giftWrapPrice: item.giftWrapPrice || 80
     }));
   }
 
@@ -298,6 +303,25 @@ export default function Cart() {
       return false;
     }
 
+    if (hasGiftWrap) {
+      if (!recipientName.trim()) {
+        alert("Please enter the Recipient's Name for gift wrapping.");
+        return false;
+      }
+      if (!giftMessage.trim()) {
+        alert("Please enter a Gift Message.");
+        return false;
+      }
+      if (recipientName.trim().length > 100) {
+        alert("Recipient name is too long.");
+        return false;
+      }
+      if (giftMessage.trim().length > 500) {
+        alert("Gift message is too long.");
+        return false;
+      }
+    }
+
     return true;
   }
 
@@ -329,6 +353,10 @@ export default function Cart() {
       placedByName: user?.displayName || customer.name.trim(),
       lineItems,
       products: lineItems,
+      recipientName: hasGiftWrap ? recipientName.trim() : "",
+      giftMessage: hasGiftWrap ? giftMessage.trim() : "",
+      giftWrap: hasGiftWrap,
+      giftWrapPrice: cartItems.reduce((acc, item) => acc + (item.giftWrap ? (item.giftWrapPrice || 80) * item.quantity : 0), 0),
       ...paymentOverrides
     };
   }
@@ -631,6 +659,28 @@ export default function Cart() {
                 onKeyDown={handleNumericKeyDown}
               />
               {validationErrors.pincode ? <p className="products-feedback">{validationErrors.pincode}</p> : null}
+
+              {hasGiftWrap ? (
+                <div className="gift-wrap-inputs" style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "15px", width: "100%" }}>
+                  <h4 style={{ margin: "0", fontSize: "14px", fontWeight: "600", color: "var(--text-dark)" }}>Gift Details</h4>
+                  <input
+                    type="text"
+                    name="recipientName"
+                    placeholder="Recipient Name (Required)"
+                    value={recipientName}
+                    onChange={(e) => setRecipientName(e.target.value)}
+                    required
+                  />
+                  <textarea
+                    name="giftMessage"
+                    placeholder="Gift Message (Required)"
+                    value={giftMessage}
+                    onChange={(e) => setGiftMessage(e.target.value)}
+                    required
+                    style={{ padding: "10px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", fontFamily: "inherit", fontSize: "14px", resize: "vertical", minHeight: "60px" }}
+                  />
+                </div>
+              ) : null}
             </div>
 
             <div className="payment-method-section">

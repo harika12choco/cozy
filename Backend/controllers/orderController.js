@@ -91,6 +91,22 @@ function normalizeOrderPayload(payload = {}, partial = false) {
     normalized.razorpayPaymentId = String(payload.razorpayPaymentId || "").trim();
   }
 
+  if (!partial || payload.recipientName !== undefined) {
+    normalized.recipientName = String(payload.recipientName || "").trim();
+  }
+
+  if (!partial || payload.giftMessage !== undefined) {
+    normalized.giftMessage = String(payload.giftMessage || "").trim();
+  }
+
+  if (!partial || payload.giftWrap !== undefined) {
+    normalized.giftWrap = Boolean(payload.giftWrap);
+  }
+
+  if (!partial || payload.giftWrapPrice !== undefined) {
+    normalized.giftWrapPrice = Number(payload.giftWrapPrice || 0);
+  }
+
   return normalized;
 }
 

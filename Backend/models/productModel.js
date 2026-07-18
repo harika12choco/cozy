@@ -217,11 +217,6 @@ const productSchema = new mongoose.Schema({
     default: []
   },
 
-  customizationOptions: {
-    type: [String],
-    default: []
-  },
-
   giftWrapPrice: {
     type: Number,
     default: 80

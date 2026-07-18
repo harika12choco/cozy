@@ -225,6 +225,22 @@ const orderSchema = new mongoose.Schema(
       type: String,
       default: ""
     },
+    recipientName: {
+      type: String,
+      default: ""
+    },
+    giftMessage: {
+      type: String,
+      default: ""
+    },
+    giftWrap: {
+      type: Boolean,
+      default: false
+    },
+    giftWrapPrice: {
+      type: Number,
+      default: 0
+    },
     lineItems: {
       type: [orderLineItemSchema],
       default: []

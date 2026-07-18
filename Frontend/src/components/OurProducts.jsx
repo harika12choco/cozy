@@ -2,17 +2,27 @@ import "../styles/OurProducts.css";
 import { useCallback, useEffect, useState } from "react";
 import ProductChoiceCard from "./ProductChoiceCard";
 import { addItemToCart } from "../utils/cart";
+import { readShopProducts } from "../utils/shopProducts";
 import { readStaticProducts } from "../utils/staticProducts";
 
 export default function OurProducts() {
   const [feedback, setFeedback] = useState("");
   const [products, setProducts] = useState(() => readStaticProducts());
+  const [loading, setLoading] = useState(true);
 
-  const refreshProducts = useCallback(() => {
-    setProducts(readStaticProducts());
+  const refreshProducts = useCallback(async () => {
+    try {
+      const items = await readShopProducts();
+      setProducts(items);
+    } catch (error) {
+      console.error("Unable to load products:", error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
+    refreshProducts();
     window.addEventListener("cozy-admin-products-updated", refreshProducts);
     window.addEventListener("storage", refreshProducts);
     return () => {
@@ -43,7 +53,9 @@ export default function OurProducts() {
       {feedback ? <p className="products-feedback">{feedback}</p> : null}
 
       <div className="products">
-        {products.length === 0 ? (
+        {loading && products.length === 0 ? (
+          <p className="products-feedback">Loading products...</p>
+        ) : products.length === 0 ? (
           <p className="products-feedback">No products available.</p>
         ) : products.map((p) => (
           <ProductChoiceCard

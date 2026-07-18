@@ -48,7 +48,6 @@ const tabLabels = [
   "Description",
   "Care Instructions",
   "Shipping Information",
-  "Customization Details",
   "FAQs"
 ];
 
@@ -124,55 +123,6 @@ function getVariantOptions(product) {
     .filter(Boolean);
 }
 
-function getCustomizationItems(product, colors, fragrances) {
-  const configured = Array.isArray(product?.customizationOptions) ? product.customizationOptions : [];
-  const inferred = [
-    colors.length > 0 ? "Color" : "",
-    fragrances.length > 0 ? "Fragrance" : ""
-  ].filter(Boolean);
-  const seen = new Set();
-
-  return [...configured, ...inferred]
-    .map((item) => String(item).trim())
-    .filter(Boolean)
-    .filter((item) => {
-      const key = item.toLowerCase();
-
-      if (seen.has(key)) {
-        return false;
-      }
-
-      seen.add(key);
-      return true;
-    });
-}
-
-function getCustomizationIcon(label) {
-  const value = label.toLowerCase();
-
-  if (value.includes("color")) {
-    return FaPalette;
-  }
-
-  if (value.includes("fragrance") || value.includes("scent")) {
-    return FaSpa;
-  }
-
-  if (value.includes("gift") || value.includes("pack")) {
-    return FaGift;
-  }
-
-  if (value.includes("message") || value.includes("tag")) {
-    return FaRegEnvelope;
-  }
-
-  if (value.includes("name") || value.includes("personal")) {
-    return FaPenFancy;
-  }
-
-  return FaSeedling;
-}
-
 function getDescriptionParagraphs(product) {
   return [
     product?.shortDescription,
@@ -231,10 +181,6 @@ export default function ProductDetail() {
         .map((option, index) => normalizeFragranceOption(option, `fragrance-${index}`))
         .filter(Boolean),
     [product]
-  );
-  const customizationItems = useMemo(
-    () => getCustomizationItems(product, colorOptions, fragranceOptions),
-    [product, colorOptions, fragranceOptions]
   );
   const descriptionParagraphs = useMemo(() => getDescriptionParagraphs(product), [product]);
 
@@ -445,18 +391,6 @@ export default function ProductDetail() {
       );
     }
 
-    if (activeTab === "Customization Details") {
-      return (
-        <div className="product-detail-tab-options">
-          {selectedVariant ? <span>Variant: {selectedVariant.name}</span> : null}
-          {selectedColor ? <span>Color: {selectedColor.name}</span> : null}
-          {selectedFragrance ? <span>Fragrance: {selectedFragrance.name}</span> : null}
-          {customizationItems.length > 0 ? (
-            <span>Available: {customizationItems.join(", ")}</span>
-          ) : null}
-        </div>
-      );
-    }
 
     if (activeTab === "FAQs") {
       return (
@@ -620,24 +554,6 @@ export default function ProductDetail() {
                       <span>{variant.name}</span>
                       <strong>{formatProductPrice(variant.price || currentBasePrice)}</strong>
                     </button>
-                  );
-                })}
-              </div>
-            </section>
-          ) : null}
-
-          {customizationItems.length > 0 ? (
-            <section className="product-detail-control-section">
-              <h2>Customization</h2>
-              <div className="product-detail-customization-row">
-                {customizationItems.map((item) => {
-                  const Icon = getCustomizationIcon(item);
-
-                  return (
-                    <div className="product-detail-custom-card" key={item}>
-                      <Icon aria-hidden="true" />
-                      <span>{item}</span>
-                    </div>
                   );
                 })}
               </div>

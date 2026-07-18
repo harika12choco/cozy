@@ -95,10 +95,12 @@ async function computeServerSideTotal(lineItems, deliveryCharge = 0) {
   for (const item of lineItems) {
     const productId = String(item.productId || "").trim();
     let basePrice = 0;
+    let giftWrapPriceDb = 80;
 
     const staticProduct = getStaticProductById(productId);
 
     if (staticProduct) {
+      giftWrapPriceDb = staticProduct.giftWrapPrice ?? 80;
       // Static product — resolve variant price
       if (item.selectedVariant?.name) {
         const variant = (staticProduct.variants || []).find(
@@ -119,6 +121,7 @@ async function computeServerSideTotal(lineItems, deliveryCharge = 0) {
       if (!product) {
         throw createPaymentError(400, `Product not found: ${productId}`);
       }
+      giftWrapPriceDb = product.giftWrapPrice ?? 80;
 
       if (item.selectedVariant?.name) {
         const variant = (product.variants || []).find(
@@ -143,8 +146,11 @@ async function computeServerSideTotal(lineItems, deliveryCharge = 0) {
       getFragrancePriceAdjustment(item.selectedFragrance)
     );
 
+    const giftWrap = Boolean(item.giftWrap);
+    const giftWrapPrice = giftWrap ? parseProductPrice(item.giftWrapPrice || giftWrapPriceDb) : 0;
+
     const quantity = Math.max(1, Math.floor(Number(item.quantity) || 1));
-    subtotal += (basePrice + fragranceCharge) * quantity;
+    subtotal += (basePrice + fragranceCharge + giftWrapPrice) * quantity;
   }
 
   return subtotal + Math.max(0, Number(deliveryCharge) || 0);

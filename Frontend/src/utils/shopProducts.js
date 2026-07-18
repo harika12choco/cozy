@@ -19,11 +19,6 @@ const imageMap = {
   "/src/assets/candles/5.png": img5,
   "/src/assets/candles/6.png": img6
 };
-
-const hiddenStorefrontProductNames = new Set([]);
-
-const hiddenStorefrontProductNameParts = [];
-
 function normalizeProductName(value) {
   return String(value ?? "").trim().replace(/\s+/g, " ").toLowerCase();
 }
@@ -84,7 +79,6 @@ function formatShopProducts(products) {
         burnTime: product.burnTime ?? "",
         weight: product.weight ?? "",
         variants: Array.isArray(product.variants) ? product.variants : [],
-        customizationOptions: Array.isArray(product.customizationOptions) ? product.customizationOptions : [],
         reviews: Array.isArray(product.reviews) ? product.reviews : []
       };
     });
