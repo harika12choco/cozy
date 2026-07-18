@@ -105,6 +105,14 @@ const orderLineItemSchema = new mongoose.Schema(
     selectedVariant: {
       type: selectedVariantSchema,
       default: null
+    },
+    giftWrap: {
+      type: Boolean,
+      default: false
+    },
+    giftWrapPrice: {
+      type: Number,
+      default: 0
     }
   },
   { _id: false }

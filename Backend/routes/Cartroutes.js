@@ -185,7 +185,7 @@ function getPurchasableBasePrice(product, selectedVariant) {
     return parseProductPrice(product.salePrice);
   }
 
-  return parseProductPrice(product.basePrice ?? product.price);
+  return parseProductPrice(product.basePrice || product.price);
 }
 
 function calculateCartFinalPrice(product, selectedFragrance, selectedVariant = null) {
@@ -200,13 +200,14 @@ function formatPrice(value) {
   return `Rs ${parseProductPrice(value)}`;
 }
 
-function buildCartKey(product, selectedColor, selectedFragrance, selectedVariant = null) {
+function buildCartKey(product, selectedColor, selectedFragrance, selectedVariant = null, giftWrap = false) {
   return [
     getResolvedProductId(product),
     String(calculateCartFinalPrice(product, selectedFragrance, selectedVariant)),
     selectedVariant?.optionId || selectedVariant?.name || "",
     selectedColor?.optionId || selectedColor?.name || "",
-    selectedFragrance?.optionId || selectedFragrance?.name || ""
+    selectedFragrance?.optionId || selectedFragrance?.name || "",
+    giftWrap ? "giftwrap" : "no-giftwrap"
   ].join("::");
 }
 
@@ -229,12 +230,17 @@ function buildCartItemSnapshot(product, item) {
   const productId = getResolvedProductId(product, item.productId);
   const basePrice = getPurchasableBasePrice(product, selectedVariant);
   const fragranceExtraCharge = getFragrancePriceAdjustment(selectedFragrance);
-  const finalPrice = basePrice + fragranceExtraCharge;
+
+  const giftWrap = Boolean(item.giftWrap);
+  const configuredGiftWrapPrice = Number(product.giftWrapPrice ?? 80);
+  const giftWrapPrice = giftWrap ? configuredGiftWrapPrice : 0;
+  const finalPrice = basePrice + fragranceExtraCharge + giftWrapPrice;
+
   const image = product.image || item.img || "";
   const availableStock = getAvailableStock(product, selectedVariant);
 
   return {
-    key: String(item.key ?? buildCartKey(product, selectedColor, selectedFragrance, selectedVariant)),
+    key: String(item.key ?? buildCartKey(product, selectedColor, selectedFragrance, selectedVariant, giftWrap)),
     productId,
     name: product.name,
     basePrice,
@@ -245,7 +251,9 @@ function buildCartItemSnapshot(product, item) {
     quantity: Math.min(normalizeQuantity(item.quantity ?? 1), availableStock),
     selectedColor,
     selectedFragrance,
-    selectedVariant
+    selectedVariant,
+    giftWrap,
+    giftWrapPrice: configuredGiftWrapPrice
   };
 }
 
@@ -297,7 +305,7 @@ router.post("/", async (req, res) => {
     }
 
     const cart = await ensureCart(req.user.id, req.user.email);
-    const itemKey = String(req.body?.key ?? buildCartKey(product, selectedColor, selectedFragrance, selectedVariant));
+    const itemKey = String(req.body?.key ?? buildCartKey(product, selectedColor, selectedFragrance, selectedVariant, req.body?.giftWrap));
     const existingItem = cart.items.find((item) => String(item.key) === itemKey);
     const nextQuantity = Math.min((existingItem?.quantity ?? 0) + quantity, availableStock);
     const nextSnapshot = buildCartItemSnapshot(product, {
@@ -307,7 +315,8 @@ router.post("/", async (req, res) => {
       quantity: nextQuantity,
       selectedColor,
       selectedFragrance,
-      selectedVariant
+      selectedVariant,
+      giftWrap: req.body?.giftWrap
     });
 
     if (existingItem) {
@@ -325,7 +334,6 @@ router.post("/", async (req, res) => {
 
 router.put("/:itemId", async (req, res) => {
   try {
-    const quantity = normalizeQuantity(req.body?.quantity);
     const cart = await ensureCart(req.user.id, req.user.email);
     const item = cart.items.id(req.params.itemId);
 
@@ -343,14 +351,38 @@ router.put("/:itemId", async (req, res) => {
       return res.status(400).json({ error: "Out of stock" });
     }
 
+    const quantity = req.body?.quantity !== undefined
+      ? normalizeQuantity(req.body.quantity)
+      : item.quantity;
+
     if (quantity <= 0) {
       item.deleteOne();
     } else {
-      item.set(buildCartItemSnapshot(product, {
+      const giftWrap = req.body?.giftWrap !== undefined
+        ? Boolean(req.body.giftWrap)
+        : item.giftWrap;
+
+      const nextSnapshot = buildCartItemSnapshot(product, {
         ...item.toObject(),
         quantity,
+        giftWrap,
         img: item.img
-      }));
+      });
+
+      // Avoid duplicates with the same key
+      const duplicateItem = cart.items.find(
+        (x) => String(x.key) === String(nextSnapshot.key) && String(x._id) !== String(item._id)
+      );
+
+      if (duplicateItem) {
+        duplicateItem.quantity = Math.min(
+          duplicateItem.quantity + nextSnapshot.quantity,
+          getAvailableStock(product, duplicateItem.selectedVariant)
+        );
+        item.deleteOne();
+      } else {
+        item.set(nextSnapshot);
+      }
     }
 
     await cart.save();

@@ -6,7 +6,8 @@ import {
   getCartItems,
   removeCartItem,
   syncCartWithServer,
-  updateCartItemQuantity
+  updateCartItemQuantity,
+  toggleCartItemGiftWrap
 } from "../utils/cart";
 import {
   createCodOrder,
@@ -514,6 +515,23 @@ export default function Cart() {
                         <span> (+Rs {item.fragranceExtraCharge ?? item.selectedFragrance.priceAdjustment})</span>
                       ) : null}
                     </p>
+                  ) : null}
+
+                  <label className="cart-item-gift-wrap-toggle" style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", fontSize: "14px", marginTop: "8px" }}>
+                    <input
+                      type="checkbox"
+                      checked={!!item.giftWrap}
+                      onChange={(event) => setCartItems(toggleCartItemGiftWrap(item.key, event.target.checked))}
+                      style={{ accentColor: "var(--primary)", width: "16px", height: "16px" }}
+                    />
+                    <span>Gift wrap this product (+ Rs {item.giftWrapPrice || 80})</span>
+                  </label>
+
+                  {item.giftWrap ? (
+                    <div className="cart-item-gift-wrap-detail" style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "4px" }}>
+                      <span><strong>Actual Price:</strong> Rs {getCartLineFinalPrice({...item, giftWrap: false})}</span>
+                      <span style={{ marginLeft: "10px" }}><strong>Gift Wrap:</strong> Rs {item.giftWrapPrice || 80}</span>
+                    </div>
                   ) : null}
                   {item.productId ? (
                     <p className="cart-stock">

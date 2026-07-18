@@ -64,6 +64,11 @@ export default function OrderTable({ orders, onStatusChange, onDelete }) {
                                 : ""}
                             </span>
                           ) : null}
+                          {item.giftWrap ? (
+                            <span className="admin-order-items-option" style={{ color: "var(--primary)", fontWeight: "bold" }}>
+                              Gift Wrapped (+Rs {item.giftWrapPrice || 80})
+                            </span>
+                          ) : null}
                         </li>
                       ))}
                     </ul>

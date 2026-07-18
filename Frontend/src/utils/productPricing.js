@@ -209,7 +209,7 @@ export function getPurchasableBasePrice(product, selectedVariant = null) {
     return salePrice;
   }
 
-  return parseProductPrice(product?.basePrice ?? product?.price);
+  return parseProductPrice(product?.basePrice || product?.price);
 }
 
 export function calculateProductPrice(product, selectedColor = null, selectedFragrance = null, selectedVariant = null) {
@@ -226,14 +226,16 @@ export function withCalculatedProductPrice(
   selectedColor = null,
   selectedFragrance = null,
   selectedVariant = null,
-  quantity = 1
+  quantity = 1,
+  giftWrap = false
 ) {
   const normalizedColor = normalizeColorOption(selectedColor);
   const normalizedFragrance = normalizeFragranceOption(selectedFragrance);
   const normalizedVariant = normalizeVariantOption(selectedVariant);
   const basePrice = getPurchasableBasePrice(product, normalizedVariant);
   const fragranceExtraCharge = getFragrancePriceAdjustment(normalizedFragrance);
-  const finalPrice = basePrice + fragranceExtraCharge;
+  const giftWrapPrice = giftWrap ? parseProductPrice(product?.giftWrapPrice || 80) : 0;
+  const finalPrice = basePrice + fragranceExtraCharge + giftWrapPrice;
 
   return {
     ...product,
@@ -244,20 +246,20 @@ export function withCalculatedProductPrice(
     quantity: Math.max(1, Number(quantity ?? product?.quantity ?? 1)),
     selectedColor: normalizedColor,
     selectedFragrance: normalizedFragrance,
-    selectedVariant: normalizedVariant
+    selectedVariant: normalizedVariant,
+    giftWrap,
+    giftWrapPrice: parseProductPrice(product?.giftWrapPrice || 80)
   };
 }
 
 export function getCartLineFinalPrice(item) {
-  if (item?.basePrice !== undefined) {
-    return parseProductPrice(item.basePrice) + getFragrancePriceAdjustment(item.selectedFragrance);
-  }
+  const basePriceVal = item?.basePrice !== undefined
+    ? parseProductPrice(item.basePrice)
+    : (item?.finalPrice !== undefined ? parseProductPrice(item.finalPrice) - (item?.giftWrap ? parseProductPrice(item.giftWrapPrice || 80) : 0) : parseProductPrice(item?.price));
+  const fragranceExtra = getFragrancePriceAdjustment(item?.selectedFragrance);
+  const giftWrapFee = item?.giftWrap ? parseProductPrice(item.giftWrapPrice || 80) : 0;
 
-  if (item?.finalPrice !== undefined) {
-    return parseProductPrice(item.finalPrice);
-  }
-
-  return parseProductPrice(item?.price);
+  return basePriceVal + fragranceExtra + giftWrapFee;
 }
 
 export function getCartLineTotal(item) {

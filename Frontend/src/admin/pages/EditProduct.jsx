@@ -16,7 +16,8 @@ export default function EditProduct({ productId, onNavigate }) {
     imageFile: null,
     description: "",
     candleColors: [],
-    fragrances: []
+    fragrances: [],
+    giftWrapPrice: ""
   });
   const [imageName, setImageName] = useState("");
   const [loading, setLoading] = useState(true);
@@ -143,7 +144,8 @@ export default function EditProduct({ productId, onNavigate }) {
       await productService.update(productId, {
         ...form,
         price: Number(form.price),
-        stock: Number(form.stock)
+        stock: Number(form.stock),
+        giftWrapPrice: Number(form.giftWrapPrice || 80)
       });
       onNavigate("products");
     } catch (saveError) {
@@ -173,6 +175,11 @@ export default function EditProduct({ productId, onNavigate }) {
         <label>
           Price
           <input name="price" type="number" value={form.price} onChange={updateField} required />
+        </label>
+
+        <label>
+          Gift Wrap Price
+          <input name="giftWrapPrice" type="number" value={form.giftWrapPrice} onChange={updateField} required />
         </label>
 
         <label>

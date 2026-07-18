@@ -26,7 +26,8 @@ const initialState = {
   imageFile: null,
   description: "",
   candleColors: [],
-  fragrances: []
+  fragrances: [],
+  giftWrapPrice: "80"
 };
 
 export default function AddProduct({ onNavigate }) {
@@ -211,7 +212,8 @@ export default function AddProduct({ onNavigate }) {
       await productService.create({
         ...form,
         price: Number(form.price),
-        stock: Number(form.stock)
+        stock: Number(form.stock),
+        giftWrapPrice: Number(form.giftWrapPrice || 80)
       });
       onNavigate("products");
     } catch (saveError) {
@@ -247,6 +249,11 @@ export default function AddProduct({ onNavigate }) {
         <label>
           Price
           <input name="price" type="number" value={form.price} onChange={updateField} required />
+        </label>
+
+        <label>
+          Gift Wrap Price
+          <input name="giftWrapPrice" type="number" value={form.giftWrapPrice} onChange={updateField} required />
         </label>
 
         <label>

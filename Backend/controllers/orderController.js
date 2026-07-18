@@ -111,8 +111,11 @@ function normalizeLineItems(items) {
       const fragranceExtraCharge = item.fragranceExtraCharge !== undefined
         ? parseProductPrice(item.fragranceExtraCharge)
         : getFragrancePriceAdjustment(selectedFragrance);
+      const giftWrap = Boolean(item.giftWrap);
+      const giftWrapPrice = giftWrap ? parseProductPrice(item.giftWrapPrice || 80) : 0;
       const fallbackFinalPrice = parseProductPrice(item.finalPrice ?? item.price);
-      const finalPrice = basePrice > 0 ? basePrice + fragranceExtraCharge : fallbackFinalPrice;
+      const basePriceComputed = basePrice > 0 ? basePrice + fragranceExtraCharge : (fallbackFinalPrice - (giftWrap ? parseProductPrice(item.giftWrapPrice || 80) : 0));
+      const finalPrice = basePriceComputed + giftWrapPrice;
 
       return {
         productId,
@@ -120,6 +123,8 @@ function normalizeLineItems(items) {
         name: productName,
         basePrice,
         fragranceExtraCharge,
+        giftWrap,
+        giftWrapPrice: parseProductPrice(item.giftWrapPrice || 80),
         finalPrice,
         price: `Rs ${finalPrice}`,
         quantity: Number(item.quantity ?? 0),

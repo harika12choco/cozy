@@ -45,8 +45,8 @@ function formatShopProducts(products) {
   return products
     .filter(isPublicStorefrontProduct)
     .map((product) => {
-      const basePrice = parseProductPrice(product.basePrice ?? product.price);
-      const image = resolveProductImage(product.featuredImage ?? product.image) ?? img1;
+      const basePrice = parseProductPrice(product.basePrice || product.price);
+      const image = resolveProductImage(product.featuredImage || product.image) || img1;
       const images = collectProductImages(product, image);
       const candleColors = (Array.isArray(product.candleColors) ? product.candleColors : product.colors ?? [])
         .map((option, index) => normalizeColorOption(option, `color-${index}`))

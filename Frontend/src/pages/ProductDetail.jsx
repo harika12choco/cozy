@@ -214,6 +214,7 @@ export default function ProductDetail() {
   const [selectedFragrance, setSelectedFragrance] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState(tabLabels[0]);
+  const [giftWrap, setGiftWrap] = useState(false);
 
   const productImages = useMemo(() => getProductImages(product), [product]);
   const variantOptions = useMemo(() => getVariantOptions(product), [product]);
@@ -248,6 +249,7 @@ export default function ProductDetail() {
     setQuantity(1);
     setSelectedImageIndex(0);
     setActiveTab(tabLabels[0]);
+    setGiftWrap(false);
   }, [product, variantOptions, colorOptions, fragranceOptions]);
 
   useEffect(() => {
@@ -406,7 +408,7 @@ export default function ProductDetail() {
       ...product,
       img: mainImage,
       image: mainImage
-    }, selectedColor, selectedFragrance, selectedVariant, quantity));
+    }, selectedColor, selectedFragrance, selectedVariant, quantity, giftWrap));
 
     setFeedback(`${product.name} added to cart`);
     window.setTimeout(() => setFeedback(""), 1800);
@@ -503,7 +505,7 @@ export default function ProductDetail() {
   const availableStock = getAvailableStock();
   const isUnavailable = availableStock <= 0;
   const collectionLabel = getCollectionLabel(product);
-  const originalBasePrice = selectedVariant?.price || parseProductPrice(product.basePrice ?? product.price);
+  const originalBasePrice = selectedVariant?.price || parseProductPrice(product.basePrice || product.price);
   const currentBasePrice = getPurchasableBasePrice(product, selectedVariant);
   const unitPrice = calculateProductPrice(product, selectedColor, selectedFragrance, selectedVariant);
   const fragranceAdjustment = getFragrancePriceAdjustment(selectedFragrance);
@@ -570,9 +572,13 @@ export default function ProductDetail() {
 
           <div className="product-detail-price-block">
             <div className="product-detail-price-row">
-              <span className="product-detail-current-price">{formatProductPrice(unitPrice)}</span>
+              <span className="product-detail-current-price">
+                {formatProductPrice(giftWrap ? unitPrice + (product.giftWrapPrice ?? 80) : unitPrice)}
+              </span>
               {hasSalePrice ? (
-                <span className="product-detail-original-price">{formatProductPrice(originalUnitPrice)}</span>
+                <span className="product-detail-original-price">
+                  {formatProductPrice(giftWrap ? originalUnitPrice + (product.giftWrapPrice ?? 80) : originalUnitPrice)}
+                </span>
               ) : null}
               {discountPercent > 0 ? (
                 <span className="product-detail-discount">{discountPercent}% off</span>
@@ -692,6 +698,28 @@ export default function ProductDetail() {
               </div>
             </section>
           ) : null}
+
+          <section className="product-detail-control-section" style={{ borderTop: "1px solid rgba(0,0,0,0.06)", paddingTop: "15px", marginTop: "15px" }}>
+            <h2>Gift Wrapping</h2>
+            <label style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", fontSize: "15px", margin: "10px 0" }}>
+              <input
+                type="checkbox"
+                checked={giftWrap}
+                onChange={(event) => setGiftWrap(event.target.checked)}
+                style={{ width: "18px", height: "18px", accentColor: "var(--primary)" }}
+              />
+              <span>Add Premium Gift Wrapping (+ Rs {product.giftWrapPrice ?? 80})</span>
+            </label>
+            {giftWrap ? (
+              <div style={{ fontSize: "14px", color: "var(--text-muted)", background: "rgba(0,0,0,0.03)", padding: "10px", borderRadius: "6px", marginTop: "5px" }}>
+                <div>Actual Price: Rs {unitPrice}</div>
+                <div>Gift Wrap: Rs {product.giftWrapPrice ?? 80}</div>
+                <div style={{ fontWeight: "bold", borderTop: "1px solid rgba(0,0,0,0.1)", marginTop: "5px", paddingTop: "5px" }}>
+                  Total: Rs {unitPrice + (product.giftWrapPrice ?? 80)}
+                </div>
+              </div>
+            ) : null}
+          </section>
 
           <div className="product-detail-purchase-row">
             <div className="product-detail-quantity" aria-label="Quantity selector">

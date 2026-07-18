@@ -222,6 +222,11 @@ const productSchema = new mongoose.Schema({
     default: []
   },
 
+  giftWrapPrice: {
+    type: Number,
+    default: 80
+  },
+
   candleColors: {
     type: [optionSnapshotSchema],
     default: []

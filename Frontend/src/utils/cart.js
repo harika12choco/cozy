@@ -41,17 +41,16 @@ function normalizeCartItem(product) {
   const fragranceExtraCharge = product.fragranceExtraCharge !== undefined
     ? parseProductPrice(product.fragranceExtraCharge)
     : getFragrancePriceAdjustment(selectedFragrance);
-  const finalPrice = product.basePrice !== undefined
-    ? basePrice + fragranceExtraCharge
-    : getCartLineFinalPrice({
-        ...product,
-        selectedFragrance
-      });
+
+  const giftWrap = Boolean(product.giftWrap);
+  const giftWrapPrice = parseProductPrice(product.giftWrapPrice || 80);
+
+  const finalPrice = basePrice + fragranceExtraCharge + (giftWrap ? giftWrapPrice : 0);
   const price = formatProductPrice(finalPrice);
   const colorKey = selectedColor?.optionId || selectedColor?.name || "";
   const fragranceKey = selectedFragrance?.optionId || selectedFragrance?.name || "";
   const variantKey = selectedVariant?.optionId || selectedVariant?.name || "";
-  const key = String(product.key ?? [productId || name, price, variantKey, colorKey, fragranceKey].filter(Boolean).join("::")).trim();
+  const key = String(product.key ?? [productId || name, price, variantKey, colorKey, fragranceKey, giftWrap ? "giftwrap" : "no-giftwrap"].filter(Boolean).join("::")).trim();
 
   return {
     itemId,
@@ -66,7 +65,9 @@ function normalizeCartItem(product) {
     quantity: Math.max(1, Number(product.quantity ?? 1)),
     selectedColor,
     selectedFragrance,
-    selectedVariant
+    selectedVariant,
+    giftWrap,
+    giftWrapPrice
   };
 }
 
@@ -207,7 +208,9 @@ async function addItemToServer(user, cartItem) {
       key: cartItem.key,
       selectedColor: cartItem.selectedColor,
       selectedFragrance: cartItem.selectedFragrance,
-      selectedVariant: cartItem.selectedVariant
+      selectedVariant: cartItem.selectedVariant,
+      giftWrap: cartItem.giftWrap,
+      giftWrapPrice: cartItem.giftWrapPrice
     })
   });
 
@@ -216,14 +219,14 @@ async function addItemToServer(user, cartItem) {
   return nextItems;
 }
 
-async function updateServerItem(user, itemId, quantity) {
+async function updateServerItem(user, itemId, updates) {
   if (!itemId) {
     return normalizeCartItems(readCart());
   }
 
   const savedCart = await requestCart(user, `/${encodeURIComponent(itemId)}`, {
     method: "PUT",
-    body: JSON.stringify({ quantity })
+    body: JSON.stringify(updates)
   });
 
   const nextItems = normalizeCartItems(savedCart?.items ?? []);
@@ -290,7 +293,52 @@ export function updateCartItemQuantity(itemKey, quantity) {
     const targetItem = updatedCart.find((item) => item.key === itemKey);
 
     if (targetItem?.itemId) {
-      updateServerItem(auth.currentUser, targetItem.itemId, quantity).catch(() => {});
+      updateServerItem(auth.currentUser, targetItem.itemId, { quantity }).catch(() => {});
+    } else {
+      replaceUserCart(auth.currentUser, updatedCart).catch(() => {});
+    }
+  }
+
+  return updatedCart;
+}
+
+export function toggleCartItemGiftWrap(itemKey, giftWrap) {
+  const cartItems = readCart();
+  const targetItem = cartItems.find((item) => item.key === itemKey);
+  if (!targetItem) {
+    return cartItems;
+  }
+
+  const updatedItem = normalizeCartItem({
+    ...targetItem,
+    giftWrap,
+    key: undefined
+  });
+
+  const updatedCart = [];
+  for (const item of cartItems) {
+    if (item.key === itemKey) {
+      const existingIndex = updatedCart.findIndex((x) => x.key === updatedItem.key);
+      if (existingIndex !== -1) {
+        updatedCart[existingIndex].quantity += targetItem.quantity;
+      } else {
+        updatedCart.push(updatedItem);
+      }
+    } else {
+      const existingIndex = updatedCart.findIndex((x) => x.key === item.key);
+      if (existingIndex !== -1) {
+        updatedCart[existingIndex].quantity += item.quantity;
+      } else {
+        updatedCart.push(item);
+      }
+    }
+  }
+
+  writeCart(updatedCart);
+
+  if (auth.currentUser) {
+    if (targetItem.itemId) {
+      updateServerItem(auth.currentUser, targetItem.itemId, { giftWrap }).catch(() => {});
     } else {
       replaceUserCart(auth.currentUser, updatedCart).catch(() => {});
     }

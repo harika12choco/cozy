@@ -13,7 +13,7 @@ async function prepareProductPayload(payload) {
 
   return {
     ...payload,
-    basePrice: Number(payload.basePrice ?? payload.price ?? 0),
+    basePrice: Number(payload.basePrice || payload.price || 0),
     bestSeller: normalizedBestSeller,
     isBestSeller: normalizedBestSeller,
     candleColors: normalizeProductOptions(payload.candleColors, true),
@@ -62,7 +62,7 @@ function normalizeProductResponse(product) {
 
   return {
     ...normalized,
-    basePrice: Number(normalized.basePrice ?? normalized.price ?? 0),
+    basePrice: Number(normalized.basePrice || normalized.price || 0),
     isBestSeller: Boolean(normalized.isBestSeller ?? normalized.bestSeller),
     bestSeller: Boolean(normalized.bestSeller ?? normalized.isBestSeller),
     candleColors: Array.isArray(normalized.candleColors) ? normalized.candleColors : [],

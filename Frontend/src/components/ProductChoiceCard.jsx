@@ -34,7 +34,7 @@ export default function ProductChoiceCard({ product, onAddToCart, variant = "sho
   const variantOptions = useMemo(
     () =>
       (Array.isArray(product.variants) ? product.variants : [])
-        .map((option, index) => normalizeVariantOption(option, `variant-${index}`, product.basePrice ?? product.price))
+        .map((option, index) => normalizeVariantOption(option, `variant-${index}`, product.basePrice || product.price))
         .filter(Boolean),
     [product.variants, product.basePrice, product.price]
   );
