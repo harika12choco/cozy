@@ -333,7 +333,7 @@ export default function Cart() {
   }
 
   async function openRazorpayCheckout(razorpayOrder) {
-    const key = import.meta.env.VITE_RAZORPAY_KEY_ID;
+    const key = String(import.meta.env.VITE_RAZORPAY_KEY_ID || "").trim().replace(/^["']|["']$/g, "");
 
     if (!key) {
       throw new Error("Razorpay Key ID is missing. Add VITE_RAZORPAY_KEY_ID in frontend env.");
