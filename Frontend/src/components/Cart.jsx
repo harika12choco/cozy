@@ -132,6 +132,11 @@ export default function Cart() {
       setAuthReady(true);
 
       if (currentUser) {
+        setCustomer((curr) => ({
+          ...curr,
+          name: curr.name || currentUser.displayName || ""
+        }));
+
         syncCartWithServer(currentUser)
           .then((items) => {
             setCartItems(items);

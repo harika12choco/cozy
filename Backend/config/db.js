@@ -2,7 +2,8 @@ const mongoose = require("mongoose");
 
 const connectDB = async () => {
   try {
-    const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+    const rawUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+    const mongoUri = String(rawUri || "").trim().replace(/^["']|["']$/g, "");
 
     if (!mongoUri) {
       throw new Error("Missing MONGODB_URI (or legacy MONGO_URI) in environment");

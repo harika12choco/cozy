@@ -19,9 +19,9 @@ function safeEqual(a, b) {
  * with a deprecation warning to allow a zero-downtime migration.
  */
 async function loginAdmin(req, res) {
-  const configuredUsername = String(process.env.ADMIN_USERNAME || "").trim();
-  const configuredPasswordHash = String(process.env.ADMIN_PASSWORD_HASH || "");
-  const configuredPasswordPlain = String(process.env.ADMIN_PASSWORD || "");
+  const configuredUsername = String(process.env.ADMIN_USERNAME || "").trim().replace(/^["']|["']$/g, "");
+  const configuredPasswordHash = String(process.env.ADMIN_PASSWORD_HASH || "").trim().replace(/^["']|["']$/g, "");
+  const configuredPasswordPlain = String(process.env.ADMIN_PASSWORD || "").trim().replace(/^["']|["']$/g, "");
 
   if (!configuredUsername || (!configuredPasswordHash && !configuredPasswordPlain)) {
     return res.status(500).json({ error: "Admin credentials are not configured" });

@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const ADMIN_TOKEN_TTL = process.env.ADMIN_TOKEN_TTL || "8h";
 
 function getAdminSecret() {
-  const secret = process.env.ADMIN_JWT_SECRET;
+  const secret = String(process.env.ADMIN_JWT_SECRET || "").trim().replace(/^["']|["']$/g, "");
 
   if (!secret) {
     throw new Error("Missing ADMIN_JWT_SECRET in environment");

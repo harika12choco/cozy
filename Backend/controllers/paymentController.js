@@ -20,8 +20,8 @@ function createPaymentError(status, message) {
 }
 
 function getRazorpayInstance() {
-  const keyId = process.env.RAZORPAY_KEY_ID;
-  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  const keyId = String(process.env.RAZORPAY_KEY_ID || "").trim().replace(/^["']|["']$/g, "");
+  const keySecret = String(process.env.RAZORPAY_KEY_SECRET || "").trim().replace(/^["']|["']$/g, "");
 
   if (!keyId || !keySecret) {
     throw createPaymentError(500, "Razorpay credentials are not configured.");
@@ -54,7 +54,7 @@ function buildOrderNotes(orderPayload) {
 }
 
 function isValidSignature({ razorpayOrderId, razorpayPaymentId, razorpaySignature }) {
-  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  const keySecret = String(process.env.RAZORPAY_KEY_SECRET || "").trim().replace(/^["']|["']$/g, "");
 
   if (!keySecret || !/^[a-f0-9]{64}$/i.test(String(razorpaySignature || ""))) {
     return false;

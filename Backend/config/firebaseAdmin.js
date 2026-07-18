@@ -11,7 +11,7 @@ let initialized = false;
 function getFirebaseAdmin() {
   if (initialized) return admin;
 
-  const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
+  const raw = String(process.env.FIREBASE_SERVICE_ACCOUNT || "").trim().replace(/^["']|["']$/g, "");
 
   if (!raw) {
     console.warn(
