@@ -4,15 +4,16 @@ import { auth } from "../firebase";
 const API_ROOT = resolveApiRoot();
 
 async function requestJson(path, options = {}) {
+  const { headers, ...restOptions } = options;
   let response;
 
   try {
     response = await fetch(`${API_ROOT}${path}`, {
       headers: {
         "Content-Type": "application/json",
-        ...(options.headers ?? {})
+        ...(headers ?? {})
       },
-      ...options
+      ...restOptions
     });
   } catch {
     throw new Error(

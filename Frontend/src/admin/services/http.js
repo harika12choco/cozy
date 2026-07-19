@@ -31,6 +31,7 @@ export function normalizeEntity(entity) {
 }
 
 export async function requestJson(path, options = {}) {
+  const { headers, ...restOptions } = options;
   let response;
 
   try {
@@ -38,9 +39,9 @@ export async function requestJson(path, options = {}) {
       headers: {
         "Content-Type": "application/json",
         ...getAdminAuthHeader(),
-        ...(options.headers ?? {})
+        ...(headers ?? {})
       },
-      ...options
+      ...restOptions
     });
   } catch {
     throw new Error(

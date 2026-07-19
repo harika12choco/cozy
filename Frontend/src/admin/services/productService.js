@@ -109,13 +109,14 @@ async function prepareProductPayload(product) {
 }
 
 async function request(path = "", options = {}) {
+  const { headers, ...restOptions } = options;
   const response = await fetch(`${API_BASE}${path}`, {
     headers: {
       "Content-Type": "application/json",
       ...getAdminAuthHeader(),
-      ...(options.headers ?? {})
+      ...(headers ?? {})
     },
-    ...options
+    ...restOptions
   });
 
   if (!response.ok) {

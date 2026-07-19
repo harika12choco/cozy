@@ -169,19 +169,20 @@ export async function getUserHeaders(user) {
 }
 
 async function requestCart(user, path, options = {}) {
-  const headers = await getUserHeaders(user);
+  const userHeaders = await getUserHeaders(user);
 
-  if (!headers) {
+  if (!userHeaders) {
     throw new Error("User authentication required");
   }
 
+  const { headers, ...restOptions } = options;
   const response = await fetch(`${CART_API_ROOT}/cart${path}`, {
     headers: {
       "Content-Type": "application/json",
-      ...headers,
-      ...(options.headers ?? {})
+      ...userHeaders,
+      ...(headers ?? {})
     },
-    ...options
+    ...restOptions
   });
 
   if (!response.ok) {
