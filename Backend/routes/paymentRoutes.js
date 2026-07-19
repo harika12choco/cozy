@@ -1,5 +1,6 @@
 const express = require("express");
 const { writeLimiter } = require("../middleware/rateLimiter");
+const { authenticateUser } = require("../middleware/userAuth");
 const {
   createRazorpayOrder,
   verifyRazorpayPayment
@@ -7,7 +8,7 @@ const {
 
 const router = express.Router();
 
-router.post("/create-order", writeLimiter, createRazorpayOrder);
-router.post("/verify", writeLimiter, verifyRazorpayPayment);
+router.post("/create-order", authenticateUser, writeLimiter, createRazorpayOrder);
+router.post("/verify", authenticateUser, writeLimiter, verifyRazorpayPayment);
 
 module.exports = router;

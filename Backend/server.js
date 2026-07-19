@@ -61,12 +61,45 @@ function sanitizeRequestBody(req, res, next) {
 }
 
 app.set("trust proxy", 1);
-// MED-3 FIX: Use cross-origin policy (not disabled)
+
+// Force HTTPS in production behind proxy
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV === "production" && !req.secure) {
+    return res.redirect(301, `https://${req.headers.host}${req.originalUrl}`);
+  }
+  next();
+});
+
 app.use(
   helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" }
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
+        connectSrc: ["'self'", "https://cozy-11dz.onrender.com", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com"],
+        upgradeInsecureRequests: []
+      }
+    },
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true
+    },
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+    frameguard: { action: "deny" },
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    xContentTypeOptions: true,
+    originAgentCluster: true
   })
 );
+
+app.use((req, res, next) => {
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(self)");
+  next();
+});
 
 app.use(
   cors({

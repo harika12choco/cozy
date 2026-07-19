@@ -110,66 +110,31 @@ function normalizeOrderPayload(payload = {}, partial = false) {
   return normalized;
 }
 
-function normalizeLineItems(items) {
-  if (!Array.isArray(items)) {
-    return [];
-  }
-
-  return items
-    .map((item) => {
-      const productId = String(item.productId ?? item.id ?? "").trim();
-      const staticProduct = getStaticProductById(productId);
-      const selectedColor = normalizeSelectedOption(item.selectedColor, "color");
-      const selectedFragrance = normalizeSelectedOption(item.selectedFragrance, "fragrance");
-      const selectedVariant = normalizeSelectedVariant(item.selectedVariant);
-      const productName = String(staticProduct?.name ?? item.productName ?? item.name ?? "").trim();
-      const basePrice = parseProductPrice(selectedVariant?.price || item.basePrice || staticProduct?.basePrice);
-      const fragranceExtraCharge = item.fragranceExtraCharge !== undefined
-        ? parseProductPrice(item.fragranceExtraCharge)
-        : getFragrancePriceAdjustment(selectedFragrance);
-      const giftWrap = Boolean(item.giftWrap);
-      const giftWrapPrice = giftWrap ? parseProductPrice(item.giftWrapPrice || 80) : 0;
-      const fallbackFinalPrice = parseProductPrice(item.finalPrice ?? item.price);
-      const basePriceComputed = basePrice > 0 ? basePrice + fragranceExtraCharge : (fallbackFinalPrice - (giftWrap ? parseProductPrice(item.giftWrapPrice || 80) : 0));
-      const finalPrice = basePriceComputed + giftWrapPrice;
-
-      return {
-        productId,
-        productName,
-        name: productName,
-        basePrice,
-        fragranceExtraCharge,
-        giftWrap,
-        giftWrapPrice: parseProductPrice(item.giftWrapPrice || 80),
-        finalPrice,
-        price: `Rs ${finalPrice}`,
-        quantity: Number(item.quantity ?? 0),
-        selectedColor,
-        selectedFragrance,
-        selectedVariant
-      };
-    })
-    .filter((item) => item.name && item.price && item.quantity > 0);
-}
-
-function normalizeSelectedOption(value, optionType = "fragrance") {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-
+function normalizeSelectedOption(value, allowedOptions = [], optionType = "fragrance") {
+  if (!value) return null;
+  const optionId = String(value.optionId ?? value.id ?? value._id ?? "").trim();
   const name = optionType === "fragrance"
     ? getFragranceDisplayName(value)
     : String(value.name ?? "").trim();
 
-  if (!name) {
+  if (!optionId && !name) {
+    return null;
+  }
+
+  const match = allowedOptions.find((option) => (
+    (optionId && String(option.optionId ?? option._id ?? option.id ?? "") === optionId) ||
+    (name && String(optionType === "fragrance" ? getFragranceDisplayName(option) : option.name ?? "").toLowerCase() === name.toLowerCase())
+  ));
+
+  if (!match) {
     return null;
   }
 
   return {
-    optionId: String(value.optionId ?? value.id ?? value._id ?? "").trim(),
-    name,
-    hexCode: String(value.hexCode ?? "").trim().toUpperCase(),
-    priceAdjustment: optionType === "fragrance" ? getFragrancePriceAdjustment(value) : 0
+    optionId: String(match.optionId ?? match._id ?? match.id ?? ""),
+    name: optionType === "fragrance" ? getFragranceDisplayName(match) : match.name,
+    hexCode: match.hexCode ?? "",
+    priceAdjustment: optionType === "fragrance" ? getFragrancePriceAdjustment(match) : 0
   };
 }
 
@@ -182,48 +147,118 @@ function slugify(value) {
     .replace(/^-+|-+$/g, "");
 }
 
-function normalizeSelectedVariant(value) {
-  if (!value) {
-    return null;
-  }
+function normalizeSelectedVariant(value, allowedVariants = [], fallbackPrice = 0) {
+  if (!value) return null;
+  const optionId = String(value.optionId ?? value.id ?? value._id ?? "").trim();
+  const name = String(value.name ?? "").trim();
 
-  if (typeof value === "string") {
-    const match = value.match(variantPricePattern);
-    const name = match ? value.slice(0, match.index).trim() : value.trim();
+  const match = allowedVariants.find((variant) => (
+    (optionId && String(variant.optionId ?? variant._id ?? variant.id ?? "") === optionId) ||
+    (name && variant.name.toLowerCase() === name.toLowerCase())
+  ));
 
-    if (!name) {
-      return null;
-    }
-
+  if (!match && allowedVariants.length > 0) {
     return {
-      optionId: slugify(name),
-      name,
-      price: match ? parseProductPrice(match[1]) : 0,
-      weight: "",
-      sku: "",
-      stock: 0
+      optionId: String(allowedVariants[0].optionId ?? allowedVariants[0]._id ?? allowedVariants[0].id ?? ""),
+      name: allowedVariants[0].name,
+      price: parseProductPrice(allowedVariants[0].price ?? fallbackPrice),
+      weight: String(allowedVariants[0].weight ?? "").trim(),
+      sku: String(allowedVariants[0].sku ?? "").trim(),
+      stock: Math.max(0, Number(allowedVariants[0].stock ?? 0))
     };
   }
 
-  const name = String(value.name ?? "").trim();
-
-  if (!name) {
-    return null;
-  }
+  if (!match) return null;
 
   return {
-    optionId: String(value.optionId ?? value.id ?? value._id ?? slugify(name)).trim(),
-    name,
-    price: parseProductPrice(value.price),
-    weight: String(value.weight ?? "").trim(),
-    sku: String(value.sku ?? "").trim(),
-    stock: Math.max(0, Number(value.stock ?? 0))
+    optionId: String(match.optionId ?? match._id ?? match.id ?? ""),
+    name: match.name,
+    price: parseProductPrice(match.price ?? fallbackPrice),
+    weight: String(match.weight ?? "").trim(),
+    sku: String(match.sku ?? "").trim(),
+    stock: Math.max(0, Number(match.stock ?? 0))
   };
 }
 
-function prepareOrderPayload(payload = {}) {
+async function normalizeLineItemsAsync(items) {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  const result = [];
+  for (const item of items) {
+    const productId = String(item.productId ?? item.id ?? "").trim();
+    if (!productId) {
+      continue;
+    }
+
+    let product = null;
+    const staticProduct = getStaticProductById(productId);
+
+    if (staticProduct) {
+      product = staticProduct;
+    } else if (mongoose.Types.ObjectId.isValid(productId)) {
+      product = await Product.findById(productId).lean();
+    }
+
+    if (!product) {
+      throw createHttpError(400, `Product not found: ${productId}`);
+    }
+
+    const candleColors = product.candleColors ?? [];
+    const fragrances = product.fragrances ?? [];
+    const variants = product.variants ?? [];
+    const fallbackPrice = product.salePrice || product.basePrice || product.price;
+
+    const selectedColor = normalizeSelectedOption(item.selectedColor, candleColors, "color");
+    const selectedFragrance = normalizeSelectedOption(item.selectedFragrance, fragrances, "fragrance");
+    const selectedVariant = normalizeSelectedVariant(item.selectedVariant, variants, fallbackPrice);
+    const productName = String(product.name || "").trim();
+
+    if (candleColors.length > 0 && !selectedColor) {
+      throw createHttpError(400, `Please select a valid candle color for ${productName}.`);
+    }
+
+    if (fragrances.length > 0 && !selectedFragrance) {
+      throw createHttpError(400, `Please select a valid fragrance for ${productName}.`);
+    }
+
+    let basePrice = 0;
+    if (selectedVariant) {
+      basePrice = selectedVariant.price;
+    } else {
+      basePrice = parseProductPrice(fallbackPrice);
+    }
+
+    const fragranceExtraCharge = selectedFragrance ? selectedFragrance.priceAdjustment : 0;
+    const giftWrap = Boolean(item.giftWrap);
+    const configuredGiftWrapPrice = Number(product.giftWrapPrice ?? 80);
+    const giftWrapPrice = giftWrap ? configuredGiftWrapPrice : 0;
+    const finalPrice = basePrice + fragranceExtraCharge + giftWrapPrice;
+
+    result.push({
+      productId,
+      productName,
+      name: productName,
+      basePrice,
+      fragranceExtraCharge,
+      giftWrap,
+      giftWrapPrice: configuredGiftWrapPrice,
+      finalPrice,
+      price: `Rs ${finalPrice}`,
+      quantity: Number(item.quantity ?? 0),
+      selectedColor,
+      selectedFragrance,
+      selectedVariant
+    });
+  }
+
+  return result.filter((item) => item.name && item.quantity > 0);
+}
+
+async function prepareOrderPayload(payload = {}) {
   const normalized = normalizeOrderPayload(payload, false);
-  const lineItems = normalizeLineItems(normalized.lineItems ?? normalized.products ?? []);
+  const lineItems = await normalizeLineItemsAsync(normalized.lineItems ?? normalized.products ?? []);
 
   if (!normalized.customer) {
     throw createHttpError(400, "Customer name is required.");
@@ -239,7 +274,9 @@ function prepareOrderPayload(payload = {}) {
 
   const quantity = lineItems.reduce((total, item) => total + item.quantity, 0);
   const subtotal = lineItems.reduce((total, item) => total + item.finalPrice * item.quantity, 0);
-  const deliveryCharge = toNonNegativeNumber(normalized.deliveryCharge);
+
+  // Secure Shipping Calculation (Part 6)
+  const deliveryCharge = subtotal < 1500 ? 190 : 390;
   const total = subtotal + deliveryCharge;
   const paymentMethod = normalized.paymentMethod || normalized.payment || "Cash on Delivery (COD)";
   const paymentStatus = normalized.paymentStatus || normalized.payment || "Pending";
@@ -372,7 +409,7 @@ async function releaseStock(lineItems) {
 }
 
 async function saveOrderFromPayload(payload = {}) {
-  const orderPayload = prepareOrderPayload(payload);
+  const orderPayload = await prepareOrderPayload(payload);
 
   try {
     await reserveStock(orderPayload.lineItems);
@@ -403,7 +440,12 @@ const listOrders = async (req, res) => {
 
 const createOrder = async (req, res) => {
   try {
-    const order = await saveOrderFromPayload(req.body);
+    const payload = {
+      ...req.body,
+      placedByUid: req.user.id,
+      email: req.user.email || req.body.email
+    };
+    const order = await saveOrderFromPayload(payload);
     res.status(201).json(order);
   } catch (error) {
     res.status(error.status || 500).json({ error: error.message });

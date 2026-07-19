@@ -76,6 +76,33 @@ function normalizeCartItems(cartItems) {
     .filter((item) => item.key && item.name && item.price);
 }
 
+const CART_TOTALS_KEY = "cozy-candles-cart-totals";
+
+export function writeCartTotals(subtotal, shipping, grandTotal) {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.localStorage.setItem(CART_TOTALS_KEY, JSON.stringify({ subtotal, shipping, grandTotal }));
+}
+
+export function readCartTotals() {
+  if (typeof window === "undefined") {
+    return { subtotal: 0, shipping: 0, grandTotal: 0 };
+  }
+  try {
+    const data = JSON.parse(window.localStorage.getItem(CART_TOTALS_KEY));
+    if (data) return data;
+  } catch {}
+
+  // Fallback local calculation
+  const items = readCart();
+  const subtotal = items.reduce((total, item) => total + (item.finalPrice || 0) * (item.quantity || 0), 0);
+  const shipping = subtotal === 0 ? 0 : (subtotal < 1500 ? 190 : 390);
+  const grandTotal = subtotal + shipping;
+
+  return { subtotal, shipping, grandTotal };
+}
+
 function readCart() {
   if (typeof window === "undefined") {
     return [];
@@ -91,6 +118,12 @@ function writeCart(cartItems) {
 
   const normalizedItems = normalizeCartItems(cartItems);
   window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(normalizedItems));
+  
+  // Calculate local fallback totals immediately on write
+  const subtotal = normalizedItems.reduce((total, item) => total + (item.finalPrice || 0) * (item.quantity || 0), 0);
+  const shipping = subtotal === 0 ? 0 : (subtotal < 1500 ? 190 : 390);
+  writeCartTotals(subtotal, shipping, subtotal + shipping);
+
   window.dispatchEvent(new Event("cart-updated"));
 }
 
@@ -121,7 +154,7 @@ function mergeCartItems(primaryItems, secondaryItems) {
  * as an Authorization header. The backend verifies the token
  * cryptographically — no header can be forged by a third party.
  */
-async function getUserHeaders(user) {
+export async function getUserHeaders(user) {
   if (!user?.uid) {
     return null;
   }
@@ -169,6 +202,7 @@ async function requestCart(user, path, options = {}) {
 
 async function fetchUserCart(user) {
   const cart = await requestCart(user, "/");
+  writeCartTotals(cart?.subtotal || 0, cart?.shipping || 0, cart?.grandTotal || 0);
   return normalizeCartItems(cart?.items ?? []);
 }
 
@@ -183,6 +217,7 @@ async function replaceUserCart(user, cartItems) {
     body: JSON.stringify(payload)
   });
 
+  writeCartTotals(savedCart?.subtotal || 0, savedCart?.shipping || 0, savedCart?.grandTotal || 0);
   const nextItems = normalizeCartItems(savedCart?.items ?? payload.items);
   writeCart(nextItems);
   return nextItems;
@@ -197,22 +232,16 @@ async function addItemToServer(user, cartItem) {
     method: "POST",
     body: JSON.stringify({
       productId: cartItem.productId,
-      name: cartItem.name,
-      img: cartItem.img,
-      basePrice: cartItem.basePrice,
-      finalPrice: cartItem.finalPrice,
-      fragranceExtraCharge: cartItem.fragranceExtraCharge,
-      price: cartItem.price,
       quantity: cartItem.quantity ?? 1,
       key: cartItem.key,
       selectedColor: cartItem.selectedColor,
       selectedFragrance: cartItem.selectedFragrance,
       selectedVariant: cartItem.selectedVariant,
-      giftWrap: cartItem.giftWrap,
-      giftWrapPrice: cartItem.giftWrapPrice
+      giftWrap: cartItem.giftWrap
     })
   });
 
+  writeCartTotals(savedCart?.subtotal || 0, savedCart?.shipping || 0, savedCart?.grandTotal || 0);
   const nextItems = normalizeCartItems(savedCart?.items ?? []);
   writeCart(nextItems);
   return nextItems;
@@ -225,9 +254,13 @@ async function updateServerItem(user, itemId, updates) {
 
   const savedCart = await requestCart(user, `/${encodeURIComponent(itemId)}`, {
     method: "PUT",
-    body: JSON.stringify(updates)
+    body: JSON.stringify({
+      quantity: updates.quantity,
+      giftWrap: updates.giftWrap
+    })
   });
 
+  writeCartTotals(savedCart?.subtotal || 0, savedCart?.shipping || 0, savedCart?.grandTotal || 0);
   const nextItems = normalizeCartItems(savedCart?.items ?? []);
   writeCart(nextItems);
   return nextItems;
@@ -242,6 +275,7 @@ async function removeServerItem(user, itemId) {
     method: "DELETE"
   });
 
+  writeCartTotals(savedCart?.subtotal || 0, savedCart?.shipping || 0, savedCart?.grandTotal || 0);
   const nextItems = normalizeCartItems(savedCart?.items ?? []);
   writeCart(nextItems);
   return nextItems;

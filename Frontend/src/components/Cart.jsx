@@ -7,7 +7,8 @@ import {
   removeCartItem,
   syncCartWithServer,
   updateCartItemQuantity,
-  toggleCartItemGiftWrap
+  toggleCartItemGiftWrap,
+  readCartTotals
 } from "../utils/cart";
 import {
   createCodOrder,
@@ -50,6 +51,7 @@ function loadRazorpayCheckout() {
 
 export default function Cart() {
   const [cartItems, setCartItems] = useState(() => getCartItems());
+  const [cartTotals, setCartTotals] = useState(() => readCartTotals());
   const [orderError, setOrderError] = useState("");
   const [placingOrder, setPlacingOrder] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHODS.RAZORPAY);
@@ -75,6 +77,7 @@ export default function Cart() {
   useEffect(() => {
     function syncCart() {
       setCartItems(getCartItems());
+      setCartTotals(readCartTotals());
     }
 
     window.addEventListener("cart-updated", syncCart);
@@ -251,18 +254,11 @@ export default function Cart() {
   function getOrderLineItems() {
     return cartItems.map((item) => ({
       productId: item.productId,
-      productName: item.name,
-      name: item.name,
-      basePrice: item.basePrice,
-      fragranceExtraCharge: item.fragranceExtraCharge ?? item.selectedFragrance?.priceAdjustment ?? 0,
-      finalPrice: getCartLineFinalPrice(item),
-      price: formatProductPrice(getCartLineFinalPrice(item)),
       quantity: item.quantity,
       selectedColor: item.selectedColor,
       selectedFragrance: item.selectedFragrance,
       selectedVariant: item.selectedVariant,
-      giftWrap: !!item.giftWrap,
-      giftWrapPrice: item.giftWrapPrice || 80
+      giftWrap: !!item.giftWrap
     }));
   }
 
@@ -327,8 +323,6 @@ export default function Cart() {
 
   function buildOrderPayload(paymentOverrides) {
     const now = new Date();
-    const subtotal = totalPrice;
-    const total = subtotal + DELIVERY_CHARGE;
     const email = user?.email || "";
     const lineItems = getOrderLineItems();
     const quantity = lineItems.reduce((totalQuantity, item) => totalQuantity + item.quantity, 0);
@@ -344,10 +338,6 @@ export default function Cart() {
       orderDate: now.toISOString(),
       items: quantity,
       quantity,
-      subtotal,
-      deliveryCharge: DELIVERY_CHARGE,
-      total,
-      paymentAmount: total,
       status: "pending",
       placedByUid: user?.uid || null,
       placedByName: user?.displayName || customer.name.trim(),
@@ -356,7 +346,6 @@ export default function Cart() {
       recipientName: hasGiftWrap ? recipientName.trim() : "",
       giftMessage: hasGiftWrap ? giftMessage.trim() : "",
       giftWrap: hasGiftWrap,
-      giftWrapPrice: cartItems.reduce((acc, item) => acc + (item.giftWrap ? (item.giftWrapPrice || 80) * item.quantity : 0), 0),
       ...paymentOverrides
     };
   }
@@ -707,9 +696,17 @@ export default function Cart() {
               </label>
             </div>
 
+            <div className="cart-summary-line">
+              <span>Subtotal</span>
+              <span>Rs {cartTotals.subtotal}</span>
+            </div>
+            <div className="cart-summary-line">
+              <span>Shipping</span>
+              <span>{cartTotals.shipping > 0 ? `Rs ${cartTotals.shipping}` : "Free"}</span>
+            </div>
             <div className="cart-total">
               <span>Total</span>
-              <strong>Rs {totalPrice}</strong>
+              <strong>Rs {cartTotals.grandTotal}</strong>
             </div>
 
             {orderError ? <p className="products-feedback">{orderError}</p> : null}

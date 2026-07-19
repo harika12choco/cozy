@@ -21,13 +21,24 @@ function normalizeQuantity(value) {
 
 function buildCartResponse(cart, userId, email = "") {
   if (!cart) {
-    return { userId, email, items: [] };
+    return { userId, email, items: [], subtotal: 0, shipping: 0, grandTotal: 0 };
   }
+
+  const subtotal = cart.items.reduce((total, item) => {
+    return total + (item.finalPrice || 0) * (item.quantity || 0);
+  }, 0);
+
+  // Secure Shipping Calculation (Part 6)
+  const shipping = subtotal === 0 ? 0 : (subtotal < 1500 ? 190 : 390);
+  const grandTotal = subtotal + shipping;
 
   return {
     userId: cart.userId,
     email: cart.email,
-    items: cart.items
+    items: cart.items,
+    subtotal,
+    shipping,
+    grandTotal
   };
 }
 

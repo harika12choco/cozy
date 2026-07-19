@@ -65,15 +65,19 @@ export async function createCodOrder(order) {
 }
 
 export async function createRazorpayOrder(order) {
+  const authHeader = await getAuthHeader();
   return requestJson("/payment/create-order", {
     method: "POST",
+    headers: authHeader,
     body: JSON.stringify({ order })
   });
 }
 
 export async function verifyRazorpayPayment(paymentResponse, order) {
+  const authHeader = await getAuthHeader();
   return requestJson("/payment/verify", {
     method: "POST",
+    headers: authHeader,
     body: JSON.stringify({
       ...paymentResponse,
       order
