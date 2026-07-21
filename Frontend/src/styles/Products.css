@@ -25,167 +25,40 @@
 
 .products {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 30px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px 20px;
 }
 
-.product {
-  background: var(--panel-bg);
-  border-radius: 20px;
-  padding: 16px 16px 20px;
-  text-align: center;
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.08);
-  border:1px solid rgba(101,21,20,0.08);
-}
-
-.product:hover {
-  box-shadow: 0 22px 42px rgba(0, 0, 0, 0.14);
-}
-
-.product-image-wrap {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  border-radius: 16px;
-  overflow: hidden;
-  background: var(--soft-ivory);
-  margin-bottom: 14px;
-}
-
-.product img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.product h3 {
-  margin: 10px 0 8px;
-  color: #000000;
-  font-family: var(--display-font);
-  font-size: 23px;
-  line-height: 1.55;
-  text-transform: none;
-  letter-spacing: 0.5px;
-  font-weight: 400;
-}
-
-.product h3 a {
-  color: #000000;
-  text-decoration: none;
-}
-
-.product h3 a:hover {
-  color: var(--primary);
-}
-
-.product-fragrances-text {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-  margin: 8px 0 10px;
-  font-size: 12px;
-  font-weight: 500;
-  color: #6f6661;
-}
-
-.product-fragrances-text span {
-  color: #6f6661;
-}
-
-.product-color-swatches {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: center;
-  margin: 12px 0 14px;
-}
-
-.color-swatch-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.color-swatch {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 2px solid #e0ddd7;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  background-color: #e0e0e0;
-  padding: 0;
-}
-
-.color-swatch:hover {
-  transform: scale(1.1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.swatch-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: #6f6661;
-  text-align: center;
-  max-width: 45px;
-  word-break: break-word;
-}
-
-.product-price {
-  margin: 10px 0 4px;
-  font-weight: 700;
-  color: #000000;
-  font-family: var(--sans-font);
-  text-transform: none;
-  letter-spacing: 0.01em;
-  font-size: 16px;
-}
-
-.product p {
-  margin: 0 0 14px;
-  font-weight: 700;
-  color: #6f6661;
-  font-family: var(--sans-font);
-  text-transform: none;
-  letter-spacing: 0.01em;
-  font-size: 14px;
-}
-
-.product-stock {
-  margin: 0 0 12px;
-  font-weight: 600;
-  color: #7a3f25;
-  font-size: 13px;
-}
-
-.product .btn {
-  font-family: var(--sans-font);
-  font-style: normal;
-}
-
-@media (max-width: 900px) {
+@media (max-width: 1023px) {
   .products {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px 16px;
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .best-sellers-section {
     padding-top: 88px;
   }
 
   .best-title {
-    font-size: 38px;
+    font-size: 42px;
   }
 
   .products {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-
-  .product {
-    padding: 14px 14px 18px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 12px;
   }
 }
+
+@media (max-width: 480px) {
+  .best-title {
+    font-size: 32px;
+  }
+
+  .products {
+    grid-template-columns: repeat(2, minmax(0, 1fr)); /* Uniform 2 cards per row on mobile */
+    gap: 12px 10px;
+  }
+}
+
