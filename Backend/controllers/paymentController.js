@@ -117,6 +117,8 @@ const createRazorpayOrder = async (req, res) => {
   }
 };
 
+const Order = require("../models/Order");
+
 const verifyRazorpayPayment = async (req, res) => {
   try {
     const {
@@ -131,6 +133,15 @@ const verifyRazorpayPayment = async (req, res) => {
 
     if (!isValidSignature({ razorpayOrderId, razorpayPaymentId, razorpaySignature })) {
       throw createPaymentError(400, "Invalid Razorpay payment signature.");
+    }
+
+    // SEC-01 FIX: Idempotency check to prevent Payment Replay attacks
+    const existingOrder = await Order.findOne({ razorpayPaymentId }).lean();
+    if (existingOrder) {
+      return res.status(200).json({
+        verified: true,
+        order: existingOrder
+      });
     }
 
     const rawPayload = getOrderPayloadFromRequest(req.body);
@@ -178,6 +189,7 @@ const verifyRazorpayPayment = async (req, res) => {
     res.status(error.status || 500).json({ error: getPaymentErrorMessage(error) });
   }
 };
+
 
 module.exports = {
   createRazorpayOrder,

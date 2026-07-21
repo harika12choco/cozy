@@ -16,7 +16,8 @@ const variantPricePattern = /(?:rs\.?|inr|â‚¹)\s*([0-9]+(?:\.[0-9]+)?)(?:\s*[-â€
 
 function normalizeQuantity(value) {
   const quantity = Number(value ?? 0);
-  return Number.isFinite(quantity) && quantity > 0 ? Math.floor(quantity) : 0;
+  if (!Number.isFinite(quantity) || quantity <= 0) return 0;
+  return Math.min(Math.floor(quantity), 99);
 }
 
 function buildCartResponse(cart, userId, email = "") {

@@ -25,7 +25,8 @@ async function authenticateUser(req, res, next) {
   }
 
   try {
-    const decoded = await firebaseAdmin.auth().verifyIdToken(token);
+    // SEC-02 FIX: Pass true to verifyIdToken to check if token has been revoked or user disabled
+    const decoded = await firebaseAdmin.auth().verifyIdToken(token, true);
     req.user = {
       id: decoded.uid,
       email: decoded.email || ""

@@ -246,7 +246,7 @@ async function normalizeLineItemsAsync(items) {
       giftWrapPrice: configuredGiftWrapPrice,
       finalPrice,
       price: `Rs ${finalPrice}`,
-      quantity: Number(item.quantity ?? 0),
+      quantity: Math.min(Math.max(1, Math.floor(Number(item.quantity ?? 1))), 99),
       selectedColor,
       selectedFragrance,
       selectedVariant

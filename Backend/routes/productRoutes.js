@@ -25,7 +25,8 @@ function sendCloudinarySignature(req, res) {
 router.get("/cloudinary/signature", authenticateAdmin, writeLimiter, sendCloudinarySignature);
 router.get("/products/cloudinary/signature", authenticateAdmin, writeLimiter, sendCloudinarySignature);
 
-router.get("/products/search", searchProducts);
+// SEC-04 FIX: Rate limit search queries to prevent CPU exhaustion and automated scanning
+router.get("/products/search", writeLimiter, searchProducts);
 router.post("/products", authenticateAdmin, largeJsonBody, writeLimiter, addProduct);
 router.get("/products", getProducts);
 router.get("/products/:id", getProductById);

@@ -130,11 +130,11 @@ app.use(
 app.use(express.json({ limit: "100kb" }));
 app.use(sanitizeRequestBody);
 
+// SEC-06 FIX: Omit internal signature route path disclosure from public health endpoint
 app.get("/api/health", (req, res) => {
   res.json({
     status: "ok",
-    version: API_VERSION,
-    cloudinarySignatureRoutes: ["/api/cloudinary/signature", "/api/products/cloudinary/signature"]
+    version: API_VERSION
   });
 });
 
