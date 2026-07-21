@@ -10,6 +10,11 @@ const {
   getFragrancePriceAdjustment,
   parseProductPrice
 } = require("../utils/productPricing");
+const {
+  findMatchingOption,
+  loadCustomizationCatalog,
+  resolveProductOptions
+} = require("../utils/productOptions");
 
 const router = express.Router();
 const variantPricePattern = /(?:rs\.?|inr|₹)\s*([0-9]+(?:\.[0-9]+)?)(?:\s*[-–]\s*([0-9]+(?:\.[0-9]+)?))?/i;
@@ -58,6 +63,15 @@ async function ensureCart(userId, email = "") {
   return cart;
 }
 
+/**
+ * The cart must judge a selection against the same options the storefront displayed,
+ * otherwise a valid choice is stored as null and checkout later rejects the order.
+ */
+async function getProductOptions(product) {
+  const catalog = await loadCustomizationCatalog();
+  return resolveProductOptions(product, catalog);
+}
+
 async function resolveProduct(productId) {
   if (!productId) {
     return null;
@@ -75,19 +89,7 @@ async function resolveProduct(productId) {
 }
 
 function normalizeSelectedOption(value = {}, allowedOptions = [], optionType = "fragrance") {
-  const optionId = String(value?.optionId ?? value?.id ?? value?._id ?? "").trim();
-  const name = optionType === "fragrance"
-    ? getFragranceDisplayName(value)
-    : String(value?.name ?? "").trim();
-
-  if (!optionId && !name) {
-    return null;
-  }
-
-  const match = allowedOptions.find((option) => (
-    (optionId && String(option.optionId) === optionId) ||
-    (name && String(optionType === "fragrance" ? getFragranceDisplayName(option) : option.name ?? "").toLowerCase() === name.toLowerCase())
-  ));
+  const match = findMatchingOption(value, allowedOptions, optionType);
 
   if (!match) {
     return null;
@@ -231,9 +233,9 @@ function getAvailableStock(product, selectedVariant) {
   return Math.max(0, Number(product.stock ?? 0));
 }
 
-function buildCartItemSnapshot(product, item) {
-  const selectedColor = normalizeSelectedOption(item.selectedColor, product.candleColors ?? [], "color");
-  const selectedFragrance = normalizeSelectedOption(item.selectedFragrance, product.fragrances ?? [], "fragrance");
+function buildCartItemSnapshot(product, item, options = { candleColors: [], fragrances: [] }) {
+  const selectedColor = normalizeSelectedOption(item.selectedColor, options.candleColors, "color");
+  const selectedFragrance = normalizeSelectedOption(item.selectedFragrance, options.fragrances, "fragrance");
   const selectedVariant = normalizeSelectedVariant(
     item.selectedVariant,
     product.variants ?? [],
@@ -299,8 +301,9 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Out of stock" });
     }
 
-    const selectedColor = normalizeSelectedOption(req.body?.selectedColor, product.candleColors ?? [], "color");
-    const selectedFragrance = normalizeSelectedOption(req.body?.selectedFragrance, product.fragrances ?? [], "fragrance");
+    const productOptions = await getProductOptions(product);
+    const selectedColor = normalizeSelectedOption(req.body?.selectedColor, productOptions.candleColors, "color");
+    const selectedFragrance = normalizeSelectedOption(req.body?.selectedFragrance, productOptions.fragrances, "fragrance");
     const selectedVariant = normalizeSelectedVariant(
       req.body?.selectedVariant,
       product.variants ?? [],
@@ -308,11 +311,11 @@ router.post("/", async (req, res) => {
     );
     const availableStock = getAvailableStock(product, selectedVariant);
 
-    if ((product.candleColors ?? []).length > 0 && !selectedColor) {
+    if (productOptions.candleColors.length > 0 && !selectedColor) {
       return res.status(400).json({ error: "Please select a candle color." });
     }
 
-    if ((product.fragrances ?? []).length > 0 && !selectedFragrance) {
+    if (productOptions.fragrances.length > 0 && !selectedFragrance) {
       return res.status(400).json({ error: "Please select a fragrance." });
     }
 
@@ -329,7 +332,7 @@ router.post("/", async (req, res) => {
       selectedFragrance,
       selectedVariant,
       giftWrap: req.body?.giftWrap
-    });
+    }, productOptions);
 
     if (existingItem) {
       existingItem.set(nextSnapshot);
@@ -379,7 +382,7 @@ router.put("/:itemId", async (req, res) => {
         quantity,
         giftWrap,
         img: item.img
-      });
+      }, await getProductOptions(product));
 
       // Avoid duplicates with the same key
       const duplicateItem = cart.items.find(
@@ -441,17 +444,19 @@ router.put("/", async (req, res) => {
         continue;
       }
 
+      const productOptions = await getProductOptions(product);
+
       nextItems.push({
         ...buildCartItemSnapshot(product, {
           ...item,
           productId,
           quantity,
           img: item.img
-        }),
+        }, productOptions),
         key: String(item.key ?? buildCartKey(
           product,
-          normalizeSelectedOption(item.selectedColor, product.candleColors ?? [], "color"),
-          normalizeSelectedOption(item.selectedFragrance, product.fragrances ?? [], "fragrance"),
+          normalizeSelectedOption(item.selectedColor, productOptions.candleColors, "color"),
+          normalizeSelectedOption(item.selectedFragrance, productOptions.fragrances, "fragrance"),
           normalizeSelectedVariant(item.selectedVariant, product.variants ?? [], product.salePrice || product.basePrice || product.price)
         ))
       });

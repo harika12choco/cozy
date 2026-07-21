@@ -126,8 +126,61 @@ function resolveProductOptions(product, catalog = emptyCatalog) {
   };
 }
 
+function slugifyOptionName(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function optionMatchKeys(option, optionType) {
+  const name = optionType === "fragrance" ? getFragranceDisplayName(option) : String(option?.name ?? "").trim();
+  const optionId = String(option?.optionId ?? option?.id ?? option?._id ?? "").trim();
+
+  return {
+    ids: [optionId].filter(Boolean),
+    names: [name.toLowerCase(), slugifyOptionName(name)].filter(Boolean)
+  };
+}
+
+/**
+ * Matches a shopper's saved selection against the options a product offers.
+ *
+ * Selections are stored with whatever id the storefront had at the time (a catalog id, or a
+ * name-derived fallback such as "red"), so an id-only comparison silently drops valid choices
+ * and the shopper is told to "select a valid candle color" for a colour they did select.
+ */
+function findMatchingOption(value, allowedOptions = [], optionType = "fragrance") {
+  if (!value) {
+    return null;
+  }
+
+  const selection = optionMatchKeys(value, optionType);
+
+  if (selection.ids.length === 0 && selection.names.length === 0) {
+    return null;
+  }
+
+  return (
+    allowedOptions.find((option) => {
+      const candidate = optionMatchKeys(option, optionType);
+
+      return (
+        candidate.ids.some((id) => selection.ids.includes(id)) ||
+        candidate.names.some((name) => selection.names.includes(name)) ||
+        // A name-derived fallback id on one side must still match the real name on the other.
+        candidate.ids.some((id) => selection.names.includes(id.toLowerCase())) ||
+        selection.ids.some((id) => candidate.names.includes(id.toLowerCase()))
+      );
+    }) ?? null
+  );
+}
+
 module.exports = {
   emptyCatalog,
+  findMatchingOption,
   invalidateCustomizationCatalog,
   loadCustomizationCatalog,
   resolveProductOptions

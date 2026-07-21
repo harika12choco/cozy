@@ -112,14 +112,25 @@
   transition:width 180ms ease, margin-right 180ms ease, opacity 180ms ease;
 }
 
-.footer-links a:hover,
+@media (hover: hover) and (pointer: fine){
+  .footer-links a:hover{
+    color:var(--cream);
+    transform:translateX(4px);
+    opacity:1;
+  }
+
+  .footer-links a:hover::before{
+    width:16px;
+    margin-right:9px;
+    opacity:1;
+  }
+}
+
 .footer-links a:focus-visible{
   color:var(--cream);
-  transform:translateX(4px);
   opacity:1;
 }
 
-.footer-links a:hover::before,
 .footer-links a:focus-visible::before{
   width:16px;
   margin-right:9px;
@@ -145,12 +156,19 @@
   transition:background 180ms ease, color 180ms ease, transform 180ms ease, border-color 180ms ease;
 }
 
-.footer-social a:hover,
+@media (hover: hover) and (pointer: fine){
+  .footer-social a:hover{
+    background:var(--cream);
+    color:var(--primary);
+    border-color:var(--cream);
+    transform:translateY(-3px);
+  }
+}
+
 .footer-social a:focus-visible{
   background:var(--cream);
   color:var(--primary);
   border-color:var(--cream);
-  transform:translateY(-3px);
 }
 
 .footer-bottom{
@@ -209,7 +227,7 @@
 
 @media (max-width: 640px){
   .footer{
-    padding-top:52px;
+    padding-top:44px;
   }
 
   .footer-container{
@@ -225,8 +243,8 @@
 
   .footer-column + .footer-column,
   .footer-column:nth-child(3){
-    margin-top:28px;
-    padding-top:28px;
+    margin-top:22px;
+    padding-top:22px;
     border-left:0;
     border-top:1px solid rgba(245, 234, 223, 0.18);
   }
@@ -236,16 +254,60 @@
     text-align:left;
   }
 
+  .footer-logo-link{
+    justify-content:flex-start;
+    margin-bottom:14px;
+  }
+
   .footer-logo{
-    width:168px;
+    width:150px;
+  }
+
+  .footer-brand p{
+    font-size:14px;
+    line-height:1.65;
+  }
+
+  .footer-social{
+    margin-top:18px;
   }
 
   .footer-links h3{
-    font-size:30px;
+    margin-bottom:12px;
+    font-size:26px;
+  }
+
+  /* Two columns keeps the long Help list from turning into a tall wall of links. */
+  .footer-links ul{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:10px 14px;
+  }
+
+  .footer-links li + li{
+    margin-top:0;
+  }
+
+  .footer-links a{
+    font-size:13.5px;
+    line-height:1.35;
   }
 
   .footer-bottom{
-    margin-top:32px;
-    padding:18px 7%;
+    margin-top:24px;
+    /* The floating WhatsApp button is fixed ~68px above the viewport bottom, so the last
+       line of the page needs that much clearance to stay readable. */
+    padding:16px 7% calc(76px + env(safe-area-inset-bottom));
+    font-size:12.5px;
+  }
+
+  .footer-bottom p{
+    gap:8px;
+    text-align:center;
+  }
+
+  .footer-mark{
+    padding:6px 12px;
+    font-size:12px;
   }
 }

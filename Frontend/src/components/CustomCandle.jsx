@@ -21,7 +21,7 @@ export default function CustomCandle() {
     <section className="custom-candle" aria-labelledby="custom-candle-title">
       <div className="custom-candle-inner">
         <div className="custom-candle-heading">
-          <h2 id="custom-candle-title">customize your own candle</h2>
+          <h2 id="custom-candle-title">Customize your own candle</h2>
         </div>
 
         <div className="custom-candle-layout">

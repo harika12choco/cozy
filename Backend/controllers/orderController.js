@@ -3,7 +3,7 @@ const Product = require("../models/productModel");
 const mongoose = require("mongoose");
 const { getStaticProductById, isStaticProductId } = require("../utils/staticProducts");
 const { getFragranceDisplayName, getFragrancePriceAdjustment, parseProductPrice } = require("../utils/productPricing");
-const { loadCustomizationCatalog, resolveProductOptions } = require("../utils/productOptions");
+const { findMatchingOption, loadCustomizationCatalog, resolveProductOptions } = require("../utils/productOptions");
 const { sendError } = require("../utils/errorResponse");
 const variantPricePattern = /(?:rs\.?|inr|₹)\s*([0-9]+(?:\.[0-9]+)?)(?:\s*[-–]\s*([0-9]+(?:\.[0-9]+)?))?/i;
 
@@ -112,20 +112,7 @@ function normalizeOrderPayload(payload = {}, partial = false) {
 }
 
 function normalizeSelectedOption(value, allowedOptions = [], optionType = "fragrance") {
-  if (!value) return null;
-  const optionId = String(value.optionId ?? value.id ?? value._id ?? "").trim();
-  const name = optionType === "fragrance"
-    ? getFragranceDisplayName(value)
-    : String(value.name ?? "").trim();
-
-  if (!optionId && !name) {
-    return null;
-  }
-
-  const match = allowedOptions.find((option) => (
-    (optionId && String(option.optionId ?? option._id ?? option.id ?? "") === optionId) ||
-    (name && String(optionType === "fragrance" ? getFragranceDisplayName(option) : option.name ?? "").toLowerCase() === name.toLowerCase())
-  ));
+  const match = findMatchingOption(value, allowedOptions, optionType);
 
   if (!match) {
     return null;
@@ -220,11 +207,11 @@ async function normalizeLineItemsAsync(items) {
     const productName = String(product.name || "").trim();
 
     if (candleColors.length > 0 && !selectedColor) {
-      throw createHttpError(400, `Please select a valid candle color for ${productName}.`);
+      throw createHttpError(400, `The selected candle color is no longer available for ${productName}. Please open the product and choose a color again.`);
     }
 
     if (fragrances.length > 0 && !selectedFragrance) {
-      throw createHttpError(400, `Please select a valid fragrance for ${productName}.`);
+      throw createHttpError(400, `The selected fragrance is no longer available for ${productName}. Please open the product and choose a fragrance again.`);
     }
 
     let basePrice = 0;
