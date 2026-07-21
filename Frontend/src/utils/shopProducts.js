@@ -36,6 +36,18 @@ export function isPublicStorefrontProduct(product) {
   );
 }
 
+/**
+ * An empty `candleColors` array must not hide options that are only present on `colors`,
+ * otherwise products keep their customization hidden on the storefront.
+ */
+export function pickOptionList(primary, fallback) {
+  if (Array.isArray(primary) && primary.length > 0) {
+    return primary;
+  }
+
+  return Array.isArray(fallback) ? fallback : [];
+}
+
 function formatShopProducts(products) {
   return products
     .filter(isPublicStorefrontProduct)
@@ -43,7 +55,7 @@ function formatShopProducts(products) {
       const basePrice = parseProductPrice(product.basePrice || product.price);
       const image = resolveProductImage(product.featuredImage || product.image) || img1;
       const images = collectProductImages(product, image);
-      const candleColors = (Array.isArray(product.candleColors) ? product.candleColors : product.colors ?? [])
+      const candleColors = pickOptionList(product.candleColors, product.colors)
         .map((option, index) => normalizeColorOption(option, `color-${index}`))
         .filter(Boolean);
       const fragrances = (Array.isArray(product.fragrances) ? product.fragrances : [])
@@ -73,6 +85,9 @@ function formatShopProducts(products) {
         colors: candleColors,
         candleColors,
         fragrances,
+        customizable: Boolean(product.customizable ?? (candleColors.length > 0 || fragrances.length > 0)),
+        staticProduct: Boolean(product.staticProduct),
+        giftWrapPrice: Number(product.giftWrapPrice ?? 80),
         stock: Number(product.stock ?? 0),
         bestSeller: Boolean(product.bestSeller ?? product.isBestSeller),
         isBestSeller: Boolean(product.isBestSeller ?? product.bestSeller),

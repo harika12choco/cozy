@@ -1,5 +1,6 @@
 const CandleColor = require("../models/CandleColor");
 const Fragrance = require("../models/Fragrance");
+const { invalidateCustomizationCatalog } = require("../utils/productOptions");
 const { sendError } = require("../utils/errorResponse");
 
 const DEFAULT_FRAGRANCES = [
@@ -117,6 +118,7 @@ function buildOptionController(Model, { hasHex = false } = {}) {
         }
 
         const created = await Model.create(payload);
+        invalidateCustomizationCatalog();
         res.status(201).json(normalizeEntity(created));
       } catch (error) {
         if (error.code === 11000) {
@@ -157,6 +159,7 @@ function buildOptionController(Model, { hasHex = false } = {}) {
           return res.status(404).json({ error: "Option not found." });
         }
 
+        invalidateCustomizationCatalog();
         res.json(normalizeEntity(updated));
       } catch (error) {
         if (error.code === 11000) {
@@ -174,6 +177,7 @@ function buildOptionController(Model, { hasHex = false } = {}) {
           return res.status(404).json({ error: "Option not found." });
         }
 
+        invalidateCustomizationCatalog();
         res.status(204).send();
       } catch (error) {
         sendError(res, error);

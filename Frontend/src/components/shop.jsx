@@ -5,12 +5,11 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import ProductChoiceCard from "./ProductChoiceCard";
 import { addItemToCart } from "../utils/cart";
 import { matchesCategory, readShopProducts, searchProducts } from "../utils/shopProducts";
-import { readStaticProducts } from "../utils/staticProducts";
 
 export default function Shop({ selectedCategory = "" }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [shopProducts, setShopProducts] = useState(() => readStaticProducts());
+  const [shopProducts, setShopProducts] = useState([]);
   const [feedback, setFeedback] = useState("");
   const [searchTerm, setSearchTerm] = useState(() => searchParams.get("search") ?? "");
   const [loading, setLoading] = useState(true);
@@ -21,16 +20,9 @@ export default function Shop({ selectedCategory = "" }) {
 
     async function syncProducts() {
       try {
-        const immediateProducts = searchQuery
-          ? readStaticProducts().filter((product) =>
-              [product.name, product.description, product.category, product.price]
-                .filter(Boolean)
-                .some((value) => String(value).toLowerCase().includes(searchQuery.toLowerCase()))
-            )
-          : readStaticProducts();
-
-        setShopProducts(immediateProducts);
-        setLoading(immediateProducts.length === 0);
+        // Live stock and pricing must never be rendered from the offline catalog, otherwise
+        // shoppers briefly see placeholder values (e.g. "99 left") before the real data lands.
+        setLoading(true);
 
         const products = searchQuery
           ? await searchProducts(searchQuery)
@@ -128,7 +120,7 @@ export default function Shop({ selectedCategory = "" }) {
         </form>
 
         <div className="shop-grid">
-          {loading ? (
+          {loading && visibleProducts.length === 0 ? (
             <p className="shop-feedback">Loading products...</p>
           ) : visibleProducts.length === 0 ? null : visibleProducts.map((product) => (
             <ProductChoiceCard key={product.id} product={product} onAddToCart={handleAddToCart} showSafety={false} />

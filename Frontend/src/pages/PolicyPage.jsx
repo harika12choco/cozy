@@ -130,10 +130,8 @@ const policies = {
       {
         heading: "Shipping Charges",
         items: [
-          "Up to 1 kg - Rs. 150",
-          "Up to 5 kg - Rs. 450",
-          "Above 5 kg - Rs. 950",
-          "Free Shipping on orders above Rs. 4,999"
+          "Order value below Rs. 1,500 - Rs. 190",
+          "Order value Rs. 1,500 and above - Rs. 390"
         ]
       },
       {
@@ -142,7 +140,7 @@ const policies = {
       },
       {
         heading: "Courier Services",
-        body: "Courier charges are fixed based on the order weight. Delivery timelines may vary depending on the distance between Patna and the delivery location."
+        body: "Courier charges are fixed based on the order value. Delivery timelines may vary depending on the distance between Patna and the delivery location."
       },
       {
         heading: "Address Accuracy",

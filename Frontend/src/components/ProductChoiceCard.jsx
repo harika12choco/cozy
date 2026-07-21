@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
-import { FaEye, FaHeart, FaRegHeart, FaShoppingBag, FaTimes } from "react-icons/fa";
+import { FaEye, FaHeart, FaPalette, FaRegHeart, FaShoppingBag, FaTimes } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import CandleSafety from "./CandleSafety";
+import { pickOptionList } from "../utils/shopProducts";
 import {
   getCalculatedProductPrice,
   normalizeColorOption,
@@ -23,7 +24,7 @@ export default function ProductChoiceCard({ product, onAddToCart, variant = "sho
 
   const colorOptions = useMemo(
     () =>
-      (Array.isArray(product.candleColors) ? product.candleColors : product.colors ?? [])
+      pickOptionList(product.candleColors, product.colors)
         .map((option, index) => normalizeColorOption(option, `color-${index}`))
         .filter(Boolean),
     [product.candleColors, product.colors]
@@ -47,9 +48,28 @@ export default function ProductChoiceCard({ product, onAddToCart, variant = "sho
   const [selectedFragrance, setSelectedFragrance] = useState(() => fragranceOptions[0] ?? null);
   const [selectedVariant, setSelectedVariant] = useState(() => variantOptions[0] ?? null);
 
+  const customizationLabel = useMemo(() => {
+    if (colorOptions.length > 0 && fragranceOptions.length > 0) {
+      return "Customizable colour & fragrance";
+    }
+
+    if (colorOptions.length > 0) {
+      return "Customizable colour";
+    }
+
+    if (fragranceOptions.length > 0) {
+      return "Customizable fragrance";
+    }
+
+    return "";
+  }, [colorOptions.length, fragranceOptions.length]);
+
   const productPath = getProductPath(product);
   const imgSrc = product.img ?? product.image;
   const isUnavailable = Number(product.stock ?? 0) <= 0;
+  // Offline/catalog fallback entries carry a placeholder stock count, so only live product
+  // records show an exact "N left" number.
+  const stockLabel = product.staticProduct ? "In stock" : `${Number(product.stock ?? 0)} left`;
   const cardClassName = variant === "bestseller" ? "product choice-card luxury-card" : "shop-card choice-card luxury-card";
 
   const selectedPriceStr = getCalculatedProductPrice(product, selectedColor, selectedFragrance, selectedVariant);
@@ -155,6 +175,13 @@ export default function ProductChoiceCard({ product, onAddToCart, variant = "sho
             </Link>
           </h3>
 
+          {customizationLabel ? (
+            <p className="choice-customizable-note" title="This candle can be personalised">
+              <FaPalette aria-hidden="true" />
+              <span>{customizationLabel}</span>
+            </p>
+          ) : null}
+
           <div className="choice-price-container">
             <div className="choice-price-group">
               <span className="choice-selling-price">{selectedPriceStr}</span>
@@ -163,7 +190,7 @@ export default function ProductChoiceCard({ product, onAddToCart, variant = "sho
               ) : null}
             </div>
             <span className={`choice-stock-status ${isUnavailable ? "is-out" : ""}`}>
-              {isUnavailable ? "Out of stock" : `${product.stock} left`}
+              {isUnavailable ? "Out of stock" : stockLabel}
             </span>
           </div>
 

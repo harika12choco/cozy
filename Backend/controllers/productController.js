@@ -3,6 +3,7 @@ const { uploadProductImage } = require("../services/cloudinaryService");
 const mongoose = require("mongoose");
 const { getStaticProductById } = require("../utils/staticProducts");
 const { getFragranceDisplayName, getFragrancePriceAdjustment } = require("../utils/productPricing");
+const { emptyCatalog, loadCustomizationCatalog, resolveProductOptions } = require("../utils/productOptions");
 const { sendError } = require("../utils/errorResponse");
 
 async function prepareProductPayload(payload) {
@@ -53,25 +54,32 @@ function normalizeProductOptions(options, includeHex) {
     .filter(Boolean);
 }
 
-function normalizeProductResponse(product) {
+function normalizeProductResponse(product, catalog = emptyCatalog) {
   if (!product) {
     return null;
   }
 
   const normalized = product.toObject ? product.toObject() : product;
+  const { candleColors, fragrances, usesCatalogColors, usesCatalogFragrances } = resolveProductOptions(
+    normalized,
+    catalog
+  );
 
   return {
     ...normalized,
     basePrice: Number(normalized.basePrice || normalized.price || 0),
     isBestSeller: Boolean(normalized.isBestSeller ?? normalized.bestSeller),
     bestSeller: Boolean(normalized.bestSeller ?? normalized.isBestSeller),
-    candleColors: Array.isArray(normalized.candleColors) ? normalized.candleColors : [],
-    colors: Array.isArray(normalized.colors) && normalized.colors.length > 0
-      ? normalized.colors
-      : Array.isArray(normalized.candleColors)
-      ? normalized.candleColors
-      : [],
-    fragrances: Array.isArray(normalized.fragrances) ? normalized.fragrances : [],
+    candleColors,
+    colors: candleColors,
+    fragrances,
+    // Raw admin selection, kept separate so the admin edit form never shows the shared
+    // catalog fallback as if it had been saved on the product.
+    selectedCandleColors: Array.isArray(normalized.candleColors) ? normalized.candleColors : [],
+    selectedFragrances: Array.isArray(normalized.fragrances) ? normalized.fragrances : [],
+    customizable: candleColors.length > 0 || fragrances.length > 0,
+    usesCatalogColors,
+    usesCatalogFragrances,
     burnTime: normalized.burnTime ?? "",
     weight: normalized.weight ?? "",
     variants: Array.isArray(normalized.variants) ? normalized.variants : []
@@ -115,13 +123,14 @@ const addProduct = async (req, res) => {
 // Get all products
 const getProducts = async (req, res) => {
   try {
+    const catalog = await loadCustomizationCatalog();
     const bestSeller = parseBoolean(req.query.bestSeller ?? req.query.isBestSeller);
     const ids = String(req.query.ids ?? "")
       .split(",")
       .map((id) => id.trim())
       .filter(Boolean);
     const staticMatches = ids.length > 0
-      ? ids.map(getStaticProductById).filter(Boolean).map(normalizeProductResponse)
+      ? ids.map(getStaticProductById).filter(Boolean).map((product) => normalizeProductResponse(product, catalog))
       : [];
     const dbIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id));
 
@@ -140,7 +149,7 @@ const getProducts = async (req, res) => {
     }
 
     const products = ids.length > 0 && dbIds.length === 0 ? [] : await Product.find(filter);
-    res.json([...staticMatches, ...products.map(normalizeProductResponse)]);
+    res.json([...staticMatches, ...products.map((product) => normalizeProductResponse(product, catalog))]);
   } catch (error) {
     sendError(res, error);
   }
@@ -157,15 +166,18 @@ const searchProducts = async (req, res) => {
     const searchRegex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
 
     res.set("Cache-Control", "no-store");
-    const products = await Product.find({
-      $or: [
-        { name: searchRegex },
-        { description: searchRegex },
-        { category: searchRegex }
-      ]
-    });
+    const [catalog, products] = await Promise.all([
+      loadCustomizationCatalog(),
+      Product.find({
+        $or: [
+          { name: searchRegex },
+          { description: searchRegex },
+          { category: searchRegex }
+        ]
+      })
+    ]);
 
-    res.json(products.map(normalizeProductResponse));
+    res.json(products.map((product) => normalizeProductResponse(product, catalog)));
   } catch (error) {
     sendError(res, error);
   }
@@ -174,10 +186,11 @@ const searchProducts = async (req, res) => {
 // Get product by ID
 const getProductById = async (req, res) => {
   try {
+    const catalog = await loadCustomizationCatalog();
     const staticProduct = getStaticProductById(req.params.id);
 
     if (staticProduct) {
-      return res.json(normalizeProductResponse(staticProduct));
+      return res.json(normalizeProductResponse(staticProduct, catalog));
     }
 
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -185,7 +198,7 @@ const getProductById = async (req, res) => {
     }
 
     const product = await Product.findById(req.params.id);
-    res.json(normalizeProductResponse(product));
+    res.json(normalizeProductResponse(product, catalog));
   } catch (error) {
     sendError(res, error);
   }

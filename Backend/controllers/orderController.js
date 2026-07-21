@@ -3,6 +3,7 @@ const Product = require("../models/productModel");
 const mongoose = require("mongoose");
 const { getStaticProductById, isStaticProductId } = require("../utils/staticProducts");
 const { getFragranceDisplayName, getFragrancePriceAdjustment, parseProductPrice } = require("../utils/productPricing");
+const { loadCustomizationCatalog, resolveProductOptions } = require("../utils/productOptions");
 const { sendError } = require("../utils/errorResponse");
 const variantPricePattern = /(?:rs\.?|inr|₹)\s*([0-9]+(?:\.[0-9]+)?)(?:\s*[-–]\s*([0-9]+(?:\.[0-9]+)?))?/i;
 
@@ -185,6 +186,7 @@ async function normalizeLineItemsAsync(items) {
     return [];
   }
 
+  const catalog = await loadCustomizationCatalog();
   const result = [];
   for (const item of items) {
     const productId = String(item.productId ?? item.id ?? "").trim();
@@ -205,8 +207,10 @@ async function normalizeLineItemsAsync(items) {
       throw createHttpError(400, `Product not found: ${productId}`);
     }
 
-    const candleColors = product.candleColors ?? [];
-    const fragrances = product.fragrances ?? [];
+    // Resolve the same options the storefront showed (product options, or the shared
+    // customization catalog when the product has none) so the customer's choice is
+    // validated, priced, and recorded instead of silently dropped.
+    const { candleColors, fragrances } = resolveProductOptions(product, catalog);
     const variants = product.variants ?? [];
     const fallbackPrice = product.salePrice || product.basePrice || product.price;
 

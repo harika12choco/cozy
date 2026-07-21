@@ -186,6 +186,28 @@
   color: #82171a;
 }
 
+/* Customization hint */
+.choice-customizable-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  align-self: flex-start;
+  max-width: 100%;
+  margin: 0 0 8px;
+  padding: 3px 9px;
+  border: 1px solid rgba(109, 11, 10, 0.14);
+  border-radius: 999px;
+  background: rgba(109, 11, 10, 0.05);
+  color: #6d0b0a;
+  font: 700 10px/1.25 var(--sans-font, sans-serif);
+  letter-spacing: 0.02em;
+}
+
+.choice-customizable-note svg {
+  flex-shrink: 0;
+  font-size: 10px;
+}
+
 /* Price Container & Hierarchy */
 .choice-price-container {
   display: flex;
@@ -503,6 +525,12 @@
     font-size: 14px;
     margin-bottom: 6px;
     min-height: 2.5em;
+  }
+
+  .choice-customizable-note {
+    gap: 4px;
+    padding: 3px 7px;
+    font-size: 9px;
   }
 
   .choice-selling-price {

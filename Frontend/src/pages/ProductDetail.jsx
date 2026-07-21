@@ -21,7 +21,7 @@ import {
   FaTruck
 } from "react-icons/fa";
 import { addItemToCart } from "../utils/cart";
-import { fetchProductsByIds, matchesCategory, readShopProducts } from "../utils/shopProducts";
+import { fetchProductsByIds, matchesCategory, pickOptionList, readShopProducts } from "../utils/shopProducts";
 import {
   calculateProductPrice,
   formatProductPrice,
@@ -170,7 +170,7 @@ export default function ProductDetail() {
   const variantOptions = useMemo(() => getVariantOptions(product), [product]);
   const colorOptions = useMemo(
     () =>
-      (Array.isArray(product?.candleColors) ? product.candleColors : product?.colors ?? [])
+      pickOptionList(product?.candleColors, product?.colors)
         .map((option, index) => normalizeColorOption(option, `color-${index}`))
         .filter(Boolean),
     [product]
@@ -520,7 +520,7 @@ export default function ProductDetail() {
             </div>
             <p className={`product-detail-stock ${isUnavailable ? "is-out" : ""}`}>
               <FaBoxOpen aria-hidden="true" />
-              {isUnavailable ? "Out of stock" : `${availableStock} items left`}
+              {isUnavailable ? "Out of stock" : product.staticProduct ? "In stock" : `${availableStock} items left`}
             </p>
           </div>
 

@@ -1,6 +1,9 @@
 .reviews-section {
   position: relative;
   display: grid;
+  /* Without an explicit track the implicit `auto` column grows to the carousel's 900px
+     max-content width, which pushed the centered card off-screen on phones. */
+  grid-template-columns: minmax(0, 1fr);
   place-items: center;
   padding: 84px 20px 78px;
   overflow: hidden;
@@ -10,6 +13,9 @@
 
 .reviews-shell {
   width: min(100%, 1040px);
+  min-width: 0;
+  max-width: 100%;
+  justify-self: center;
   margin: 0 auto;
 }
 
@@ -17,6 +23,7 @@
   position: relative;
   isolation: isolate;
   width: 100%;
+  max-width: 100%;
   min-height: 358px;
   padding: 102px 34px 26px;
   overflow: visible;
@@ -114,7 +121,7 @@
   position: relative;
   z-index: 2;
   width: min(100%, 900px);
-  max-width: 900px;
+  max-width: 100%;
   margin: 0 auto;
   overflow: hidden;
   border-radius: 22px;
@@ -125,13 +132,16 @@
 
 .reviews-track {
   display: flex;
+  width: 100%;
   transition: transform 0.55s ease;
   will-change: transform;
 }
 
 .review-card {
   position: relative;
-  min-width: 100%;
+  flex: 0 0 100%;
+  width: 100%;
+  min-width: 0;
   min-height: 236px;
   display: grid;
   grid-template-columns: minmax(190px, 0.34fr) minmax(0, 1fr);

@@ -21,6 +21,10 @@
 
 html{
   scroll-behavior:auto;
+  /* Clipping on <html> as well as <body> keeps a single wide element from making the whole
+     page scroll sideways on phones, which pushed centered sections off-screen. */
+  overflow-x:hidden;
+  max-width:100%;
 }
 
 body{
@@ -35,6 +39,7 @@ body{
   font-weight:400;
   letter-spacing:0.5px;
   overflow-x:hidden;
+  max-width:100%;
 }
 
 h1,

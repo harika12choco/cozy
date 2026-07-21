@@ -51,8 +51,8 @@ export default function EditProduct({ productId, onNavigate }) {
           setForm({
             ...item,
             imageFile: null,
-            candleColors: item.candleColors || [],
-            fragrances: item.fragrances || []
+            candleColors: item.selectedCandleColors ?? item.candleColors ?? [],
+            fragrances: item.selectedFragrances ?? item.fragrances ?? []
           });
         }
       } catch (loadError) {

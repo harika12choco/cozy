@@ -3,11 +3,10 @@ import { useCallback, useEffect, useState } from "react";
 import ProductChoiceCard from "./ProductChoiceCard";
 import { addItemToCart } from "../utils/cart";
 import { readShopProducts } from "../utils/shopProducts";
-import { readStaticProducts } from "../utils/staticProducts";
 
 export default function OurProducts() {
   const [feedback, setFeedback] = useState("");
-  const [products, setProducts] = useState(() => readStaticProducts());
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const refreshProducts = useCallback(async () => {
