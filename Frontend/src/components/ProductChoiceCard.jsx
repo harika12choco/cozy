@@ -224,7 +224,11 @@ export default function ProductChoiceCard({ product, onAddToCart, variant = "sho
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                handleAddToCart();
+                if (variantOptions.length > 0) {
+                  openQuickView(e);
+                } else {
+                  handleAddToCart();
+                }
               }}
               disabled={isUnavailable}
             >
