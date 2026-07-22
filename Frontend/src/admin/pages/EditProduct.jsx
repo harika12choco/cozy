@@ -17,6 +17,7 @@ export default function EditProduct({ productId, onNavigate }) {
     description: "",
     candleColors: [],
     fragrances: [],
+    variants: [],
     giftWrapPrice: ""
   });
   const [imageName, setImageName] = useState("");
@@ -52,7 +53,8 @@ export default function EditProduct({ productId, onNavigate }) {
             ...item,
             imageFile: null,
             candleColors: item.selectedCandleColors ?? item.candleColors ?? [],
-            fragrances: item.selectedFragrances ?? item.fragrances ?? []
+            fragrances: item.selectedFragrances ?? item.fragrances ?? [],
+            variants: Array.isArray(item.variants) ? item.variants : []
           });
         }
       } catch (loadError) {
@@ -91,6 +93,28 @@ export default function EditProduct({ productId, onNavigate }) {
         : [...current.fragrances, { optionId: fragrance.id, name: fragrance.name }];
       return { ...current, fragrances: nextFrags };
     });
+  }
+
+  function addCombo() {
+    setForm((current) => ({
+      ...current,
+      variants: [...(current.variants ?? []), { name: "", price: "", stock: "" }]
+    }));
+  }
+
+  function updateCombo(index, field, value) {
+    setForm((current) => {
+      const nextVariants = [...(current.variants ?? [])];
+      nextVariants[index] = { ...nextVariants[index], [field]: value };
+      return { ...current, variants: nextVariants };
+    });
+  }
+
+  function removeCombo(index) {
+    setForm((current) => ({
+      ...current,
+      variants: (current.variants ?? []).filter((_, itemIndex) => itemIndex !== index)
+    }));
   }
 
   if (loading) {
@@ -279,6 +303,60 @@ export default function EditProduct({ productId, onNavigate }) {
             {availableFragrances.length === 0 && (
               <p className="admin-options-empty">No active fragrances. Go to "Fragrances" page to add some.</p>
             )}
+          </div>
+        </div>
+
+        {/* ────────── COMBO OFFERS SECTION ────────── */}
+        <div className="admin-form-span admin-options-section">
+          <label>Combo Offers — bundle pricing (e.g. "2 Pieces" for a special price)</label>
+          <p className="admin-combo-hint">
+            Add combos customers can pick before checkout. The combo price replaces the base price for that order.
+            Leave empty if this product has no combos.
+          </p>
+
+          {(form.variants ?? []).length > 0 && (
+            <div className="admin-combo-list">
+              <div className="admin-combo-row admin-combo-row-head">
+                <span>Combo name</span>
+                <span>Price (Rs)</span>
+                <span>Stock (optional)</span>
+                <span aria-hidden="true" />
+              </div>
+              {form.variants.map((combo, index) => (
+                <div className="admin-combo-row" key={combo.optionId || index}>
+                  <input
+                    type="text"
+                    placeholder="e.g. 2 Pieces"
+                    value={combo.name ?? ""}
+                    onChange={(event) => updateCombo(index, "name", event.target.value)}
+                    aria-label={`Combo ${index + 1} name`}
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Price"
+                    value={combo.price ?? ""}
+                    onChange={(event) => updateCombo(index, "price", event.target.value)}
+                    aria-label={`Combo ${index + 1} price`}
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Uses product stock"
+                    value={combo.stock ?? ""}
+                    onChange={(event) => updateCombo(index, "stock", event.target.value)}
+                    aria-label={`Combo ${index + 1} stock`}
+                  />
+                  <button type="button" className="admin-tag-remove" onClick={() => removeCombo(index)} aria-label={`Remove combo ${index + 1}`}>×</button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="admin-options-inline">
+            <button type="button" className="admin-secondary-btn" onClick={addCombo}>
+              + Add Combo
+            </button>
           </div>
         </div>
 

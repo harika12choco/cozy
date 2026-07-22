@@ -19,8 +19,65 @@ async function prepareProductPayload(payload) {
     isBestSeller: normalizedBestSeller,
     candleColors: normalizeProductOptions(payload.candleColors, true),
     fragrances: normalizeProductOptions(payload.fragrances, false),
+    variants: normalizeProductVariants(payload.variants),
     ...imageUpload
   };
+}
+
+function slugifyOption(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/**
+ * Combo offers ride on the existing variant engine (a selected variant's price becomes the
+ * cart base price). Rows without a name or a positive price are dropped so a half-filled
+ * admin row never reaches the storefront or fails schema validation.
+ */
+function normalizeProductVariants(variants) {
+  if (!Array.isArray(variants)) {
+    return [];
+  }
+
+  const seen = new Set();
+
+  return variants
+    .map((variant) => {
+      if (!variant || typeof variant !== "object") {
+        return null;
+      }
+
+      const name = String(variant.name ?? variant.label ?? "").trim();
+      const price = Math.max(0, Number(variant.price ?? 0));
+
+      if (!name || price <= 0) {
+        return null;
+      }
+
+      const optionId = String(variant.optionId ?? variant.id ?? variant._id ?? "").trim() || slugifyOption(name);
+      const key = optionId.toLowerCase();
+
+      if (seen.has(key)) {
+        return null;
+      }
+
+      seen.add(key);
+
+      return {
+        optionId,
+        name,
+        price,
+        weight: String(variant.weight ?? "").trim(),
+        sku: String(variant.sku ?? "").trim(),
+        stock: Math.max(0, Math.floor(Number(variant.stock ?? 0) || 0)),
+        enabled: variant.enabled !== false
+      };
+    })
+    .filter(Boolean);
 }
 
 function normalizeProductOptions(options, includeHex) {

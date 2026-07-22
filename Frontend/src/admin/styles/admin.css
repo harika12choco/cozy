@@ -836,6 +836,58 @@
   color: #651514;
 }
 
+/* ── Combo offers editor ─────────────────────────────────────────── */
+.admin-combo-hint {
+  margin: -2px 0 4px;
+  color: #8a6f66;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.admin-combo-list {
+  display: grid;
+  gap: 8px;
+}
+.admin-combo-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.8fr) minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+.admin-combo-row-head {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #8a6f66;
+}
+.admin-combo-row-head span {
+  padding-left: 2px;
+}
+.admin-combo-row input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 12px;
+  border: 1px solid rgba(101, 21, 20, 0.16);
+  border-radius: 10px;
+  background: #fffdf9;
+  font-family: inherit;
+  font-size: 14px;
+  color: #3b2a26;
+}
+.admin-combo-row input:focus {
+  outline: none;
+  border-color: #651514;
+  box-shadow: 0 0 0 3px rgba(101, 21, 20, 0.08);
+}
+@media (max-width: 640px) {
+  .admin-combo-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  }
+  .admin-combo-row-head {
+    display: none;
+  }
+}
+
 /* ── Check mark inside swatch ────────────────────────────────────── */
 .admin-swatch-check {
   font-size: 14px;

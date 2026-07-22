@@ -329,7 +329,7 @@ export default function ProductChoiceCard({ product, onAddToCart, variant = "sho
 
                 {variantOptions.length > 0 ? (
                   <div className="quickview-option-section">
-                    <label>Size / Pack:</label>
+                    <label>Combo Offers:</label>
                     <div className="quickview-variants">
                       {variantOptions.map((v, idx) => (
                         <button

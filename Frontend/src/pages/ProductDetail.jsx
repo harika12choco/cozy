@@ -534,7 +534,7 @@ export default function ProductDetail() {
 
           {variantOptions.length > 0 ? (
             <section className="product-detail-control-section">
-              <h2>Variants</h2>
+              <h2>Combo Offers</h2>
               <div className="product-detail-variant-grid">
                 {variantOptions.map((variant, index) => {
                   const isSelected = optionKey(selectedVariant, "") === optionKey(variant, index);
