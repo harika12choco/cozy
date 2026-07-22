@@ -5,6 +5,7 @@ import CandleSafety from "./CandleSafety";
 import { pickOptionList } from "../utils/shopProducts";
 import {
   getCalculatedProductPrice,
+  getPurchasableBasePrice,
   normalizeColorOption,
   normalizeFragranceOption,
   normalizeVariantOption,
@@ -46,7 +47,9 @@ export default function ProductChoiceCard({ product, onAddToCart, variant = "sho
 
   const [selectedColor, setSelectedColor] = useState(() => colorOptions[0] ?? null);
   const [selectedFragrance, setSelectedFragrance] = useState(() => fragranceOptions[0] ?? null);
-  const [selectedVariant, setSelectedVariant] = useState(() => variantOptions[0] ?? null);
+  // Default to no combo (single piece). Selecting a combo is what changes the price.
+  const [selectedVariant, setSelectedVariant] = useState(null);
+  const perPiecePrice = useMemo(() => getPurchasableBasePrice(product, null), [product]);
 
   const customizationLabel = useMemo(() => {
     if (colorOptions.length > 0 && fragranceOptions.length > 0) {
@@ -331,6 +334,13 @@ export default function ProductChoiceCard({ product, onAddToCart, variant = "sho
                   <div className="quickview-option-section">
                     <label>Combo Offers:</label>
                     <div className="quickview-variants">
+                      <button
+                        type="button"
+                        className={`quickview-variant-btn ${!selectedVariant ? "is-selected" : ""}`}
+                        onClick={() => setSelectedVariant(null)}
+                      >
+                        Single Piece (Rs {perPiecePrice})
+                      </button>
                       {variantOptions.map((v, idx) => (
                         <button
                           key={`qv-var-${idx}`}

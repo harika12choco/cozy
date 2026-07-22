@@ -182,12 +182,18 @@ function normalizeSelectedVariant(value = {}, variants = [], fallbackPrice = 0) 
 
   const optionId = String(value?.optionId ?? value?.id ?? value?._id ?? "").trim();
   const name = String(value?.name ?? "").trim();
+
+  // No combo chosen → single piece (per-piece base price), never force the first combo.
+  if (!optionId && !name) {
+    return null;
+  }
+
   const match = normalizedVariants.find((variant) => (
     (optionId && String(variant.optionId) === optionId) ||
     (name && variant.name.toLowerCase() === name.toLowerCase())
   ));
 
-  return match ?? normalizedVariants[0];
+  return match ?? null;
 }
 
 function getPurchasableBasePrice(product, selectedVariant) {

@@ -302,6 +302,14 @@
   letter-spacing: 0;
 }
 
+.product-detail-combo-hint {
+  margin: 8px 0 0;
+  color: #7a5c52;
+  font-family: var(--sans-font);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .product-detail-variant-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(126px, 1fr));

@@ -189,7 +189,9 @@ export default function ProductDetail() {
       return;
     }
 
-    setSelectedVariant(variantOptions[0] ?? null);
+    // Default to no combo (single piece / per-piece price). The price only changes when the
+    // customer actively picks a combo.
+    setSelectedVariant(null);
     setSelectedColor(colorOptions[0] ?? null);
     setSelectedFragrance(fragranceOptions[0] ?? null);
     setQuantity(1);
@@ -345,11 +347,6 @@ export default function ProductDetail() {
       return false;
     }
 
-    if (variantOptions.length > 0 && !selectedVariant) {
-      setFeedback("Please select a variant.");
-      return false;
-    }
-
     addItemToCart(withCalculatedProductPrice({
       ...product,
       img: mainImage,
@@ -441,6 +438,7 @@ export default function ProductDetail() {
   const collectionLabel = getCollectionLabel(product);
   const originalBasePrice = selectedVariant?.price || parseProductPrice(product.basePrice || product.price);
   const currentBasePrice = getPurchasableBasePrice(product, selectedVariant);
+  const perPieceBasePrice = getPurchasableBasePrice(product, null);
   const unitPrice = calculateProductPrice(product, selectedColor, selectedFragrance, selectedVariant);
   const fragranceAdjustment = getFragrancePriceAdjustment(selectedFragrance);
   const originalUnitPrice = originalBasePrice + fragranceAdjustment;
@@ -535,7 +533,21 @@ export default function ProductDetail() {
           {variantOptions.length > 0 ? (
             <section className="product-detail-control-section">
               <h2>Combo Offers</h2>
+              <p className="product-detail-combo-hint">Buying just one? Keep Single Piece. Pick a combo to get the bundle price.</p>
               <div className="product-detail-variant-grid">
+                <button
+                  type="button"
+                  className={`product-detail-variant-card ${!selectedVariant ? "is-selected" : ""}`}
+                  onClick={() => {
+                    setSelectedVariant(null);
+                    setQuantity(1);
+                  }}
+                  aria-pressed={!selectedVariant}
+                >
+                  <span className="product-detail-option-check">{!selectedVariant ? <FaCheck aria-hidden="true" /> : null}</span>
+                  <span>Single Piece</span>
+                  <strong>{formatProductPrice(perPieceBasePrice)}</strong>
+                </button>
                 {variantOptions.map((variant, index) => {
                   const isSelected = optionKey(selectedVariant, "") === optionKey(variant, index);
 

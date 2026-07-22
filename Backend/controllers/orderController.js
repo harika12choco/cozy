@@ -140,21 +140,16 @@ function normalizeSelectedVariant(value, allowedVariants = [], fallbackPrice = 0
   const optionId = String(value.optionId ?? value.id ?? value._id ?? "").trim();
   const name = String(value.name ?? "").trim();
 
+  // No combo chosen → single piece (per-piece base price). Never force a combo the
+  // customer didn't pick.
+  if (!optionId && !name) {
+    return null;
+  }
+
   const match = allowedVariants.find((variant) => (
     (optionId && String(variant.optionId ?? variant._id ?? variant.id ?? "") === optionId) ||
     (name && variant.name.toLowerCase() === name.toLowerCase())
   ));
-
-  if (!match && allowedVariants.length > 0) {
-    return {
-      optionId: String(allowedVariants[0].optionId ?? allowedVariants[0]._id ?? allowedVariants[0].id ?? ""),
-      name: allowedVariants[0].name,
-      price: parseProductPrice(allowedVariants[0].price ?? fallbackPrice),
-      weight: String(allowedVariants[0].weight ?? "").trim(),
-      sku: String(allowedVariants[0].sku ?? "").trim(),
-      stock: Math.max(0, Number(allowedVariants[0].stock ?? 0))
-    };
-  }
 
   if (!match) return null;
 
