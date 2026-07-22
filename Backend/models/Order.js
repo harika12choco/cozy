@@ -192,7 +192,7 @@ const orderSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      default: "Cash on Delivery (COD)",
+      default: "Razorpay",
       trim: true,
       maxlength: 64
     },

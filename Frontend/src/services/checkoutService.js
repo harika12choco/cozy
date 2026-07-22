@@ -56,15 +56,6 @@ async function getAuthHeader() {
   }
 }
 
-export async function createCodOrder(order) {
-  const authHeader = await getAuthHeader();
-  return requestJson("/orders", {
-    method: "POST",
-    headers: authHeader,
-    body: JSON.stringify(order)
-  });
-}
-
 export async function createRazorpayOrder(order) {
   const authHeader = await getAuthHeader();
   return requestJson("/payment/create-order", {

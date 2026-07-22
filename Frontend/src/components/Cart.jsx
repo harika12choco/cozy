@@ -11,7 +11,6 @@ import {
   readCartTotals
 } from "../utils/cart";
 import {
-  createCodOrder,
   createRazorpayOrder,
   verifyRazorpayPayment
 } from "../services/checkoutService";
@@ -21,8 +20,7 @@ import "../styles/Cart.css";
 
 const RAZORPAY_CHECKOUT_URL = "https://checkout.razorpay.com/v1/checkout.js";
 const PAYMENT_METHODS = {
-  RAZORPAY: "razorpay",
-  COD: "cod"
+  RAZORPAY: "razorpay"
 };
 const DELIVERY_CHARGE = 0;
 
@@ -425,16 +423,6 @@ export default function Cart() {
       setPlacingOrder(true);
       setOrderError("");
 
-      if (paymentMethod === PAYMENT_METHODS.COD) {
-        const savedOrder = await createCodOrder(buildOrderPayload({
-          paymentMethod: "Cash on Delivery (COD)",
-          paymentStatus: "Pending (COD)",
-          payment: "Pending (COD)"
-        }));
-        clearCartAndRedirect(savedOrder);
-        return;
-      }
-
       const onlineOrderPayload = buildOrderPayload({
         paymentMethod: "Razorpay",
         paymentStatus: "Pending",
@@ -683,16 +671,6 @@ export default function Cart() {
                   onChange={() => setPaymentMethod(PAYMENT_METHODS.RAZORPAY)}
                 />
                 <span>Razorpay (Online Payment)</span>
-              </label>
-              <label className="payment-method-option">
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value={PAYMENT_METHODS.COD}
-                  checked={paymentMethod === PAYMENT_METHODS.COD}
-                  onChange={() => setPaymentMethod(PAYMENT_METHODS.COD)}
-                />
-                <span>Cash on Delivery (COD)</span>
               </label>
             </div>
 

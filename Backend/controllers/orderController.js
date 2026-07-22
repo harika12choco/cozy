@@ -264,7 +264,7 @@ async function prepareOrderPayload(payload = {}) {
   // Secure Shipping Calculation (Part 6)
   const deliveryCharge = subtotal < 1500 ? 190 : 390;
   const total = subtotal + deliveryCharge;
-  const paymentMethod = normalized.paymentMethod || normalized.payment || "Cash on Delivery (COD)";
+  const paymentMethod = normalized.paymentMethod || normalized.payment || "Razorpay";
   const paymentStatus = normalized.paymentStatus || normalized.payment || "Pending";
 
   return {
