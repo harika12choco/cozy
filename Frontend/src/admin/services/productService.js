@@ -59,6 +59,16 @@ async function uploadImageToCloudinary(file) {
     }
   }
 
+  if (signatureResponse?.status === 401) {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(ADMIN_TOKEN_STORAGE_KEY);
+      if (!window.location.pathname.endsWith("/admin/login")) {
+        window.location.assign("/admin/login");
+      }
+    }
+    throw new Error("Your admin session has expired. Please sign in again.");
+  }
+
   if (!signatureResponse?.ok) {
     throw new Error(
       `Cloudinary signature failed (${signatureResponse?.status ?? "unknown"}) at ${lastSignatureUrl}`
@@ -118,6 +128,19 @@ async function request(path = "", options = {}) {
     },
     ...restOptions
   });
+
+  // Expired/invalid admin token → clear it and send the admin back to sign in, instead of a
+  // dead-end "add failed" error. This also covers the Cloudinary-signature call, which is the
+  // first authenticated request in the add-with-image flow.
+  if (response.status === 401) {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(ADMIN_TOKEN_STORAGE_KEY);
+      if (!window.location.pathname.endsWith("/admin/login")) {
+        window.location.assign("/admin/login");
+      }
+    }
+    throw new Error("Your admin session has expired. Please sign in again.");
+  }
 
   if (!response.ok) {
     let message = "Request failed";

@@ -49,6 +49,20 @@ export async function requestJson(path, options = {}) {
     );
   }
 
+  // An expired/invalid admin token (8h TTL, or a backend secret rotation) rejects every write
+  // with 401. Without this, the admin just sees a dead-end error and thinks "it's broken".
+  // Clear the stale token and send them back to sign in. The login call itself is exempt so a
+  // wrong-password 401 still shows its own message.
+  if (response.status === 401 && !path.includes("/admin/auth/login")) {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(ADMIN_TOKEN_STORAGE_KEY);
+      if (!window.location.pathname.endsWith("/admin/login")) {
+        window.location.assign("/admin/login");
+      }
+    }
+    throw new Error("Your admin session has expired. Please sign in again.");
+  }
+
   if (!response.ok) {
     let message = "Request failed";
 
