@@ -63,7 +63,13 @@ export function resolveApiRoot() {
 }
 
 export function resolveProductsApiUrl() {
-  const envProductsApi = import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_BASE_URL;
+  // Must use the SAME env precedence as resolveApiRoot(): VITE_API_BASE_URL first, then
+  // VITE_API_URL. If the two are read in opposite order and both vars are set to different
+  // hosts (e.g. a stale value left after a backend URL change), login and the option lists
+  // hit the correct host while product save/upload silently target the wrong one — the admin
+  // is logged in and the form fills, but "Save Product" hangs. Keeping the order identical
+  // guarantees product operations reach the same host as the rest of the app.
+  const envProductsApi = import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL;
 
   if (shouldUseConfiguredApi(envProductsApi)) {
     return normalizeProductsApi(envProductsApi);
