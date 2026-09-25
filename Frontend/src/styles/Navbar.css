@@ -438,14 +438,18 @@ min-height:82px;
 }
 
 .navbar-center{
+  /* Kept inside the grid. It used to be absolutely positioned at left:38%, which took it out of
+     the layout entirely - so nothing stopped the logo from sliding under the search button. */
   display:flex;
   grid-column:2;
   grid-row:1;
   justify-self:center;
-  position:absolute;
-  left:38%;
-  transform:translateX(-50%);
+  position:static;
+  left:auto;
+  transform:none;
   width:auto;
+  min-width:0;
+  max-width:100%;
   z-index:1;
 }
 
@@ -458,8 +462,12 @@ justify-content:center;
 }
 
 .logo-image{
-height:120px;
-max-width:228px;
+/* Sized to fit the middle grid column at the narrowest phone width, so it can never collide with
+   the search button or the action icons. */
+height:86px;
+width:auto;
+max-width:100%;
+object-fit:contain;
 transform:none;
 }
 
@@ -589,9 +597,11 @@ padding:10px 12px;
 .navbar-center{
 display:flex;
 justify-self:center;
-position:absolute;
-left:38%;
-transform:translateX(-50%);
+position:static;
+left:auto;
+transform:none;
+min-width:0;
+max-width:100%;
 }
 
 .icon-btn{
@@ -615,8 +625,8 @@ height:20px;
 }
 
 .logo-image{
-height:108px;
-max-width:206px;
+height:74px;
+max-width:100%;
 }
 
 .navbar-search{

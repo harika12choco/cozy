@@ -543,6 +543,12 @@
     font-size: 9px;
   }
 
+  /* Portrait product images on phones, matching the standing-rectangle proportions the client
+     asked for. Desktop keeps the square tile. */
+  .choice-card-image-wrap {
+    aspect-ratio: 3 / 4;
+  }
+
   /* Nothing is allowed to sit on top of the photo on a phone except the wishlist heart - the
      quick-view trigger is redundant there because tapping the card already opens the product. */
   .choice-quickview-trigger {
