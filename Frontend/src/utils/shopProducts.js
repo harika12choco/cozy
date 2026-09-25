@@ -263,7 +263,26 @@ function readCatalogCache(bucket) {
   return entry.products;
 }
 
+// The home page reads the catalogue from more than one component. Sharing a single in-flight
+// request keeps that to one round trip instead of one per consumer, which matters on a free-tier
+// backend that sleeps between visits.
+let inflightCatalogue = null;
+
 export async function readShopProducts() {
+  if (inflightCatalogue) {
+    return inflightCatalogue;
+  }
+
+  inflightCatalogue = loadShopProducts();
+
+  try {
+    return await inflightCatalogue;
+  } finally {
+    inflightCatalogue = null;
+  }
+}
+
+async function loadShopProducts() {
   try {
     const products = await fetchProducts();
     const formatted = formatShopProducts(products);

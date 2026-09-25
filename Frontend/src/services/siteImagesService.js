@@ -27,6 +27,20 @@ async function requestJson(path) {
   return response.json();
 }
 
+// Both the hero banner and the category carousel need this on the home page. Sharing one
+// in-flight request keeps it to a single round trip per page load.
+let inflight = null;
+
 export async function fetchSiteImages() {
-  return requestJson("/site-images");
+  if (inflight) {
+    return inflight;
+  }
+
+  inflight = requestJson("/site-images");
+
+  try {
+    return await inflight;
+  } finally {
+    inflight = null;
+  }
 }

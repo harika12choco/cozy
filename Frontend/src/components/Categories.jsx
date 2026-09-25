@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import "../styles/Categories.css";
 import menuData, { slugifyCategory } from "../utils/menuData";
 import { fetchSiteImages } from "../services/siteImagesService";
+import { readShopProducts } from "../utils/shopProducts";
+import { normalizeCategory } from "../utils/menuData";
 
 const displayCategories = menuData;
 
@@ -20,6 +22,7 @@ export default function Categories() {
     canScrollRight: true
   });
   const [imageOverrides, setImageOverrides] = useState({});
+  const [productImages, setProductImages] = useState({});
 
   const animatedCategories = useMemo(
     () => [
@@ -59,6 +62,39 @@ export default function Categories() {
     return () => {
       active = false;
       window.removeEventListener("cozy-site-images-updated", handleUpdate);
+    };
+  }, []);
+
+  // Until an admin uploads artwork for a category, borrow the first product photo from it, so a
+  // card shows something real instead of an empty tile. An uploaded image always wins.
+  useEffect(() => {
+    let active = true;
+
+    async function loadProductImages() {
+      try {
+        const products = await readShopProducts();
+        if (!active) return;
+
+        const byCategory = {};
+        for (const product of products) {
+          const category = normalizeCategory(product.category);
+          const image = product.img || product.image;
+          if (category && image && !byCategory[category]) {
+            byCategory[category] = image;
+          }
+        }
+        setProductImages(byCategory);
+      } catch {
+        if (active) setProductImages({});
+      }
+    }
+
+    loadProductImages();
+    window.addEventListener("cozy-admin-products-updated", loadProductImages);
+
+    return () => {
+      active = false;
+      window.removeEventListener("cozy-admin-products-updated", loadProductImages);
     };
   }, []);
 
@@ -241,8 +277,8 @@ export default function Categories() {
             >
               {/* A category with no image uploaded yet shows the card's own warm background
                   rather than a broken empty <img>. */}
-              {imageOverrides[category.title] ? (
-                <img src={imageOverrides[category.title]} alt="" />
+              {imageOverrides[category.title] || productImages[category.title] ? (
+                <img src={imageOverrides[category.title] || productImages[category.title]} alt="" />
               ) : (
                 <span className="category-card-placeholder" aria-hidden="true" />
               )}
