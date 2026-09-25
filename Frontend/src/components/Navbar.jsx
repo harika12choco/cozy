@@ -4,10 +4,11 @@ import { getCartItems, syncCartWithServer } from "../utils/cart";
 import { auth, provider } from "../firebase";
 import { onAuthStateChanged, signInWithPopup } from "firebase/auth";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { FaSearch } from "react-icons/fa";
+import { FaHeart, FaSearch } from "react-icons/fa";
 import navLogo from "../assets/navlogo.png";
 import Sidebar from "./Sidebar";
 import menuData, { slugifyCategory } from "../utils/menuData";
+import { getWishlistCount, subscribeWishlist } from "../utils/wishlist";
 
 function CartIcon() {
   return (
@@ -48,6 +49,7 @@ export default function Navbar({ activePage, onNavigate }){
   const [cartCount, setCartCount] = useState(() =>
     getCartItems().reduce((total, item) => total + item.quantity, 0)
   );
+  const [wishlistCount, setWishlistCount] = useState(() => getWishlistCount());
   const [user, setUser] = useState(() => auth.currentUser);
   const [avatarFailed, setAvatarFailed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -68,6 +70,15 @@ export default function Navbar({ activePage, onNavigate }){
       window.removeEventListener("cart-updated", syncCartCount);
       window.removeEventListener("storage", syncCartCount);
     };
+  }, []);
+
+  useEffect(() => {
+    function syncWishlistCount() {
+      setWishlistCount(getWishlistCount());
+    }
+
+    syncWishlistCount();
+    return subscribeWishlist(syncWishlistCount);
   }, []);
 
   useEffect(() => {
@@ -153,46 +164,29 @@ export default function Navbar({ activePage, onNavigate }){
                 <button type="button" onClick={() => onNavigate("shop")}>Shop All</button>
                 <div className={`desktop-dropdown-panel ${shopDropdownOpen ? "open" : ""}`}>
                   <div className="dropdown-grid">
-                    <div className="dropdown-grid-section" key="shop-all-root">
-                      <div className="dropdown-grid-heading">Browse Categories</div>
+                    <div className="dropdown-grid-heading">Browse Categories</div>
+                    <button
+                      type="button"
+                      className="dropdown-grid-item dropdown-grid-item-lead"
+                      onClick={() => {
+                        onNavigate("shop");
+                        setShopDropdownOpen(false);
+                      }}
+                    >
+                      Shop All
+                    </button>
+                    {menuData.map((section) => (
                       <button
+                        key={section.title}
                         type="button"
                         className="dropdown-grid-item"
                         onClick={() => {
-                          onNavigate("shop");
+                          onNavigate({ type: "category", value: section.title, slug: slugifyCategory(section.title) });
                           setShopDropdownOpen(false);
                         }}
                       >
-                        Shop All
+                        {section.title}
                       </button>
-                    </div>
-                    {menuData.map((section) => (
-                      <div className="dropdown-grid-section" key={section.title}>
-                        <div className="dropdown-grid-heading">{section.title}</div>
-                        <button
-                          type="button"
-                          className="dropdown-grid-item"
-                          onClick={() => {
-                            onNavigate({ type: "category", value: section.title, slug: slugifyCategory(section.title) });
-                            setShopDropdownOpen(false);
-                          }}
-                        >
-                          {section.title}
-                        </button>
-                        {section.items.map((item) => (
-                          <button
-                            key={item}
-                            type="button"
-                            className="dropdown-grid-item"
-                            onClick={() => {
-                              onNavigate({ type: "category", value: item, slug: slugifyCategory(item) });
-                              setShopDropdownOpen(false);
-                            }}
-                          >
-                            {item}
-                          </button>
-                        ))}
-                      </div>
                     ))}
                   </div>
                 </div>
@@ -238,6 +232,17 @@ export default function Navbar({ activePage, onNavigate }){
         </form>
 
         <div className="navbar-right">
+          <button
+            type="button"
+            className={`icon-btn ${activePage === "wishlist" ? "cart-btn-active" : ""}`}
+            onClick={() => onNavigate("wishlist")}
+            aria-label={`Saved items (${wishlistCount})`}
+            title="Saved Items"
+          >
+            <FaHeart aria-hidden="true" className="nav-icon-svg nav-heart-icon" />
+            {wishlistCount > 0 ? <span className="cart-count wishlist-count">{wishlistCount}</span> : null}
+          </button>
+
           <button
             type="button"
             className={`icon-btn ${activePage === "cart" ? "cart-btn-active" : ""}`}

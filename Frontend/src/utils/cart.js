@@ -92,7 +92,9 @@ export function readCartTotals() {
   try {
     const data = JSON.parse(window.localStorage.getItem(CART_TOTALS_KEY));
     if (data) return data;
-  } catch {}
+  } catch {
+    // Unreadable totals just fall through to the local calculation below.
+  }
 
   // Fallback local calculation
   const items = readCart();

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { productService } from "../services/productService";
 import { candleColorService, fragranceService } from "../services/optionService";
-import { categoryGroups } from "../../utils/menuData";
+import { categoryOptions, normalizeCategory } from "../../utils/menuData";
 
 export default function EditProduct({ productId, onNavigate }) {
   const [product, setProduct] = useState(null);
@@ -52,6 +52,9 @@ export default function EditProduct({ productId, onNavigate }) {
           setForm({
             ...item,
             imageFile: null,
+            // Retired categories resolve to the default one, so the picker shows the category
+            // the storefront is actually using instead of an empty field.
+            category: normalizeCategory(item.category),
             candleColors: item.selectedCandleColors ?? item.candleColors ?? [],
             fragrances: item.selectedFragrances ?? item.fragrances ?? [],
             variants: Array.isArray(item.variants) ? item.variants : []
@@ -90,9 +93,20 @@ export default function EditProduct({ productId, onNavigate }) {
       const exists = current.fragrances.some((f) => f.optionId === fragrance.id);
       const nextFrags = exists
         ? current.fragrances.filter((f) => f.optionId !== fragrance.id)
-        : [...current.fragrances, { optionId: fragrance.id, name: fragrance.name }];
+        : [...current.fragrances, { optionId: fragrance.id, name: fragrance.name, priceAdjustment: 0 }];
       return { ...current, fragrances: nextFrags };
     });
+  }
+
+  function updateFragrancePriceAdjustment(optionId, value) {
+    setForm((current) => ({
+      ...current,
+      fragrances: current.fragrances.map((fragrance) =>
+        fragrance.optionId === optionId
+          ? { ...fragrance, priceAdjustment: Math.max(0, Number(value || 0)) }
+          : fragrance
+      )
+    }));
   }
 
   function addCombo() {
@@ -165,10 +179,24 @@ export default function EditProduct({ productId, onNavigate }) {
     try {
       setSaving(true);
       setError("");
+      // Send only the fields this form owns. Spreading the whole loaded product sent the API's
+      // computed fields (basePrice, colors, customizable, ...) straight back on save, which is
+      // how an edited price could be overwritten by the stale basePrice that came with it.
+      // Fields the form does not manage are left untouched by the backend's partial update.
       await productService.update(productId, {
-        ...form,
+        name: form.name,
         price: Number(form.price),
+        category: form.category,
         stock: Number(form.stock),
+        status: form.status,
+        bestSeller: Boolean(form.bestSeller),
+        isBestSeller: Boolean(form.bestSeller),
+        description: form.description,
+        image: form.image,
+        imageFile: form.imageFile,
+        candleColors: form.candleColors,
+        fragrances: form.fragrances,
+        variants: form.variants,
         giftWrapPrice: Number(form.giftWrapPrice || 80)
       });
       onNavigate("products");
@@ -210,14 +238,10 @@ export default function EditProduct({ productId, onNavigate }) {
           Category
           <select name="category" value={form.category} onChange={updateField} required>
             <option value="">Select a category</option>
-            {categoryGroups.map((group) => (
-              <optgroup key={group.label} label={group.label}>
-                {group.options.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </optgroup>
+            {categoryOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
             ))}
           </select>
         </label>
@@ -285,6 +309,39 @@ export default function EditProduct({ productId, onNavigate }) {
 
         <div className="admin-form-span admin-options-section">
           <label>Available Fragrances</label>
+          <p className="admin-combo-hint">
+            Set the extra charge for each selected fragrance. Leave it at 0 to include the
+            fragrance at no extra cost.
+          </p>
+
+          {form.fragrances.length > 0 && (
+            <div className="admin-selected-summary">
+              <strong>Selected:</strong>{" "}
+              {form.fragrances.map((f) => (
+                <span key={f.optionId} className="admin-selected-tag">
+                  {f.name}
+                  <span className="admin-adjustment-prefix">+Rs</span>
+                  <input
+                    className="admin-adjustment-input"
+                    type="number"
+                    min="0"
+                    value={f.priceAdjustment ?? 0}
+                    onChange={(event) => updateFragrancePriceAdjustment(f.optionId, event.target.value)}
+                    aria-label={`${f.name} extra charge in rupees`}
+                  />
+                  <button
+                    type="button"
+                    className="admin-tag-remove"
+                    onClick={() => toggleFragrance({ id: f.optionId })}
+                    aria-label={`Remove ${f.name}`}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
           <div className="admin-swatch-list">
             {availableFragrances.map((frag) => {
               const isChecked = form.fragrances.some((f) => f.optionId === frag.id);

@@ -1,14 +1,10 @@
+// Suggested default for the admin form only. Nothing is charged unless an admin enters a value.
 const PREMIUM_FRAGRANCE_EXTRA_CHARGE = 80;
-const baseFragrances = new Set(["vanilla", "vanila", "jasmine", "lavender", "unscented", "unscented option available"]);
 const priceSuffixPattern = /\s*\+\s*(?:rs\.?|inr)?\s*([0-9]+(?:\.[0-9]+)?)\s*$/i;
 
 function parseProductPrice(value) {
   const numericPrice = Number(String(value ?? "").replace(/[^\d.-]/g, ""));
   return Number.isFinite(numericPrice) ? numericPrice : 0;
-}
-
-function normalizeFragranceName(option) {
-  return getFragranceDisplayName(option).toLowerCase();
 }
 
 function splitPriceSuffix(value) {
@@ -45,24 +41,23 @@ function getFragranceDisplayName(option) {
   return splitPriceSuffix(name).name;
 }
 
+/**
+ * A fragrance costs extra only when an admin says so. Mirrors
+ * Frontend/src/utils/productPricing.js - see the note there. The admin's value wins, including 0.
+ */
 function getFragrancePriceAdjustment(option) {
-  const name = typeof option === "string" ? option : option?.name ?? "";
-  const fragranceName = normalizeFragranceName(option);
-  if (!fragranceName || baseFragrances.has(fragranceName)) {
-    return 0;
+  const explicitAdjustment = explicitPriceAdjustment(option);
+  if (explicitAdjustment !== null) {
+    return explicitAdjustment;
   }
 
+  const name = typeof option === "string" ? option : option?.name ?? "";
   const suffixAdjustment = splitPriceSuffix(name).priceAdjustment;
   if (suffixAdjustment !== null && suffixAdjustment > 0) {
     return suffixAdjustment;
   }
 
-  const explicitAdjustment = explicitPriceAdjustment(option);
-  if (explicitAdjustment !== null && explicitAdjustment > 0) {
-    return explicitAdjustment;
-  }
-
-  return PREMIUM_FRAGRANCE_EXTRA_CHARGE;
+  return 0;
 }
 
 function calculateFinalPrice(basePrice, selectedFragrance) {

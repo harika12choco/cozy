@@ -150,9 +150,9 @@ filter:blur(0);
 }
 
 .hero-title{
-  font-family: "Satisfy", cursive !important;
+  font-family: var(--display-font) !important;
   font-optical-sizing: auto;
-  font-size: clamp(3.3rem, 5vw, 4.35rem);
+  font-size: var(--fs-hero);
   font-weight: 400;
   font-style: normal;
   line-height: 1.1;
@@ -231,7 +231,7 @@ background:var(--accent);
   }
 
   .hero-content h1{
-    font-size:clamp(2.4rem, 8vw, 4.25rem);
+    font-size:var(--fs-hero);
     letter-spacing:0;
     max-width:none;
   }
@@ -308,7 +308,7 @@ background:var(--accent);
   }
 
   .hero-content h1{
-    font-size:clamp(1.9rem, 8.8vw, 2.65rem);
+    font-size:var(--fs-hero);
     line-height:1.08;
     letter-spacing:0;
     order:1;
@@ -336,4 +336,34 @@ background:var(--accent);
     order:4;
   }
 
+}
+
+/* ── Festival / seasonal banner hero ────────────────────────────────────────
+   Set from Admin -> Site Images. The artwork already carries its own wording,
+   so it is shown at its natural aspect ratio and never cropped. */
+.hero-banner{
+  display:block;
+  width:100%;
+  background:#f8eee5;
+  line-height:0;
+}
+
+.hero-banner-link{
+  display:block;
+  width:100%;
+}
+
+.hero-banner-img{
+  display:block;
+  width:100%;
+  height:auto;
+  object-fit:contain;
+}
+
+/* A custom background used behind the site's own heading, in place of the
+   default rotating photos. */
+.hero-slide-custom{
+  opacity:1;
+  transform:none;
+  animation:none !important;
 }

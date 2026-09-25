@@ -1,10 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import menuData, { slugifyCategory } from "../utils/menuData";
 import "../styles/components/Sidebar.css";
 
 export default function Sidebar({ isOpen, onClose, onNavigate }) {
-  const [activeIndex, setActiveIndex] = useState(0);
-
   useEffect(() => {
     if (!isOpen) {
       return undefined;
@@ -25,10 +23,6 @@ export default function Sidebar({ isOpen, onClose, onNavigate }) {
     };
   }, [isOpen, onClose]);
 
-  function toggle(index) {
-    setActiveIndex((currentIndex) => (currentIndex === index ? null : index));
-  }
-
   function navigateToCategory(category) {
     onNavigate?.({ type: "category", value: category, slug: slugifyCategory(category) });
     onClose();
@@ -36,6 +30,11 @@ export default function Sidebar({ isOpen, onClose, onNavigate }) {
 
   function navigateHome() {
     onNavigate?.("home");
+    onClose();
+  }
+
+  function navigateShop() {
+    onNavigate?.("shop");
     onClose();
   }
 
@@ -60,7 +59,13 @@ export default function Sidebar({ isOpen, onClose, onNavigate }) {
           Home
         </button>
 
-        {menuData.map((section, index) => (
+        <button type="button" className="sidebar-home-link" onClick={navigateShop}>
+          Shop All
+        </button>
+
+        <p className="sidebar-footer-label">Browse Categories</p>
+
+        {menuData.map((section) => (
           <div key={section.title} className="menu-section">
             <div className="menu-row">
               <button
@@ -70,32 +75,9 @@ export default function Sidebar({ isOpen, onClose, onNavigate }) {
               >
                 <span>{section.title}</span>
               </button>
-              <button
-                type="button"
-                className="menu-toggle"
-                onClick={() => toggle(index)}
-                aria-label={activeIndex === index ? `Collapse ${section.title}` : `Expand ${section.title}`}
-              >
-                <span className="menu-indicator">{activeIndex === index ? "-" : "+"}</span>
-              </button>
-            </div>
-
-            <div className={`submenu ${activeIndex === index ? "submenu-open" : ""}`}>
-              {section.items.map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  className="submenu-link"
-                  onClick={() => navigateToCategory(item)}
-                >
-                  {item}
-                </button>
-              ))}
             </div>
           </div>
         ))}
-
-        <p className="sidebar-footer-label">Browse Categories</p>
       </aside>
     </>
   );

@@ -3,13 +3,19 @@ export function parseProductPrice(value) {
   return Number.isFinite(numericPrice) ? numericPrice : 0;
 }
 
+/**
+ * Storefront price format: "₹685.00". parseProductPrice() strips the symbol again, so any value
+ * produced here can still be read back as a number wherever a price is stored as a string.
+ */
 export function formatProductPrice(value) {
-  return `Rs ${parseProductPrice(value)}`;
+  return `₹${parseProductPrice(value).toFixed(2)}`;
 }
 
+/**
+ * Suggested amount offered in the admin form when a fragrance is given a surcharge. It is only a
+ * default for the input box - nothing is charged unless an admin actually enters a value.
+ */
 export const PREMIUM_FRAGRANCE_EXTRA_CHARGE = 80;
-
-const baseFragrances = new Set(["vanilla", "vanila", "jasmine", "lavender", "unscented", "unscented option available"]);
 const priceSuffixPattern = /\s*\+\s*(?:rs\.?|inr)?\s*([0-9]+(?:\.[0-9]+)?)\s*$/i;
 const variantPricePattern = /(?:rs\.?|inr|\u20b9)\s*([0-9]+(?:\.[0-9]+)?)(?:\s*[-\u2013]\s*([0-9]+(?:\.[0-9]+)?))?/i;
 
@@ -46,32 +52,55 @@ export function getFragranceDisplayName(option) {
   return splitPriceSuffix(optionName(option)).name;
 }
 
-function normalizeOptionName(option) {
-  return getFragranceDisplayName(option).toLowerCase();
-}
-
+/** True when a fragrance costs nothing extra. */
 export function isBaseFragrance(option) {
-  const fragranceName = normalizeOptionName(option);
-  return fragranceName ? baseFragrances.has(fragranceName) : true;
+  return getFragrancePriceAdjustment(option) === 0;
 }
 
+/**
+ * A fragrance costs extra only when an admin says so.
+ *
+ * This used to add a hardcoded Rs 80 to every fragrance whose name was not an exact match in a
+ * short free list, so "Vanilla Musk", "Jasmine Bloom" and "Lavender Serenity" were all charged,
+ * and an admin who typed 0 in the surcharge box had it silently overridden back to 80. The amount
+ * the admin enters is now authoritative - including 0, which is how a fragrance is made free.
+ */
 export function getFragrancePriceAdjustment(option) {
-  const fragranceName = normalizeOptionName(option);
-  if (!fragranceName || baseFragrances.has(fragranceName)) {
-    return 0;
+  const explicitAdjustment = explicitPriceAdjustment(option);
+  if (explicitAdjustment !== null) {
+    return explicitAdjustment;
   }
 
+  // Legacy encoding: the amount written into the name itself, e.g. "Rose + Rs 80".
   const suffixAdjustment = splitPriceSuffix(optionName(option)).priceAdjustment;
   if (suffixAdjustment !== null && suffixAdjustment > 0) {
     return suffixAdjustment;
   }
 
-  const explicitAdjustment = explicitPriceAdjustment(option);
-  if (explicitAdjustment !== null && explicitAdjustment > 0) {
-    return explicitAdjustment;
+  // No amount set by the admin - nothing is added.
+  return 0;
+}
+
+/**
+ * The storefront pre-selects a fragrance so a listing can show a price. Picking whichever option
+ * happened to be saved first meant a premium fragrance could be auto-selected, and the card then
+ * advertised base + Rs 80 instead of the price the admin typed (e.g. Rs 180 shown as Rs 260).
+ *
+ * Choosing the cheapest option keeps the advertised price equal to the admin's Price field
+ * whenever a free fragrance exists, and mirrors how the shared fragrance catalogue is already
+ * sorted free-first in Backend/utils/productOptions.js. The shopper can still pick any fragrance;
+ * the surcharge is applied and shown at that point.
+ */
+export function pickDefaultFragrance(fragrances) {
+  if (!Array.isArray(fragrances) || fragrances.length === 0) {
+    return null;
   }
 
-  return PREMIUM_FRAGRANCE_EXTRA_CHARGE;
+  return fragrances.reduce(
+    (cheapest, option) =>
+      getFragrancePriceAdjustment(option) < getFragrancePriceAdjustment(cheapest) ? option : cheapest,
+    fragrances[0]
+  );
 }
 
 export function getColorPriceAdjustment() {
@@ -209,7 +238,8 @@ export function getPurchasableBasePrice(product, selectedVariant = null) {
     return salePrice;
   }
 
-  return parseProductPrice(product?.basePrice || product?.price);
+  // `price` first: `basePrice` is a legacy mirror and can hold a stale value on older records.
+  return parseProductPrice(product?.price || product?.basePrice);
 }
 
 export function calculateProductPrice(product, selectedColor = null, selectedFragrance = null, selectedVariant = null) {

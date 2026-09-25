@@ -15,7 +15,7 @@
   margin:0 0 12px;
   color:var(--primary);
   font-family:var(--script-font);
-  font-size:38px;
+  font-size:var(--fs-kicker);
   letter-spacing:0.5px;
   text-transform:none;
   font-weight:400;
@@ -25,7 +25,7 @@
   margin:0 0 16px;
   color:var(--heading-dark);
   font-family:var(--script-font);
-  font-size:70px;
+  font-size:var(--fs-page-title);
   line-height:1.1;
   font-weight:400;
   letter-spacing:0.5px;
@@ -141,7 +141,7 @@
   }
 
   .shop-hero h1 {
-    font-size: 42px;
+    font-size: var(--fs-page-title);
   }
 }
 
@@ -155,7 +155,7 @@
   }
 
   .shop-hero h1 {
-    font-size: 32px;
+    font-size: var(--fs-page-title);
     line-height: 1.1;
   }
 

@@ -1,18 +1,10 @@
 import { useState } from "react";
 import { FaChevronDown } from "react-icons/fa";
-import { slugifyCategory } from "../utils/menuData";
+import { CATEGORIES, slugifyCategory } from "../utils/menuData";
 import "../styles/CategoryNav.css";
 
-const categoryLinks = [
-  "Floral & Aesthetic",
-  "Jar & Bowl Collection",
-  "Customized",
-  "Wedding & Event",
-  "Moments & Memories",
-  "Gifting Collection",
-  "Festive Collection",
-  "Dessert Candle Collection"
-];
+// Driven by the shared category list so the strip never drifts from the rest of the navigation.
+const categoryLinks = CATEGORIES;
 
 const visibleDesktopLinks = categoryLinks.slice(0, 7);
 const moreDesktopLinks = categoryLinks.slice(7);

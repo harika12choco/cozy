@@ -1,8 +1,13 @@
 import "../styles/OurProducts.css";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import ProductChoiceCard from "./ProductChoiceCard";
 import { addItemToCart } from "../utils/cart";
 import { readShopProducts } from "../utils/shopProducts";
+
+// The home page shows a fixed first page of products; the rest live on the shop page behind the
+// "View N Products" link below the grid.
+const HOME_PRODUCT_LIMIT = 12;
 
 export default function OurProducts() {
   const [feedback, setFeedback] = useState("");
@@ -30,6 +35,14 @@ export default function OurProducts() {
     };
   }, [refreshProducts]);
 
+  const visibleProducts = useMemo(
+    () => products.slice(0, HOME_PRODUCT_LIMIT),
+    [products]
+  );
+  // Counts whatever is left over, so the label follows the catalogue as products are added or
+  // removed from the admin panel without anyone touching this file.
+  const remainingCount = Math.max(0, products.length - HOME_PRODUCT_LIMIT);
+
   const addToCart = (product) => {
     if (product.stock <= 0) {
       setFeedback("Out of stock");
@@ -56,7 +69,7 @@ export default function OurProducts() {
           <p className="products-feedback">Loading products...</p>
         ) : products.length === 0 ? (
           <p className="products-feedback">No products available.</p>
-        ) : products.map((p) => (
+        ) : visibleProducts.map((p) => (
           <ProductChoiceCard
             key={p.id}
             product={p}
@@ -66,6 +79,15 @@ export default function OurProducts() {
           />
         ))}
       </div>
+
+      {remainingCount > 0 ? (
+        <div className="our-products-more">
+          <Link className="our-products-more-link" to="/shop">
+            View {remainingCount} {remainingCount === 1 ? "Product" : "Products"}
+            <span aria-hidden="true">&rarr;</span>
+          </Link>
+        </div>
+      ) : null}
     </section>
   );
 }

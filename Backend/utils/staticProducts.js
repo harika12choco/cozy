@@ -64,6 +64,10 @@ const colorHexByName = {
   Yellow: "#F4C74A"
 };
 
+// Mirrors DEFAULT_CATEGORY in Frontend/src/utils/menuData.js. These catalogue entries keep their
+// own `collection` label but sit under the default category until re-categorised from the admin.
+const DEFAULT_CATEGORY = "Festive Candle";
+
 function buildColor(name) {
   return {
     optionId: slugify(name),
@@ -435,7 +439,7 @@ const bestSellerProductDefinitions = [
 
 function normalizeProduct(product) {
   const colors = product.colors.map(buildColor);
-  const category = product.category || product.collection || "Our Products";
+  const category = product.category || DEFAULT_CATEGORY;
 
   return {
     ...product,

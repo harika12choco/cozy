@@ -11,6 +11,7 @@ import roseTeddyBearImage from "../assets/candles/products/bestsellers/Rose Tedd
 import shagunCollectionImage from "../assets/candles/products/bestsellers/Shagun Candle Collection.png";
 import sunflowerBloomImage from "../assets/candles/products/bestsellers/Sunflower Bloom Candle.jpeg";
 import { formatProductPrice, parseProductPrice } from "./productPricing";
+import { normalizeCategory } from "./menuData";
 
 const STATIC_PRODUCT_EVENT = "cozy-static-products-updated";
 
@@ -496,7 +497,9 @@ function normalizeStaticProduct(product) {
   const colors = product.colors.map(buildColor);
   const fragrances = product.fragrances.map(buildFragrance);
   const basePrice = parseProductPrice(product.basePrice);
-  const category = product.category ?? product.collection ?? "Our Products";
+  // Resolved against the live category list, so these catalogue entries sit under the default
+  // category ("Gifting Candle") until they are re-categorised from the admin panel.
+  const category = normalizeCategory(product.category ?? product.collection);
 
   return {
     id: product.id,

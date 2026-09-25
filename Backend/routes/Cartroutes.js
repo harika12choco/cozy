@@ -3,7 +3,8 @@ const mongoose = require("mongoose");
 const Cart = require("../models/Cart");
 const Product = require("../models/productModel");
 const { authenticateUser } = require("../middleware/userAuth");
-const { getStaticProductById, isStaticProductId } = require("../utils/staticProducts");
+const { isStaticProductId } = require("../utils/staticProducts");
+const { resolveStaticProduct } = require("../utils/staticOverrides");
 const {
   calculateFinalPrice: calculateProductFinalPrice,
   getFragranceDisplayName,
@@ -78,7 +79,9 @@ async function resolveProduct(productId) {
   }
 
   if (isStaticProductId(productId)) {
-    return getStaticProductById(productId);
+    // Resolve through the overrides so the cart charges the price the admin set, not the price
+    // that was hardcoded at build time.
+    return resolveStaticProduct(productId);
   }
 
   if (!mongoose.Types.ObjectId.isValid(productId)) {
@@ -205,7 +208,8 @@ function getPurchasableBasePrice(product, selectedVariant) {
     return parseProductPrice(product.salePrice);
   }
 
-  return parseProductPrice(product.basePrice || product.price);
+  // `price` is authoritative; `basePrice` is only a legacy mirror of it (see productController).
+  return parseProductPrice(product.price || product.basePrice);
 }
 
 function calculateCartFinalPrice(product, selectedFragrance, selectedVariant = null) {
@@ -245,7 +249,7 @@ function buildCartItemSnapshot(product, item, options = { candleColors: [], frag
   const selectedVariant = normalizeSelectedVariant(
     item.selectedVariant,
     product.variants ?? [],
-    product.salePrice || product.basePrice || product.price
+    product.salePrice || product.price || product.basePrice
   );
   const productId = getResolvedProductId(product, item.productId);
   const basePrice = getPurchasableBasePrice(product, selectedVariant);
@@ -313,7 +317,7 @@ router.post("/", async (req, res) => {
     const selectedVariant = normalizeSelectedVariant(
       req.body?.selectedVariant,
       product.variants ?? [],
-      product.salePrice || product.basePrice || product.price
+      product.salePrice || product.price || product.basePrice
     );
     const availableStock = getAvailableStock(product, selectedVariant);
 
@@ -463,7 +467,7 @@ router.put("/", async (req, res) => {
           product,
           normalizeSelectedOption(item.selectedColor, productOptions.candleColors, "color"),
           normalizeSelectedOption(item.selectedFragrance, productOptions.fragrances, "fragrance"),
-          normalizeSelectedVariant(item.selectedVariant, product.variants ?? [], product.salePrice || product.basePrice || product.price)
+          normalizeSelectedVariant(item.selectedVariant, product.variants ?? [], product.salePrice || product.price || product.basePrice)
         ))
       });
     }

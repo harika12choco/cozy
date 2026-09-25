@@ -15,7 +15,7 @@ import {
   verifyRazorpayPayment
 } from "../services/checkoutService";
 import { fetchProductsByIds } from "../utils/shopProducts";
-import { formatProductPrice, getCartLineFinalPrice, getCartLineTotal } from "../utils/productPricing";
+import { formatProductPrice, getCartLineFinalPrice } from "../utils/productPricing";
 import "../styles/Cart.css";
 
 const RAZORPAY_CHECKOUT_URL = "https://checkout.razorpay.com/v1/checkout.js";
@@ -156,15 +156,6 @@ export default function Cart() {
 
     return unsubscribe;
   }, []);
-
-  const totalPrice = useMemo(
-    () =>
-      cartItems.reduce(
-        (total, item) => total + getCartLineTotal(item),
-        0
-      ),
-    [cartItems]
-  );
 
   const outOfStockItems = useMemo(
     () =>
@@ -517,7 +508,7 @@ export default function Cart() {
                     <p className="cart-item-option">
                       <strong>Fragrance:</strong> {item.selectedFragrance.name}
                       {(item.fragranceExtraCharge ?? item.selectedFragrance.priceAdjustment ?? 0) > 0 ? (
-                        <span> (+Rs {item.fragranceExtraCharge ?? item.selectedFragrance.priceAdjustment})</span>
+                        <span> (+{formatProductPrice(item.fragranceExtraCharge ?? item.selectedFragrance.priceAdjustment)})</span>
                       ) : null}
                     </p>
                   ) : null}
@@ -529,13 +520,13 @@ export default function Cart() {
                       onChange={(event) => setCartItems(toggleCartItemGiftWrap(item.key, event.target.checked))}
                       style={{ accentColor: "var(--primary)", width: "16px", height: "16px" }}
                     />
-                    <span>Gift wrap this product (+ Rs {item.giftWrapPrice || 80})</span>
+                    <span>Gift wrap this product (+ {formatProductPrice(item.giftWrapPrice || 80)})</span>
                   </label>
 
                   {item.giftWrap ? (
                     <div className="cart-item-gift-wrap-detail" style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "4px" }}>
-                      <span><strong>Actual Price:</strong> Rs {getCartLineFinalPrice({...item, giftWrap: false})}</span>
-                      <span style={{ marginLeft: "10px" }}><strong>Gift Wrap:</strong> Rs {item.giftWrapPrice || 80}</span>
+                      <span><strong>Actual Price:</strong> {formatProductPrice(getCartLineFinalPrice({...item, giftWrap: false}))}</span>
+                      <span style={{ marginLeft: "10px" }}><strong>Gift Wrap:</strong> {formatProductPrice(item.giftWrapPrice || 80)}</span>
                     </div>
                   ) : null}
                   {item.productId ? (
@@ -676,15 +667,15 @@ export default function Cart() {
 
             <div className="cart-summary-line">
               <span>Subtotal</span>
-              <span>Rs {cartTotals.subtotal}</span>
+              <span>{formatProductPrice(cartTotals.subtotal)}</span>
             </div>
             <div className="cart-summary-line">
               <span>Shipping</span>
-              <span>{cartTotals.shipping > 0 ? `Rs ${cartTotals.shipping}` : "Free"}</span>
+              <span>{cartTotals.shipping > 0 ? formatProductPrice(cartTotals.shipping) : "Free"}</span>
             </div>
             <div className="cart-total">
               <span>Total</span>
-              <strong>Rs {cartTotals.grandTotal}</strong>
+              <strong>{formatProductPrice(cartTotals.grandTotal)}</strong>
             </div>
 
             {orderError ? <p className="products-feedback">{orderError}</p> : null}

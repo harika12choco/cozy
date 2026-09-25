@@ -10,6 +10,10 @@ export default function SiteImages() {
   );
   const [form, setForm] = useState({
     bannerUrl: "",
+    bannerMobileUrl: "",
+    bannerLink: "",
+    bannerAlt: "",
+    bannerHideText: true,
     categoryImages: {}
   });
   const [loading, setLoading] = useState(true);
@@ -33,6 +37,10 @@ export default function SiteImages() {
 
         setForm({
           bannerUrl: data.bannerUrl || "",
+          bannerMobileUrl: data.bannerMobileUrl || "",
+          bannerLink: data.bannerLink || "",
+          bannerAlt: data.bannerAlt || "",
+          bannerHideText: data.bannerHideText !== false,
           categoryImages: { ...(data.categoryImages || {}) }
         });
       } catch (loadError) {
@@ -70,6 +78,10 @@ export default function SiteImages() {
 
     return {
       bannerUrl: String(nextForm.bannerUrl ?? "").trim(),
+      bannerMobileUrl: String(nextForm.bannerMobileUrl ?? "").trim(),
+      bannerLink: String(nextForm.bannerLink ?? "").trim(),
+      bannerAlt: String(nextForm.bannerAlt ?? "").trim(),
+      bannerHideText: nextForm.bannerHideText !== false,
       categoryImages: cleanedCategories
     };
   }
@@ -81,6 +93,10 @@ export default function SiteImages() {
       const savedImages = await siteImagesService.update(buildPayload(nextForm));
       setForm({
         bannerUrl: savedImages?.bannerUrl || "",
+        bannerMobileUrl: savedImages?.bannerMobileUrl || "",
+        bannerLink: savedImages?.bannerLink || "",
+        bannerAlt: savedImages?.bannerAlt || "",
+        bannerHideText: savedImages?.bannerHideText !== false,
         categoryImages: { ...(savedImages?.categoryImages || {}) }
       });
       window.dispatchEvent(new Event("cozy-site-images-updated"));
@@ -111,6 +127,36 @@ export default function SiteImages() {
     } finally {
       setUploadingKey("");
     }
+  }
+
+  async function handleMobileBannerFileChange(event) {
+    const [file] = event.target.files ?? [];
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      setUploadingKey("banner-mobile");
+      const uploadedUrl = await siteImagesService.uploadImage(file);
+      const nextForm = { ...form, bannerMobileUrl: uploadedUrl };
+      setForm(nextForm);
+      await persistForm(nextForm, "Mobile banner updated.");
+    } catch {
+      setError("Unable to upload mobile banner image.");
+    } finally {
+      setUploadingKey("");
+    }
+  }
+
+  async function handleRemoveBanner() {
+    if (!window.confirm("Remove the homepage banner and go back to the default hero?")) {
+      return;
+    }
+
+    const nextForm = { ...form, bannerUrl: "", bannerMobileUrl: "" };
+    setForm(nextForm);
+    await persistForm(nextForm, "Banner removed.");
   }
 
   function handleCategoryChange(title, value) {
@@ -157,9 +203,16 @@ export default function SiteImages() {
     try {
       setSaving(true);
       setError("");
-      const savedImages = await siteImagesService.update({ bannerUrl: "", categoryImages: {} });
+      const savedImages = await siteImagesService.update({
+        bannerUrl: "", bannerMobileUrl: "", bannerLink: "", bannerAlt: "",
+        bannerHideText: true, categoryImages: {}
+      });
       setForm({
         bannerUrl: savedImages?.bannerUrl || "",
+        bannerMobileUrl: savedImages?.bannerMobileUrl || "",
+        bannerLink: savedImages?.bannerLink || "",
+        bannerAlt: savedImages?.bannerAlt || "",
+        bannerHideText: savedImages?.bannerHideText !== false,
         categoryImages: { ...(savedImages?.categoryImages || {}) }
       });
       window.dispatchEvent(new Event("cozy-site-images-updated"));
@@ -187,16 +240,14 @@ export default function SiteImages() {
       {feedback ? <p className="products-feedback">{feedback}</p> : null}
 
       <div className="admin-form-grid">
-        <label className="admin-form-span">
-          Homepage banner image URL
-          <input
-            type="url"
-            placeholder="https://..."
-            value={form.bannerUrl}
-            onChange={handleBannerChange}
-            disabled={loading}
-          />
-        </label>
+        <div className="admin-form-span">
+          <h4>Homepage Banner</h4>
+          <p className="admin-combo-hint">
+            Upload a festival or seasonal banner to replace the homepage hero — Diwali, Christmas,
+            Valentine&apos;s and so on. Leave it empty to use the default &quot;Handcrafted Luxury
+            Candles&quot; hero. A wide banner around 1600&times;560 works well.
+          </p>
+        </div>
 
         <label className="admin-form-span">
           Upload banner image
@@ -208,13 +259,86 @@ export default function SiteImages() {
           />
         </label>
 
+        <label className="admin-form-span">
+          ...or paste a banner image URL
+          <input
+            type="url"
+            placeholder="https://..."
+            value={form.bannerUrl}
+            onChange={handleBannerChange}
+            disabled={loading}
+          />
+        </label>
+
+        <label className="admin-form-span">
+          Upload a mobile banner (optional)
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleMobileBannerFileChange}
+            disabled={loading || uploadingKey === "banner-mobile"}
+          />
+        </label>
+
+        <label className="admin-form-span">
+          Banner links to
+          <input
+            type="text"
+            placeholder="/shop?category=diwali-candle"
+            value={form.bannerLink}
+            onChange={(event) => setForm((current) => ({ ...current, bannerLink: event.target.value }))}
+            disabled={loading}
+          />
+        </label>
+
+        <label className="admin-form-span">
+          Banner description (for accessibility and search engines)
+          <input
+            type="text"
+            placeholder="Cozy Candle Diwali collection"
+            value={form.bannerAlt}
+            onChange={(event) => setForm((current) => ({ ...current, bannerAlt: event.target.value }))}
+            disabled={loading}
+          />
+        </label>
+
+        <label className="admin-form-span admin-checkbox-label">
+          <input
+            type="checkbox"
+            checked={form.bannerHideText !== false}
+            onChange={(event) => setForm((current) => ({ ...current, bannerHideText: event.target.checked }))}
+            disabled={loading}
+          />
+          <span>
+            This banner already has its own wording — hide the site&apos;s &quot;Handcrafted Luxury
+            Candles&quot; heading. Untick to keep the heading and use the image only as a background.
+          </span>
+        </label>
+
         <div className="admin-form-span">
-          <p>Banner preview</p>
+          <p>Banner preview{form.bannerUrl ? "" : " (default hero image)"}</p>
           <img
             src={bannerPreview}
             alt="Homepage banner preview"
-            style={{ width: "100%", maxHeight: "220px", objectFit: "cover", borderRadius: "18px" }}
+            style={{ width: "100%", objectFit: "contain", borderRadius: "18px", background: "#f8eee5" }}
           />
+          {form.bannerMobileUrl ? (
+            <>
+              <p style={{ marginTop: "12px" }}>Mobile banner preview</p>
+              <img
+                src={form.bannerMobileUrl}
+                alt="Mobile banner preview"
+                style={{ width: "260px", maxWidth: "100%", objectFit: "contain", borderRadius: "14px", background: "#f8eee5" }}
+              />
+            </>
+          ) : null}
+          {form.bannerUrl ? (
+            <div className="admin-options-inline" style={{ marginTop: "12px" }}>
+              <button type="button" className="admin-secondary-btn" onClick={handleRemoveBanner} disabled={saving}>
+                Remove banner
+              </button>
+            </div>
+          ) : null}
         </div>
 
         <div className="admin-form-span">

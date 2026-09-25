@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Satisfy&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Alata&family=Quicksand:wght@400;500;600;700&family=Satisfy&display=swap');
 
 :root{
   --primary: #651514;
@@ -11,12 +11,27 @@
   --text-dark: #5A4A42;
   --heading-dark: #3B2A26;
   --nav-text: #4A342E;
-  --body-font: "Quicksand", sans-serif;
+  /* Site typeface. Every font reference on the storefront and the admin panel resolves through
+     these tokens, so the whole site can be re-typed by editing this block alone.
+     Headings use the Satisfy script for the brand look; everything else uses Alata. */
+  --body-font: "Alata", "Quicksand", sans-serif;
   --display-font: "Satisfy", cursive;
   --script-font: "Satisfy", cursive;
   --handwritten-font: "Satisfy", cursive;
   --ornamental-font: "Satisfy", cursive;
-  --sans-font: "Quicksand", sans-serif;
+  --sans-font: "Alata", "Quicksand", sans-serif;
+
+  /* One type scale for the whole site. The old sizes were tuned for a script face, which reads
+     far smaller than Alata at the same pixel size - hence the oversized headings. Every heading
+     resolves through these, so the site stays visually unified and can be retuned in one place. */
+  /* Sized for the Satisfy script, which reads noticeably smaller per pixel than a sans face -
+     these are roughly 1.35x the equivalent sans sizes so the headings still feel unified. */
+  --fs-page-title: clamp(38px, 4.4vw, 56px);   /* shop / policy page headings */
+  --fs-section: clamp(32px, 3.6vw, 46px);      /* Best Sellers, Our Story, Review, Contact Us */
+  --fs-product-title: clamp(28px, 3vw, 38px);  /* product detail heading */
+  --fs-subsection: clamp(22px, 2.2vw, 30px);   /* smaller in-page headings */
+  --fs-kicker: clamp(12px, 1vw, 14px);         /* eyebrow text above a heading */
+  --fs-hero: clamp(42px, 5.4vw, 68px);         /* full-bleed hero / intro splash */
 }
 
 html{
@@ -88,34 +103,34 @@ button,
 }
 
 .dancing-script-400 {
-  font-family: "Satisfy", cursive;
+  font-family: var(--display-font);
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
 }
 
 .dancing-script-700 {
-  font-family: "Satisfy", cursive;
+  font-family: var(--display-font);
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
 }
 
 .satisfy-regular {
-  font-family: "Satisfy", cursive;
+  font-family: var(--display-font);
   font-weight: 400;
   font-style: normal;
 }
 
 .great-vibes-regular {
-  font-family: "Satisfy", cursive;
+  font-family: var(--display-font);
   font-weight: 400;
   font-style: normal;
 }
 
 .hero-title,
 .elegant-title{
-  font-family: "Satisfy", cursive;
+  font-family: var(--display-font);
   font-weight: 400;
   line-height: 1.1;
   letter-spacing: 0.5px;
@@ -127,7 +142,7 @@ button,
 .contact-section h2{
   color:var(--heading-dark);
   font-family:var(--display-font);
-  font-size:54px;
+  font-size:var(--fs-section);
   font-style:normal;
   font-weight:400;
   line-height:1.05;

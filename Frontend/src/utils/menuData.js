@@ -1,78 +1,37 @@
-const menuData = [
-  {
-    title: "Moments & Memories",
-    items: [
-      "Birthday Moments",
-      "Anniversary Love",
-      "Proposal / Surprise Setup",
-      "Memory Keepsake Candles",
-    ],
-  },
-  {
-    title: "Gifting Collection",
-    items: [
-      "Mini Gift Sets",
-      "Hamper Candles",
-      "Return Favors",
-      "Corporate Gifting",
-    ],
-  },
-  {
-    title: "Festive Collection",
-    items: [
-      "Diwali Specials",
-      "Christmas Collection",
-      "Eid / Festive Hampers",
-      "Seasonal Specials",
-    ],
-  },
-  {
-    title: "Dessert Candle Collection",
-    items: [
-      "Cake Candles",
-      "Cupcake Candles",
-      "Chocolate Candles",
-      "Sweet Jar Candles",
-    ],
-  },
-  {
-    title: "Floral & Aesthetic",
-    items: [
-      "Rose Candles",
-      "Peony / Daisy Candles",
-      "Minimal Aesthetic Pieces",
-      "Decor Candles",
-      "Bouquet Candle",
-    ],
-  },
-  {
-    title: "Jar & Bowl Collection",
-    items: [
-      "Single Wick Jars",
-      "Multi Wick Bowls",
-      "Premium Glass Candles",
-      "Home Decor Range",
-    ],
-  },
-  {
-    title: "Customized",
-    items: [
-      "Name Candles",
-      "Photo Candles",
-      "Message Candles",
-      "Custom Hampers",
-    ],
-  },
-  {
-    title: "Wedding & Event",
-    items: [
-      "Wedding Favours",
-      "Bridal Hampers",
-      "Engagement Candles",
-      "Event Decor Candles",
-    ],
-  },
+/**
+ * The storefront category list. This is the single source of truth: the navbar dropdown, the
+ * category strip, the mobile sidebar, the shop filters, the admin category picker and the admin
+ * "Site Images" uploader all read from here, so a category only has to be changed in this file.
+ */
+export const CATEGORIES = [
+  "Festive Candle",
+  "Jar Candle",
+  "Urli Candles",
+  "Concrete Candle",
+  "Gifting Candle",
+  "Wooden Base Candle",
+  "Tealight Candle",
+  "Wax Melts",
+  "Wax Sachets",
+  "Coconut Shell Candle",
+  "Diwali Candle",
+  "Christmas Candle",
+  "Valentine Candle",
+  "Statement Candle",
+  "Tin Jar Candle",
 ];
+
+/**
+ * Products saved under a category that no longer exists still have to appear somewhere, so they
+ * fall back to this one until the admin re-assigns them from the product form.
+ */
+export const DEFAULT_CATEGORY = "Festive Candle";
+
+/**
+ * Kept as `{ title, items }` because the navigation components render sections. Categories are a
+ * flat list now, so every section is a leaf with no children.
+ */
+const menuData = CATEGORIES.map((title) => ({ title, items: [] }));
 
 export function slugifyCategory(category) {
   return String(category ?? "")
@@ -83,10 +42,33 @@ export function slugifyCategory(category) {
     .replace(/^-+|-+$/g, "");
 }
 
-export const categoryGroups = menuData.map((section) => ({
-  label: section.title,
-  options: [section.title, ...section.items],
-}));
+/**
+ * Resolves any stored category value to one of the categories above, matching case-insensitively
+ * and by slug so older spellings ("gifting collection") still land on their category.
+ * Anything unrecognised becomes the default category instead of disappearing from the shop.
+ */
+export function normalizeCategory(value) {
+  const raw = String(value ?? "").trim();
+
+  if (!raw) {
+    return DEFAULT_CATEGORY;
+  }
+
+  const slug = slugifyCategory(raw);
+  const match = CATEGORIES.find(
+    (category) => category.toLowerCase() === raw.toLowerCase() || slugifyCategory(category) === slug
+  );
+
+  return match ?? DEFAULT_CATEGORY;
+}
+
+export function isKnownCategory(value) {
+  const slug = slugifyCategory(value);
+  return CATEGORIES.some((category) => slugifyCategory(category) === slug);
+}
+
+/** Options for the admin product form's category picker. */
+export const categoryOptions = [...CATEGORIES];
 
 export function findCategoryBySlug(slug) {
   const normalizedSlug = String(slug ?? "").trim();
@@ -95,20 +77,17 @@ export function findCategoryBySlug(slug) {
     return null;
   }
 
-  for (const section of menuData) {
-    const categories = [section.title, ...section.items];
-    const match = categories.find((category) => slugifyCategory(category) === normalizedSlug);
+  const match = CATEGORIES.find((category) => slugifyCategory(category) === normalizedSlug);
 
-    if (match) {
-      return {
-        label: match,
-        value: match,
-        slug: normalizedSlug,
-      };
-    }
+  if (!match) {
+    return null;
   }
 
-  return null;
+  return {
+    label: match,
+    value: match,
+    slug: normalizedSlug,
+  };
 }
 
 export default menuData;

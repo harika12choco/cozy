@@ -25,7 +25,7 @@
 .policy-hero h1{
   margin:0;
   color:var(--heading-dark);
-  font-size:clamp(42px, 6vw, 72px);
+  font-size:var(--fs-page-title);
   line-height:1.02;
 }
 

@@ -1,7 +1,13 @@
 const Product = require("../models/productModel");
 const { uploadProductImage } = require("../services/cloudinaryService");
 const mongoose = require("mongoose");
-const { getStaticProductById } = require("../utils/staticProducts");
+const { isStaticProductId } = require("../utils/staticProducts");
+const {
+  invalidateStaticOverrides,
+  listStaticProducts,
+  resolveStaticProduct
+} = require("../utils/staticOverrides");
+const StaticProductOverride = require("../models/StaticProductOverride");
 const { getFragranceDisplayName, getFragrancePriceAdjustment } = require("../utils/productPricing");
 const { emptyCatalog, loadCustomizationCatalog, resolveProductOptions } = require("../utils/productOptions");
 const { sendError } = require("../utils/errorResponse");
@@ -12,9 +18,22 @@ async function prepareProductPayload(payload) {
   const normalizedBestSeller =
     payload.isBestSeller !== undefined ? Boolean(payload.isBestSeller) : Boolean(payload.bestSeller);
 
+  // The admin "Price" field is the single source of truth; `basePrice` is only a mirror of it.
+  // Reading `basePrice` first meant an edit form that echoed back the old `basePrice` silently
+  // overrode the new price, and the storefront (which prices from `basePrice`) kept showing the
+  // old amount while the admin table showed the new one.
+  // A payload that carries no usable price leaves both fields untouched, so a partial update can
+  // never wipe an existing price to 0.
+  const priceCandidate = [payload.price, payload.basePrice].find(
+    (value) => value !== undefined && value !== null && value !== "" && Number.isFinite(Number(value))
+  );
+  const pricing = priceCandidate === undefined
+    ? {}
+    : { price: Number(priceCandidate), basePrice: Number(priceCandidate) };
+
   return {
     ...payload,
-    basePrice: Number(payload.basePrice || payload.price || 0),
+    ...pricing,
     bestSeller: normalizedBestSeller,
     isBestSeller: normalizedBestSeller,
     candleColors: normalizeProductOptions(payload.candleColors, true),
@@ -124,7 +143,9 @@ function normalizeProductResponse(product, catalog = emptyCatalog) {
 
   return {
     ...normalized,
-    basePrice: Number(normalized.basePrice || normalized.price || 0),
+    // `price` first so products already saved with a stale `basePrice` (see prepareProductPayload)
+    // report the correct amount immediately, without needing a database migration or a re-save.
+    basePrice: Number(normalized.price || normalized.basePrice || 0),
     isBestSeller: Boolean(normalized.isBestSeller ?? normalized.bestSeller),
     bestSeller: Boolean(normalized.bestSeller ?? normalized.isBestSeller),
     candleColors,
@@ -186,9 +207,15 @@ const getProducts = async (req, res) => {
       .split(",")
       .map((id) => id.trim())
       .filter(Boolean);
-    const staticMatches = ids.length > 0
-      ? ids.map(getStaticProductById).filter(Boolean).map((product) => normalizeProductResponse(product, catalog))
-      : [];
+    // The hardcoded catalogue is part of the shop, so it is listed alongside database products
+    // with any admin overrides already applied. Reading it costs no query thanks to the cache.
+    const staticSource = await listStaticProducts();
+    const staticMatches = (ids.length > 0
+      ? staticSource.filter((product) => ids.includes(product.id))
+      : staticSource
+    )
+      .filter((product) => (bestSeller === null ? true : Boolean(product.bestSeller) === bestSeller))
+      .map((product) => normalizeProductResponse(product, catalog));
     const dbIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id));
 
     const filter = {};
@@ -201,9 +228,9 @@ const getProducts = async (req, res) => {
       filter._id = { $in: dbIds };
     }
 
-    if (bestSeller !== null) {
-      res.set("Cache-Control", "no-store");
-    }
+    // Price and stock edits must be visible on the next storefront load, so no intermediate
+    // cache may hold on to a previous copy of the catalog.
+    res.set("Cache-Control", "no-store");
 
     const products = ids.length > 0 && dbIds.length === 0 ? [] : await Product.find(filter);
     res.json([...staticMatches, ...products.map((product) => normalizeProductResponse(product, catalog))]);
@@ -244,7 +271,9 @@ const searchProducts = async (req, res) => {
 const getProductById = async (req, res) => {
   try {
     const catalog = await loadCustomizationCatalog();
-    const staticProduct = getStaticProductById(req.params.id);
+    const staticProduct = await resolveStaticProduct(req.params.id);
+
+    res.set("Cache-Control", "no-store");
 
     if (staticProduct) {
       return res.json(normalizeProductResponse(staticProduct, catalog));
@@ -262,8 +291,63 @@ const getProductById = async (req, res) => {
 };
 
 // Update product
+function readOverrideNumber(value) {
+  if (value === undefined || value === null || value === "") {
+    return undefined;
+  }
+
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) && numberValue >= 0 ? numberValue : undefined;
+}
+
+/**
+ * Editing a hardcoded product cannot write to the products collection - there is no document for
+ * it. The admin's changes are stored as a small override keyed by the static id instead, and
+ * merged back in on every read.
+ */
+async function updateStaticProduct(req, res) {
+  const staticId = String(req.params.id).trim();
+  const payload = { staticId };
+
+  const price = readOverrideNumber(req.body?.price ?? req.body?.basePrice);
+  if (price !== undefined) payload.price = price;
+
+  const stock = readOverrideNumber(req.body?.stock);
+  if (stock !== undefined) payload.stock = stock;
+
+  const giftWrapPrice = readOverrideNumber(req.body?.giftWrapPrice);
+  if (giftWrapPrice !== undefined) payload.giftWrapPrice = giftWrapPrice;
+
+  if (["active", "draft", "out-of-stock"].includes(req.body?.status)) {
+    payload.status = req.body.status;
+  }
+
+  if (req.body?.bestSeller !== undefined || req.body?.isBestSeller !== undefined) {
+    payload.bestSeller = Boolean(req.body.isBestSeller ?? req.body.bestSeller);
+  }
+
+  // Saving a hidden product from the admin form brings it back.
+  payload.hidden = false;
+
+  await StaticProductOverride.findOneAndUpdate({ staticId }, payload, {
+    new: true,
+    upsert: true,
+    setDefaultsOnInsert: true,
+    runValidators: true
+  });
+
+  invalidateStaticOverrides();
+
+  const catalog = await loadCustomizationCatalog();
+  return res.json(normalizeProductResponse(await resolveStaticProduct(staticId), catalog));
+}
+
 const updateProduct = async (req, res) => {
   try {
+    if (isStaticProductId(req.params.id)) {
+      return await updateStaticProduct(req, res);
+    }
+
     const productPayload = await prepareProductPayload(req.body);
     const product = await Product.findByIdAndUpdate(req.params.id, productPayload, {
       new: true,
@@ -274,7 +358,9 @@ const updateProduct = async (req, res) => {
       return res.status(404).json({ error: "Product not found" });
     }
 
-    res.json(normalizeProductResponse(product));
+    // Pass the catalog so the saved product comes back with the same colour/fragrance options
+    // the storefront resolves, instead of an empty list.
+    res.json(normalizeProductResponse(product, await loadCustomizationCatalog()));
   } catch (error) {
     sendError(res, error);
   }
@@ -283,6 +369,19 @@ const updateProduct = async (req, res) => {
 // Delete product
 const deleteProduct = async (req, res) => {
   try {
+    // A hardcoded product cannot be removed from the bundle, so it is hidden from the storefront
+    // and the admin list instead. Saving it again from the edit form restores it.
+    if (isStaticProductId(req.params.id)) {
+      const staticId = String(req.params.id).trim();
+      await StaticProductOverride.findOneAndUpdate(
+        { staticId },
+        { staticId, hidden: true },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      );
+      invalidateStaticOverrides();
+      return res.json({ message: "Product hidden" });
+    }
+
     await Product.findByIdAndDelete(req.params.id);
     res.json({ message: "Product deleted" });
   } catch (error) {

@@ -214,7 +214,7 @@
   margin: 0;
   color: #171210;
   font-family: var(--display-font);
-  font-size: clamp(38px, 4.2vw, 68px);
+  font-size: var(--fs-product-title);
   font-weight: 400;
   line-height: 1.08;
   letter-spacing: 0.5px;
@@ -684,7 +684,7 @@
   margin: 0;
   color: #171210;
   font-family: var(--display-font);
-  font-size: clamp(30px, 3vw, 46px);
+  font-size: var(--fs-subsection);
   font-weight: 400;
   letter-spacing: 0.5px;
 }
@@ -840,11 +840,11 @@
   }
 
   .product-detail-info h1 {
-    font-size: 36px;
+    font-size: var(--fs-product-title);
   }
 
   .product-detail-current-price {
-    font-size: 31px;
+    font-size: var(--fs-product-title);
   }
 
   .product-detail-description p {
@@ -909,5 +909,44 @@
 
   .product-detail-frag-btn {
     flex-basis: 100%;
+  }
+}
+
+/* Save-for-later (wishlist) button in the product CTA row. */
+.product-detail-save-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  min-height:52px;
+  padding:0 22px;
+  border:1px solid rgba(90,74,66,0.28);
+  border-radius:999px;
+  background:transparent;
+  color:var(--text-dark);
+  font-family:var(--body-font);
+  font-size:14px;
+  font-weight:700;
+  letter-spacing:0.02em;
+  cursor:pointer;
+  transition:color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.product-detail-save-btn:hover{
+  border-color:var(--primary);
+  color:var(--primary);
+}
+
+.product-detail-save-btn.is-saved{
+  border-color:var(--primary);
+  background:rgba(101,21,20,0.06);
+  color:var(--primary);
+}
+
+@media (max-width: 640px){
+  .product-detail-save-btn{
+    min-height:46px;
+    padding:0 16px;
+    font-size:13px;
   }
 }

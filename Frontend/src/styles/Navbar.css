@@ -1,4 +1,6 @@
 .navbar{
+/* 3 action icons: saved items, cart, account -> (42px x 3) + (14px gap x 2) = 154px, +14px clear */
+--navbar-actions-reserve:168px;
 display:grid;
 grid-template-columns:minmax(360px, 1fr) 128px minmax(360px, 1fr);
 align-items:center;
@@ -138,7 +140,11 @@ color:rgba(255,250,242,0.72);
 grid-column:3;
 grid-row:1;
 justify-self:end;
-margin-right:112px;
+/* The search box and .navbar-right share this grid cell, so the search reserves exactly the
+   width of the action icons on its right. Keep --navbar-actions-reserve in step with the number
+   of icons in .navbar-right (42px each + 14px gap), or the last icon ends up under the search
+   box and stops responding to clicks. */
+margin-right:var(--navbar-actions-reserve);
 position:relative;
 z-index:3;
 }
@@ -328,8 +334,9 @@ display:block;
 
 .dropdown-grid{
 display:grid;
-grid-template-columns:repeat(3, minmax(0, 1fr));
-gap:30px;
+grid-template-columns:repeat(4, minmax(0, 1fr));
+gap:2px 28px;
+align-content:start;
 }
 
 .dropdown-grid-section{
@@ -339,15 +346,20 @@ align-content:start;
 }
 
 .dropdown-grid-heading{
+grid-column:1 / -1;
 font-size:13px;
 font-weight:700;
 letter-spacing:0.01em;
 line-height:1.45;
 text-transform:none;
 color:rgba(255,255,255,0.7);
-margin-bottom:12px;
+margin-bottom:8px;
 white-space:normal;
 overflow-wrap:break-word;
+}
+
+.dropdown-grid-item-lead{
+color:#ffdca3;
 }
 
 .dropdown-grid-item{
@@ -623,4 +635,9 @@ padding-right:10px;
 .user-btn-label{
 display:none;
 }
+}
+
+/* Saved-items (wishlist) heart in the navbar. */
+.nav-heart-icon{
+  font-size:17px;
 }

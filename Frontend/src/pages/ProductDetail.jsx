@@ -14,6 +14,7 @@ import {
   FaPlus,
   FaQuestionCircle,
   FaRegEnvelope,
+  FaRegHeart,
   FaSeedling,
   FaShoppingBag,
   FaSpa,
@@ -21,6 +22,8 @@ import {
   FaTruck
 } from "react-icons/fa";
 import { addItemToCart } from "../utils/cart";
+import { getWishlistId, isWishlisted as isProductWishlisted, subscribeWishlist, toggleWishlistItem }
+  from "../utils/wishlist";
 import { fetchProductsByIds, matchesCategory, pickOptionList, readShopProducts } from "../utils/shopProducts";
 import {
   calculateProductPrice,
@@ -31,6 +34,7 @@ import {
   normalizeFragranceOption,
   normalizeVariantOption,
   parseProductPrice,
+  pickDefaultFragrance,
   withCalculatedProductPrice
 } from "../utils/productPricing";
 
@@ -165,6 +169,7 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState(tabLabels[0]);
   const [giftWrap, setGiftWrap] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const productImages = useMemo(() => getProductImages(product), [product]);
   const variantOptions = useMemo(() => getVariantOptions(product), [product]);
@@ -193,7 +198,7 @@ export default function ProductDetail() {
     // customer actively picks a combo.
     setSelectedVariant(null);
     setSelectedColor(colorOptions[0] ?? null);
-    setSelectedFragrance(fragranceOptions[0] ?? null);
+    setSelectedFragrance(pickDefaultFragrance(fragranceOptions));
     setQuantity(1);
     setSelectedImageIndex(0);
     setActiveTab(tabLabels[0]);
@@ -303,6 +308,18 @@ export default function ProductDetail() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
   }, [productId]);
+
+  // Same saved state the heart on the product cards uses, kept in step both ways.
+  const wishlistId = getWishlistId(product) || productId;
+
+  useEffect(() => {
+    function syncSaved() {
+      setSaved(isProductWishlisted(wishlistId));
+    }
+
+    syncSaved();
+    return subscribeWishlist(syncSaved);
+  }, [wishlistId]);
 
   function handleQuantityChange(nextQuantity) {
     const stockLimit = getAvailableStock();
@@ -436,7 +453,7 @@ export default function ProductDetail() {
   const availableStock = getAvailableStock();
   const isUnavailable = availableStock <= 0;
   const collectionLabel = getCollectionLabel(product);
-  const originalBasePrice = selectedVariant?.price || parseProductPrice(product.basePrice || product.price);
+  const originalBasePrice = selectedVariant?.price || parseProductPrice(product.price || product.basePrice);
   const currentBasePrice = getPurchasableBasePrice(product, selectedVariant);
   const perPieceBasePrice = getPurchasableBasePrice(product, null);
   const unitPrice = calculateProductPrice(product, selectedColor, selectedFragrance, selectedVariant);
@@ -636,14 +653,14 @@ export default function ProductDetail() {
                 onChange={(event) => setGiftWrap(event.target.checked)}
                 style={{ width: "18px", height: "18px", accentColor: "var(--primary)" }}
               />
-              <span>Add Premium Gift Wrapping (+ Rs {product.giftWrapPrice ?? 80})</span>
+              <span>Add Premium Gift Wrapping (+ {formatProductPrice(product.giftWrapPrice ?? 80)})</span>
             </label>
             {giftWrap ? (
               <div style={{ fontSize: "14px", color: "var(--text-muted)", background: "rgba(0,0,0,0.03)", padding: "10px", borderRadius: "6px", marginTop: "5px" }}>
-                <div>Actual Price: Rs {unitPrice}</div>
-                <div>Gift Wrap: Rs {product.giftWrapPrice ?? 80}</div>
+                <div>Actual Price: {formatProductPrice(unitPrice)}</div>
+                <div>Gift Wrap: {formatProductPrice(product.giftWrapPrice ?? 80)}</div>
                 <div style={{ fontWeight: "bold", borderTop: "1px solid rgba(0,0,0,0.1)", marginTop: "5px", paddingTop: "5px" }}>
-                  Total: Rs {unitPrice + (product.giftWrapPrice ?? 80)}
+                  Total: {formatProductPrice(unitPrice + (product.giftWrapPrice ?? 80))}
                 </div>
               </div>
             ) : null}
@@ -682,6 +699,17 @@ export default function ProductDetail() {
               disabled={isUnavailable}
             >
               Buy Now
+            </button>
+            <button
+              type="button"
+              className={`product-detail-save-btn ${saved ? "is-saved" : ""}`}
+              onClick={() => setSaved(toggleWishlistItem(wishlistId))}
+              aria-pressed={saved}
+              aria-label={saved ? `Remove ${product.name} from saved items` : `Save ${product.name}`}
+              title={saved ? "Remove from Saved Items" : "Save for later"}
+            >
+              {saved ? <FaHeart aria-hidden="true" /> : <FaRegHeart aria-hidden="true" />}
+              <span>{saved ? "Saved" : "Save"}</span>
             </button>
           </div>
         </div>

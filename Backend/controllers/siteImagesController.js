@@ -70,9 +70,42 @@ function getDefaultCategoryImages() {
   }, {});
 }
 
+const MAX_TEXT_LENGTH = 200;
+
+/** Internal route (/shop?category=...) or a full http(s) link. Anything else is dropped. */
+function normalizeLink(value) {
+  const trimmed = String(value || "").trim();
+
+  if (!trimmed || trimmed.length > MAX_URL_LENGTH) {
+    return "";
+  }
+
+  if (trimmed.startsWith("/")) {
+    // Reject protocol-relative ("//evil.com") and back-slash tricks.
+    return /^\/[^/\\]/.test(trimmed) || trimmed === "/" ? trimmed : "";
+  }
+
+  return isValidUrl(trimmed) ? trimmed : "";
+}
+
+function normalizeText(value) {
+  return String(value || "").trim().slice(0, MAX_TEXT_LENGTH);
+}
+
+function emptySiteImages() {
+  return {
+    bannerUrl: "",
+    bannerMobileUrl: "",
+    bannerLink: "",
+    bannerAlt: "",
+    bannerHideText: true,
+    categoryImages: getDefaultCategoryImages()
+  };
+}
+
 function normalizeSiteImages(doc) {
   if (!doc) {
-    return { bannerUrl: "", categoryImages: getDefaultCategoryImages() };
+    return emptySiteImages();
   }
 
   const plain = doc.toObject ? doc.toObject() : doc;
@@ -87,6 +120,10 @@ function normalizeSiteImages(doc) {
 
   return {
     bannerUrl: plain.bannerUrl || "",
+    bannerMobileUrl: plain.bannerMobileUrl || "",
+    bannerLink: plain.bannerLink || "",
+    bannerAlt: plain.bannerAlt || "",
+    bannerHideText: plain.bannerHideText !== false,
     categoryImages
   };
 }
@@ -107,6 +144,10 @@ async function updateSiteImages(req, res) {
   try {
     const payload = {
       bannerUrl: normalizeUrl(req.body?.bannerUrl),
+      bannerMobileUrl: normalizeUrl(req.body?.bannerMobileUrl),
+      bannerLink: normalizeLink(req.body?.bannerLink),
+      bannerAlt: normalizeText(req.body?.bannerAlt),
+      bannerHideText: req.body?.bannerHideText !== false,
       categoryImages: normalizeCategoryImages(req.body?.categoryImages)
     };
 

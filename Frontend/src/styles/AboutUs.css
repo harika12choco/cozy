@@ -46,7 +46,7 @@
 
 .about-right h2 {
   margin: 0 0 16px;
-  font-size: 54px;
+  font-size: var(--fs-section);
   color: var(--heading-dark);
   font-family: var(--display-font);
   font-style: normal;
@@ -91,6 +91,6 @@
   }
 
   .about-right h2 {
-    font-size: 38px;
+    font-size: var(--fs-section);
   }
 }

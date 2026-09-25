@@ -4,10 +4,7 @@ import "../styles/Categories.css";
 import menuData, { slugifyCategory } from "../utils/menuData";
 import { fetchSiteImages } from "../services/siteImagesService";
 
-const floralStartIndex = menuData.findIndex((category) => category.title === "Floral & Aesthetic");
-const displayCategories = floralStartIndex > -1
-  ? [...menuData.slice(floralStartIndex), ...menuData.slice(0, floralStartIndex)]
-  : menuData;
+const displayCategories = menuData;
 
 export default function Categories() {
   const navigate = useNavigate();
@@ -240,10 +237,16 @@ export default function Categories() {
               ref={category.isFirstClone ? firstCloneRef : null}
               type="button"
               onClick={() => handleNavigate(category.title)}
-              aria-label={`Shop ${category.title === "Floral & Aesthetic" ? "Floral Aesthetic" : category.title}`}
+              aria-label={`Shop ${category.title}`}
             >
-              <img src={imageOverrides[category.title] || ""} alt="" />
-              <span>{category.title === "Floral & Aesthetic" ? "Floral Aesthetic" : category.title}</span>
+              {/* A category with no image uploaded yet shows the card's own warm background
+                  rather than a broken empty <img>. */}
+              {imageOverrides[category.title] ? (
+                <img src={imageOverrides[category.title]} alt="" />
+              ) : (
+                <span className="category-card-placeholder" aria-hidden="true" />
+              )}
+              <span>{category.title}</span>
             </button>
           ))}
         </div>

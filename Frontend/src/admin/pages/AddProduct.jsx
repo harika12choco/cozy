@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { productService } from "../services/productService";
 import { candleColorService, fragranceService } from "../services/optionService";
-import { categoryGroups } from "../../utils/menuData";
+import { categoryOptions } from "../../utils/menuData";
 
 /* ── Pre-built fragrance catalogue ─────────────────────────────────── */
 const FRAGRANCE_CATALOGUE = [
@@ -193,7 +193,7 @@ export default function AddProduct({ onNavigate }) {
         ...current,
         fragrances: [
           ...current.fragrances,
-          { optionId: created.id, name: created.name }
+          { optionId: created.id, name: created.name, priceAdjustment: 0 }
         ]
       }));
       setFragranceDropdownValue("");
@@ -284,14 +284,10 @@ export default function AddProduct({ onNavigate }) {
           Category
           <select name="category" value={form.category} onChange={updateField} required>
             <option value="">Select a category</option>
-            {categoryGroups.map((group) => (
-              <optgroup key={group.label} label={group.label}>
-                {group.options.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </optgroup>
+            {categoryOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
             ))}
           </select>
         </label>
@@ -405,6 +401,10 @@ export default function AddProduct({ onNavigate }) {
         {/* ────────── FRAGRANCES SECTION ────────── */}
         <div className="admin-form-span admin-options-section">
           <label>Available Fragrances — click to select for this product</label>
+          <p className="admin-combo-hint">
+            Set the extra charge for each selected fragrance. Leave it at 0 to include the
+            fragrance at no extra cost.
+          </p>
 
           {/* Selected badge summary */}
           {form.fragrances.length > 0 && (
@@ -413,9 +413,11 @@ export default function AddProduct({ onNavigate }) {
               {form.fragrances.map((f) => (
                 <span key={f.optionId} className="admin-selected-tag">
                   {f.name}
+                  <span className="admin-adjustment-prefix">+Rs</span>
                   <input
                     className="admin-adjustment-input"
                     type="number"
+                    min="0"
                     value={f.priceAdjustment ?? 0}
                     onChange={(event) => updateFragrancePriceAdjustment(f.optionId, event.target.value)}
                     aria-label={`${f.name} price adjustment`}

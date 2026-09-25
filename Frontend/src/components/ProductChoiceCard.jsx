@@ -1,15 +1,19 @@
-import { useMemo, useState } from "react";
-import { FaEye, FaHeart, FaPalette, FaRegHeart, FaShoppingBag, FaTimes } from "react-icons/fa";
+import { useEffect, useMemo, useState } from "react";
+import { FaExpand, FaHeart, FaRegHeart, FaShoppingBag, FaTimes } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import CandleSafety from "./CandleSafety";
 import { pickOptionList } from "../utils/shopProducts";
+import { getWishlistId, isWishlisted as isProductWishlisted, subscribeWishlist, toggleWishlistItem }
+  from "../utils/wishlist";
 import {
+  formatProductPrice,
   getCalculatedProductPrice,
   getPurchasableBasePrice,
   normalizeColorOption,
   normalizeFragranceOption,
   normalizeVariantOption,
   parseProductPrice,
+  pickDefaultFragrance,
   withCalculatedProductPrice
 } from "../utils/productPricing";
 import "../styles/ProductChoiceCard.css";
@@ -20,7 +24,8 @@ function getProductPath(product) {
 
 export default function ProductChoiceCard({ product, onAddToCart, variant = "shop", showSafety = false }) {
   const navigate = useNavigate();
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const wishlistId = getWishlistId(product);
+  const [isWishlisted, setIsWishlisted] = useState(() => isProductWishlisted(wishlistId));
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
   const colorOptions = useMemo(
@@ -40,40 +45,26 @@ export default function ProductChoiceCard({ product, onAddToCart, variant = "sho
   const variantOptions = useMemo(
     () =>
       (Array.isArray(product.variants) ? product.variants : [])
-        .map((option, index) => normalizeVariantOption(option, `variant-${index}`, product.basePrice || product.price))
+        .map((option, index) => normalizeVariantOption(option, `variant-${index}`, product.price || product.basePrice))
         .filter(Boolean),
     [product.variants, product.basePrice, product.price]
   );
 
   const [selectedColor, setSelectedColor] = useState(() => colorOptions[0] ?? null);
-  const [selectedFragrance, setSelectedFragrance] = useState(() => fragranceOptions[0] ?? null);
+  const [selectedFragrance, setSelectedFragrance] = useState(() => pickDefaultFragrance(fragranceOptions));
   // Default to no combo (single piece). Selecting a combo is what changes the price.
   const [selectedVariant, setSelectedVariant] = useState(null);
   const perPiecePrice = useMemo(() => getPurchasableBasePrice(product, null), [product]);
 
-  const customizationLabel = useMemo(() => {
-    if (colorOptions.length > 0 && fragranceOptions.length > 0) {
-      return "Customizable colour & fragrance";
-    }
-
-    if (colorOptions.length > 0) {
-      return "Customizable colour";
-    }
-
-    if (fragranceOptions.length > 0) {
-      return "Customizable fragrance";
-    }
-
-    return "";
-  }, [colorOptions.length, fragranceOptions.length]);
-
   const productPath = getProductPath(product);
   const imgSrc = product.img ?? product.image;
   const isUnavailable = Number(product.stock ?? 0) <= 0;
-  // Offline/catalog fallback entries carry a placeholder stock count, so only live product
-  // records show an exact "N left" number.
-  const stockLabel = product.staticProduct ? "In stock" : `${Number(product.stock ?? 0)} left`;
   const cardClassName = variant === "bestseller" ? "product choice-card luxury-card" : "shop-card choice-card luxury-card";
+
+  // Anything the shopper has to choose between is picked in the quick view, which keeps the card
+  // itself clean while still reaching the colour, fragrance and combo pickers in one click.
+  const hasOptions = colorOptions.length > 0 || fragranceOptions.length > 0 || variantOptions.length > 0;
+  const actionLabel = hasOptions ? "Select Options" : "Add to Cart";
 
   const selectedPriceStr = getCalculatedProductPrice(product, selectedColor, selectedFragrance, selectedVariant);
   const numericSellingPrice = parseProductPrice(selectedPriceStr);
@@ -97,6 +88,17 @@ export default function ProductChoiceCard({ product, onAddToCart, variant = "sho
     return 0;
   }, [product.offerPercentage, numericOriginalPrice, numericSellingPrice]);
 
+  // Keeps the heart in step with the wishlist wherever it changes - another card for the same
+  // product, the wishlist page, or a second browser tab.
+  useEffect(() => {
+    function syncWishlist() {
+      setIsWishlisted(isProductWishlisted(wishlistId));
+    }
+
+    syncWishlist();
+    return subscribeWishlist(syncWishlist);
+  }, [wishlistId]);
+
   function handleCardClick(event) {
     if (event.target.closest("a, button, input, select, textarea, .choice-card-quickview-modal")) {
       return;
@@ -111,9 +113,20 @@ export default function ProductChoiceCard({ product, onAddToCart, variant = "sho
     }, selectedColor, selectedFragrance, selectedVariant));
   }
 
+  function handlePrimaryAction(event) {
+    event.stopPropagation();
+
+    if (hasOptions) {
+      setIsQuickViewOpen(true);
+      return;
+    }
+
+    handleAddToCart();
+  }
+
   function toggleWishlist(e) {
     e.stopPropagation();
-    setIsWishlisted((prev) => !prev);
+    setIsWishlisted(toggleWishlistItem(wishlistId));
   }
 
   function openQuickView(e) {
@@ -134,15 +147,27 @@ export default function ProductChoiceCard({ product, onAddToCart, variant = "sho
             <span className="choice-discount-badge">{discountPercentage}% OFF</span>
           ) : null}
 
-          <button
-            className={`choice-wishlist-btn ${isWishlisted ? "is-active" : ""}`}
-            type="button"
-            onClick={toggleWishlist}
-            aria-label={isWishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
-            title={isWishlisted ? "Remove from Wishlist" : "Save to Wishlist"}
-          >
-            {isWishlisted ? <FaHeart aria-hidden="true" /> : <FaRegHeart aria-hidden="true" />}
-          </button>
+          <div className="choice-card-tools">
+            <button
+              className={`choice-wishlist-btn ${isWishlisted ? "is-active" : ""}`}
+              type="button"
+              onClick={toggleWishlist}
+              aria-label={isWishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
+              title={isWishlisted ? "Remove from Wishlist" : "Save to Wishlist"}
+            >
+              {isWishlisted ? <FaHeart aria-hidden="true" /> : <FaRegHeart aria-hidden="true" />}
+            </button>
+
+            <button
+              className="choice-quickview-trigger"
+              type="button"
+              onClick={openQuickView}
+              aria-label={`Quick view ${product.name}`}
+              title="Quick View"
+            >
+              <FaExpand aria-hidden="true" />
+            </button>
+          </div>
 
           <Link to={productPath} tabIndex={-1} aria-label={`View details for ${product.name}`}>
             <img
@@ -154,118 +179,33 @@ export default function ProductChoiceCard({ product, onAddToCart, variant = "sho
           </Link>
 
           <button
-            className="choice-quickview-trigger"
+            className="choice-card-action-bar"
             type="button"
-            onClick={openQuickView}
-            aria-label={`Quick view ${product.name}`}
-            title="Quick View"
+            onClick={handlePrimaryAction}
+            disabled={isUnavailable}
           >
-            <FaEye aria-hidden="true" />
-            <span className="quickview-label">Quick View</span>
+            <span>{isUnavailable ? "Out of Stock" : actionLabel}</span>
+            <FaShoppingBag aria-hidden="true" />
           </button>
         </div>
 
         <div className="choice-card-body">
-          <div className="choice-card-meta">
-            {product.category || product.collection ? (
-              <span className="choice-card-category">{product.category || product.collection}</span>
-            ) : null}
-          </div>
-
           <h3 className="choice-card-title">
             <Link to={productPath} title={product.name}>
               {product.name}
             </Link>
           </h3>
 
-          {customizationLabel ? (
-            <p className="choice-customizable-note" title="This candle can be personalised">
-              <FaPalette aria-hidden="true" />
-              <span>{customizationLabel}</span>
-            </p>
-          ) : null}
-
-          <div className="choice-price-container">
-            <div className="choice-price-group">
-              <span className="choice-selling-price">{selectedPriceStr}</span>
-              {numericOriginalPrice > numericSellingPrice ? (
-                <span className="choice-original-price">Rs {numericOriginalPrice}</span>
-              ) : null}
-            </div>
-            <span className={`choice-stock-status ${isUnavailable ? "is-out" : ""}`}>
-              {isUnavailable ? "Out of stock" : stockLabel}
-            </span>
+          <div className="choice-price-group">
+            <span className="choice-selling-price">{selectedPriceStr}</span>
+            {numericOriginalPrice > numericSellingPrice ? (
+              <span className="choice-original-price">{formatProductPrice(numericOriginalPrice)}</span>
+            ) : null}
           </div>
 
-          {colorOptions.length > 0 ? (
-            <div className="choice-swatches" aria-label="Choose candle color">
-              {colorOptions.map((color, index) => {
-                const isSelected = selectedColor?.optionId === color.optionId || selectedColor?.name === color.name;
-
-                return (
-                  <button
-                    className={`choice-swatch ${isSelected ? "is-selected" : ""}`}
-                    key={`${color.optionId || color.name}-${index}`}
-                    style={{ backgroundColor: color.hexCode || "#efe7dc" }}
-                    title={color.name}
-                    type="button"
-                    aria-label={`Choose ${color.name}`}
-                    aria-pressed={isSelected}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedColor(color);
-                    }}
-                  />
-                );
-              })}
-            </div>
-          ) : null}
-
-          {fragranceOptions.length > 0 ? (
-            <div className="choice-fragrance-chips" aria-label="Choose fragrance">
-              {fragranceOptions.slice(0, 3).map((fragrance, index) => {
-                const isSelected =
-                  selectedFragrance?.optionId === fragrance.optionId || selectedFragrance?.name === fragrance.name;
-
-                return (
-                  <button
-                    className={`choice-chip ${isSelected ? "is-selected" : ""}`}
-                    key={`${fragrance.optionId || fragrance.name}-${index}`}
-                    type="button"
-                    aria-pressed={isSelected}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedFragrance(fragrance);
-                    }}
-                  >
-                    {fragrance.name}
-                  </button>
-                );
-              })}
-              {fragranceOptions.length > 3 ? (
-                <span className="choice-chip-more">+{fragranceOptions.length - 3}</span>
-              ) : null}
-            </div>
-          ) : null}
-
-          <div className="choice-actions">
-            <button
-              className="choice-cart-button"
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (variantOptions.length > 0) {
-                  openQuickView(e);
-                } else {
-                  handleAddToCart();
-                }
-              }}
-              disabled={isUnavailable}
-            >
-              <FaShoppingBag aria-hidden="true" />
-              <span>{variantOptions.length > 0 ? "Select Options" : "Add to Cart"}</span>
-            </button>
-          </div>
+          <span className={`choice-stock-status ${isUnavailable ? "is-out" : ""}`}>
+            {isUnavailable ? "Out of stock" : "In Stock"}
+          </span>
 
           {showSafety ? <CandleSafety compact className="choice-card-safety" /> : null}
         </div>
@@ -287,12 +227,15 @@ export default function ProductChoiceCard({ product, onAddToCart, variant = "sho
                 <div className="quickview-price-row">
                   <span className="quickview-price">{selectedPriceStr}</span>
                   {numericOriginalPrice > numericSellingPrice ? (
-                    <span className="quickview-orig-price">Rs {numericOriginalPrice}</span>
+                    <span className="quickview-orig-price">{formatProductPrice(numericOriginalPrice)}</span>
                   ) : null}
                   {discountPercentage > 0 ? (
                     <span className="quickview-discount">{discountPercentage}% OFF</span>
                   ) : null}
                 </div>
+                <p className={`quickview-stock ${isUnavailable ? "is-out" : ""}`}>
+                  {isUnavailable ? "Out of stock" : "In Stock"}
+                </p>
                 <p className="quickview-desc">{product.description || product.note || product.tagline}</p>
 
                 {colorOptions.length > 0 ? (
@@ -305,6 +248,8 @@ export default function ProductChoiceCard({ product, onAddToCart, variant = "sho
                           className={`choice-swatch ${selectedColor?.name === color.name ? "is-selected" : ""}`}
                           style={{ backgroundColor: color.hexCode || "#efe7dc" }}
                           type="button"
+                          title={color.name}
+                          aria-label={`Choose ${color.name}`}
                           onClick={() => setSelectedColor(color)}
                         />
                       ))}
@@ -324,6 +269,9 @@ export default function ProductChoiceCard({ product, onAddToCart, variant = "sho
                           onClick={() => setSelectedFragrance(fragrance)}
                         >
                           {fragrance.name}
+                          {Number(fragrance.priceAdjustment ?? 0) > 0 ? (
+                            <span> +{formatProductPrice(fragrance.priceAdjustment)}</span>
+                          ) : null}
                         </button>
                       ))}
                     </div>
@@ -339,7 +287,7 @@ export default function ProductChoiceCard({ product, onAddToCart, variant = "sho
                         className={`quickview-variant-btn ${!selectedVariant ? "is-selected" : ""}`}
                         onClick={() => setSelectedVariant(null)}
                       >
-                        Single Piece (Rs {perPiecePrice})
+                        Single Piece ({formatProductPrice(perPiecePrice)})
                       </button>
                       {variantOptions.map((v, idx) => (
                         <button
@@ -348,7 +296,7 @@ export default function ProductChoiceCard({ product, onAddToCart, variant = "sho
                           className={`quickview-variant-btn ${selectedVariant?.name === v.name ? "is-selected" : ""}`}
                           onClick={() => setSelectedVariant(v)}
                         >
-                          {v.name} (Rs {v.price})
+                          {v.name} ({formatProductPrice(v.price)})
                         </button>
                       ))}
                     </div>
@@ -380,4 +328,3 @@ export default function ProductChoiceCard({ product, onAddToCart, variant = "sho
     </>
   );
 }
-

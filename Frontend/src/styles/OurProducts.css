@@ -7,7 +7,7 @@
   text-align: center;
   color: var(--heading-dark);
   margin: 0 0 32px;
-  font-size: 54px;
+  font-size: var(--fs-section);
   font-family: var(--display-font);
   font-style: normal;
   font-weight: 400;
@@ -22,6 +22,48 @@
   }
 
   .our-products-title {
-    font-size: 38px;
+    font-size: var(--fs-section);
+  }
+}
+
+/* "View N Products" link under the home-page product grid. */
+.our-products-more{
+  display:flex;
+  justify-content:center;
+  margin-top:38px;
+}
+
+.our-products-more-link{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:14px 34px;
+  border:1px solid var(--primary);
+  border-radius:999px;
+  background:transparent;
+  color:var(--primary);
+  font-family:var(--body-font);
+  font-size:14px;
+  font-weight:700;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  text-decoration:none;
+  transition:background 0.25s ease, color 0.25s ease, transform 0.2s ease;
+}
+
+.our-products-more-link:hover{
+  background:var(--primary);
+  color:#fff;
+  transform:translateY(-1px);
+}
+
+@media (max-width: 640px){
+  .our-products-more{
+    margin-top:26px;
+  }
+
+  .our-products-more-link{
+    padding:12px 24px;
+    font-size:12px;
   }
 }

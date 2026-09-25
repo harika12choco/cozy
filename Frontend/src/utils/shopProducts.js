@@ -4,10 +4,10 @@ import img3 from "../assets/product categories/moment and memories.png";
 import img4 from "../assets/product categories/dessert.jpeg";
 import img5 from "../assets/product categories/gifting collection.png";
 import img6 from "../assets/product categories/festive collection.png";
-import menuData from "./menuData";
+import { isKnownCategory, normalizeCategory } from "./menuData";
 import { resolveProductsApiUrl } from "./apiConfig";
-import { isStaticProductId, readStaticBestSellerProducts, readStaticProducts } from "./staticProducts";
-import { normalizeColorOption, normalizeFragranceOption, parseProductPrice } from "./productPricing";
+import { readStaticBestSellerProducts, readStaticProducts } from "./staticProducts";
+import { formatProductPrice, normalizeColorOption, normalizeFragranceOption, parseProductPrice } from "./productPricing";
 
 const PRODUCTS_API_URL = resolveProductsApiUrl();
 
@@ -52,7 +52,7 @@ function formatShopProducts(products) {
   return products
     .filter(isPublicStorefrontProduct)
     .map((product) => {
-      const basePrice = parseProductPrice(product.basePrice || product.price);
+      const basePrice = parseProductPrice(product.price || product.basePrice);
       const image = resolveProductImage(product.featuredImage || product.image) || img1;
       const images = collectProductImages(product, image);
       const candleColors = pickOptionList(product.candleColors, product.colors)
@@ -66,7 +66,9 @@ function formatShopProducts(products) {
         id: product._id ?? product.id ?? product.name,
         productId: product._id ?? product.id ?? "",
         name: product.name,
-        category: product.category ?? "",
+        // Products saved under a retired category resolve to the default one instead of
+        // dropping out of every filter.
+        category: normalizeCategory(product.category),
         collection: product.collection ?? product.collectionName ?? product.collections?.[0] ?? product.category ?? "",
         collectionName: product.collectionName ?? product.collection ?? product.collections?.[0] ?? "",
         collections: Array.isArray(product.collections) ? product.collections : [],
@@ -74,7 +76,7 @@ function formatShopProducts(products) {
         basePrice,
         salePrice: parseProductPrice(product.salePrice),
         offerPercentage: Number(product.offerPercentage ?? 0),
-        price: `Rs ${basePrice}`,
+        price: formatProductPrice(basePrice),
         note: product.shortDescription || product.description,
         shortDescription: product.shortDescription ?? "",
         description: product.description,
@@ -136,34 +138,21 @@ function collectProductImages(product, fallbackImage) {
     });
 }
 
+/**
+ * Categories are a flat list, so a product matches when its own category resolves to the selected
+ * one. Resolving through normalizeCategory means a product still carrying a retired category name
+ * is found under the default category instead of vanishing from every filter.
+ */
 export function matchesCategory(product, selectedCategory) {
   if (!selectedCategory) {
     return true;
   }
 
-  const normalizedCategory = selectedCategory.trim().toLowerCase();
-  const productCategory = String(product.category ?? "").trim().toLowerCase();
-
-  if (productCategory === normalizedCategory) {
-    return true;
+  if (!isKnownCategory(selectedCategory)) {
+    return String(product.category ?? "").trim().toLowerCase() === selectedCategory.trim().toLowerCase();
   }
 
-  const section = menuData.find(
-    (entry) =>
-      entry.title.trim().toLowerCase() === normalizedCategory ||
-      entry.items.some((item) => item.trim().toLowerCase() === normalizedCategory)
-  );
-
-  if (!section) {
-    return productCategory === normalizedCategory;
-  }
-
-  if (section.title.trim().toLowerCase() === normalizedCategory) {
-    const sectionCategories = [section.title, ...section.items].map((item) => item.trim().toLowerCase());
-    return sectionCategories.includes(productCategory);
-  }
-
-  return productCategory === normalizedCategory;
+  return normalizeCategory(product.category) === normalizeCategory(selectedCategory);
 }
 
 function buildProductsUrl({ search, bestSeller, ids } = {}) {
@@ -185,15 +174,93 @@ function buildProductsUrl({ search, bestSeller, ids } = {}) {
   return query ? `${PRODUCTS_API_URL}?${query}` : PRODUCTS_API_URL;
 }
 
-async function fetchProducts(options = {}) {
-  const response = await fetch(buildProductsUrl(options));
+// A sleeping free-tier backend takes a while to answer its first request. Without a retry the
+// very first fetch fails, every caller below falls back to the offline catalog, and the shopper
+// silently sees the hardcoded prices instead of the live ones the admin just edited.
+const FETCH_RETRY_DELAYS_MS = [1500, 4000];
 
-  if (!response.ok) {
-    throw new Error(`Unable to load products (${response.status})`);
+function delay(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+async function fetchProducts(options = {}) {
+  const url = buildProductsUrl(options);
+  let lastError = null;
+
+  for (let attempt = 0; attempt <= FETCH_RETRY_DELAYS_MS.length; attempt += 1) {
+    if (attempt > 0) {
+      await delay(FETCH_RETRY_DELAYS_MS[attempt - 1]);
+    }
+
+    try {
+      // cache: "no-store" keeps an edited price from being served out of the browser cache.
+      const response = await fetch(url, { cache: "no-store" });
+
+      if (!response.ok) {
+        throw new Error(`Unable to load products (${response.status})`);
+      }
+
+      const products = await response.json();
+      return Array.isArray(products) ? products : [];
+    } catch (error) {
+      lastError = error;
+    }
   }
 
-  const products = await response.json();
-  return Array.isArray(products) ? products : [];
+  throw lastError ?? new Error("Unable to load products");
+}
+
+/**
+ * Last-known-good copy of the live catalogue.
+ *
+ * The offline catalogue in staticProducts.js carries prices that were hardcoded at build time, so
+ * using it as the only fallback meant a shopper could be shown a price the admin had since
+ * changed. Caching the real response and preferring it keeps the fallback fast AND correctly
+ * priced; the hardcoded catalogue stays as the last resort for a browser that has never once
+ * reached the API.
+ */
+const CATALOG_CACHE_KEY = "cozy-catalog-cache";
+const CATALOG_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+function writeCatalogCache(bucket, products) {
+  if (typeof window === "undefined" || !Array.isArray(products) || products.length === 0) {
+    return;
+  }
+
+  try {
+    const store = readCatalogStore();
+    store[bucket] = { savedAt: Date.now(), products };
+    window.localStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify(store));
+  } catch {
+    // A full or unavailable localStorage must never break product loading.
+  }
+}
+
+function readCatalogStore() {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(CATALOG_CACHE_KEY));
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function readCatalogCache(bucket) {
+  const entry = readCatalogStore()[bucket];
+
+  if (!entry || !Array.isArray(entry.products) || entry.products.length === 0) {
+    return null;
+  }
+
+  if (Date.now() - Number(entry.savedAt || 0) > CATALOG_CACHE_TTL_MS) {
+    return null;
+  }
+
+  return entry.products;
 }
 
 export async function readShopProducts() {
@@ -201,12 +268,14 @@ export async function readShopProducts() {
     const products = await fetchProducts();
     const formatted = formatShopProducts(products);
     if (formatted.length > 0) {
+      writeCatalogCache("all", formatted);
       return formatted;
     }
   } catch (error) {
     console.error("Unable to load products:", error);
   }
-  return [...readStaticProducts(), ...readStaticBestSellerProducts()];
+
+  return readCatalogCache("all") ?? [...readStaticProducts(), ...readStaticBestSellerProducts()];
 }
 
 export async function readBestSellerProducts() {
@@ -214,12 +283,14 @@ export async function readBestSellerProducts() {
     const products = await fetchProducts({ bestSeller: true });
     const formatted = formatShopProducts(products);
     if (formatted.length > 0) {
+      writeCatalogCache("bestSellers", formatted);
       return formatted;
     }
   } catch (error) {
     console.error("Unable to load best sellers:", error);
   }
-  return readStaticBestSellerProducts();
+
+  return readCatalogCache("bestSellers") ?? readStaticBestSellerProducts();
 }
 
 export async function searchProducts(query) {
@@ -243,9 +314,11 @@ export async function searchProducts(query) {
 export async function fetchProductsByIds(ids) {
   try {
     const idList = Array.isArray(ids) ? ids.map((id) => String(id)) : [];
-    const apiIds = idList.filter((id) => !isStaticProductId(id));
-    if (apiIds.length > 0) {
-      const products = await fetchProducts({ ids: apiIds });
+    // Hardcoded ids are requested from the API as well: the backend merges the admin's overrides
+    // into them, so a price edited in the admin panel shows on the product page. The offline
+    // catalogue below still answers when the API cannot be reached.
+    if (idList.length > 0) {
+      const products = await fetchProducts({ ids: idList });
       const formatted = formatShopProducts(products);
       if (formatted.length > 0) {
         return formatted;
@@ -255,5 +328,13 @@ export async function fetchProductsByIds(ids) {
     console.error("Unable to load products by ids:", error);
   }
   const idList = Array.isArray(ids) ? ids.map((id) => String(id)) : [];
+  const cached = (readCatalogCache("all") ?? []).filter(
+    (product) => idList.includes(String(product.id)) || idList.includes(String(product.productId))
+  );
+
+  if (cached.length > 0) {
+    return cached;
+  }
+
   return readStaticProducts({ includeHidden: true }).filter((product) => idList.includes(product.id));
 }

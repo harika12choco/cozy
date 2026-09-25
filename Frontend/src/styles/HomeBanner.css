@@ -32,7 +32,7 @@
   margin:0;
   color:#2f201c;
   font-family:var(--display-font);
-  font-size:clamp(64px, 8vw, 112px);
+  font-size:var(--fs-section);
   font-weight:400;
   line-height:0.9;
   letter-spacing:0;
@@ -209,7 +209,7 @@
   margin:0 0 18px;
   color:#3b2a26;
   font-family:var(--display-font);
-  font-size:clamp(36px, 3.9vw, 52px);
+  font-size:var(--fs-subsection);
   font-weight:400;
   line-height:1;
   text-align:center;

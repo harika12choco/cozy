@@ -1,6 +1,5 @@
 const express = require("express");
 const { authenticateAdmin } = require("../middleware/adminAuth");
-const { authenticateUser } = require("../middleware/userAuth");
 const { loginAdmin, verifyAdminToken } = require("../controllers/adminAuthController");
 const { loginLimiter, writeLimiter, messageLimiter } = require("../middleware/rateLimiter");
 
@@ -24,8 +23,10 @@ router.post("/admin/auth/login", loginLimiter, loginAdmin);
 router.get("/admin/verify-token", authenticateAdmin, verifyAdminToken);
 
 router.get("/orders", authenticateAdmin, listOrders);
-// CRIT-3 FIX: POST /orders now requires a verified Firebase user token
-router.post("/orders", authenticateUser, writeLimiter, createOrder);
+// Admin-only: this route reserves stock without taking payment, so it must never be reachable by
+// a shopper - a signed-in account could otherwise drain inventory by posting unpaid orders. Real
+// customer orders are created by the Razorpay verification flow, after a captured payment.
+router.post("/orders", authenticateAdmin, writeLimiter, createOrder);
 router.put("/orders/:id", authenticateAdmin, writeLimiter, updateOrder);
 router.delete("/orders/:id", authenticateAdmin, writeLimiter, deleteOrder);
 

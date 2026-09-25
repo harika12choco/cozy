@@ -75,7 +75,7 @@
   transform: translateX(-50%) scaleX(1.02);
   color: rgba(0, 0, 0, 0.92);
   font-family: var(--display-font);
-  font-size: clamp(82px, 10vw, 122px);
+  font-size: var(--fs-section);
   line-height: 0.9;
   text-align: center;
   text-shadow: 0 8px 18px rgba(93, 16, 15, 0.1);
@@ -340,7 +340,7 @@
   }
 
   .reviews-script {
-    font-size: clamp(64px, 21vw, 88px);
+    font-size: var(--fs-section);
     top: 8px;
     transform: translateX(-50%) scaleX(1);
   }

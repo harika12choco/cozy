@@ -6,7 +6,6 @@ import Hero from "./components/Hero"
 import Categories from "./components/Categories"
 import AboutUs from "./components/AboutUs"
 import HomeBanner from "./components/HomeBanner"
-import Collections from "./components/Collections"
 import DiscountShowcase from "./components/DiscountShowcase"
 import OurProducts from "./components/OurProducts"
 import Products from "./components/Products"
@@ -19,6 +18,7 @@ import CinematicIntro from "./components/CinematicIntro"
 import Shop from "./components/shop"
 import Cart from "./components/Cart"
 import Profile from "./pages/Profile"
+import Wishlist from "./pages/Wishlist"
 import ProductDetail from "./pages/ProductDetail"
 import PolicyPage from "./pages/PolicyPage"
 import OrderSuccess from "./pages/OrderSuccess"
@@ -42,6 +42,8 @@ function PublicSite({ page, policySlug }) {
     ? "cart"
     : page === "profile"
     ? "profile"
+    : page === "wishlist"
+    ? "wishlist"
     : "home";
   const selectedCategory = page === "shop"
     ? findCategoryBySlug(new URLSearchParams(location.search).get("category") ?? "")?.value ?? ""
@@ -57,6 +59,7 @@ function PublicSite({ page, policySlug }) {
       shop: "Shop | Cozy Candle",
       product: "Product | Cozy Candle",
       cart: "Cart | Cozy Candle",
+      wishlist: "Saved Items | Cozy Candle",
       profile: "Login & Account | Cozy Candle"
     };
 
@@ -139,6 +142,12 @@ function PublicSite({ page, policySlug }) {
       return;
     }
 
+    if (destination === "wishlist") {
+      navigate("/wishlist");
+      window.scrollTo({ top: 0, behavior: "auto" });
+      return;
+    }
+
     if (typeof destination === "object" && destination?.type === "category") {
       navigate(`/shop?category=${destination.slug}`);
       window.scrollTo({ top: 0, behavior: "auto" });
@@ -161,6 +170,8 @@ function PublicSite({ page, policySlug }) {
         <Profile />
       ) : page === "cart" ? (
         <Cart />
+      ) : page === "wishlist" ? (
+        <Wishlist />
       ) : page === "policy" ? (
         <PolicyPage policySlug={policySlug} />
       ) : (
@@ -168,8 +179,9 @@ function PublicSite({ page, policySlug }) {
           <Hero/>
           <section className="collections-showcase">
             <Categories/>
+            {/* The "view all products" call to action now lives inside OurProducts, directly
+                under the product grid, where it can count the remaining products. */}
             <OurProducts/>
-            <Collections/>
             <DiscountShowcase/>
           </section>
           <Products/>
@@ -193,6 +205,7 @@ function App(){
       <Route path="/shop" element={<PublicSite page="shop" />} />
       <Route path="/product/:id" element={<PublicSite page="product" />} />
       <Route path="/cart" element={<PublicSite page="cart" />} />
+      <Route path="/wishlist" element={<PublicSite page="wishlist" />} />
       <Route path="/order-success" element={<OrderSuccess />} />
       <Route path="/profile" element={<PublicSite page="profile" />} />
       <Route path="/privacy-policy" element={<PublicSite page="policy" policySlug="privacy-policy" />} />

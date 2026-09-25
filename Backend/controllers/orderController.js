@@ -1,7 +1,8 @@
 const Order = require("../models/Order");
 const Product = require("../models/productModel");
 const mongoose = require("mongoose");
-const { getStaticProductById, isStaticProductId } = require("../utils/staticProducts");
+const { isStaticProductId } = require("../utils/staticProducts");
+const { resolveStaticProduct } = require("../utils/staticOverrides");
 const { getFragranceDisplayName, getFragrancePriceAdjustment, parseProductPrice } = require("../utils/productPricing");
 const { findMatchingOption, loadCustomizationCatalog, resolveProductOptions } = require("../utils/productOptions");
 const { sendError } = require("../utils/errorResponse");
@@ -177,7 +178,8 @@ async function normalizeLineItemsAsync(items) {
     }
 
     let product = null;
-    const staticProduct = getStaticProductById(productId);
+    // Overrides applied so an order is priced with the admin's price for hardcoded products.
+    const staticProduct = await resolveStaticProduct(productId);
 
     if (staticProduct) {
       product = staticProduct;
@@ -194,7 +196,7 @@ async function normalizeLineItemsAsync(items) {
     // validated, priced, and recorded instead of silently dropped.
     const { candleColors, fragrances } = resolveProductOptions(product, catalog);
     const variants = product.variants ?? [];
-    const fallbackPrice = product.salePrice || product.basePrice || product.price;
+    const fallbackPrice = product.salePrice || product.price || product.basePrice;
 
     const selectedColor = normalizeSelectedOption(item.selectedColor, candleColors, "color");
     const selectedFragrance = normalizeSelectedOption(item.selectedFragrance, fragrances, "fragrance");
@@ -426,10 +428,12 @@ const listOrders = async (req, res) => {
 
 const createOrder = async (req, res) => {
   try {
+    // Reached by an admin keying an order in by hand; req.user only exists on the customer
+    // payment flow, so both shapes are tolerated.
     const payload = {
       ...req.body,
-      placedByUid: req.user.id,
-      email: req.user.email || req.body.email
+      placedByUid: req.user?.id ?? null,
+      email: req.user?.email || req.body.email
     };
     const order = await saveOrderFromPayload(payload);
     res.status(201).json(order);

@@ -6,7 +6,7 @@
 .contact-section h2 {
   margin: 0 0 10px;
   color: var(--heading-dark);
-  font-size: 54px;
+  font-size: var(--fs-section);
   font-family: var(--display-font);
   font-style: normal;
   font-weight: 400;
@@ -125,7 +125,7 @@
   }
 
   .contact-section h2 {
-    font-size: 38px;
+    font-size: var(--fs-section);
     margin-bottom: 8px;
   }
 
@@ -183,7 +183,7 @@
   }
 
   .contact-section h2 {
-    font-size: 34px;
+    font-size: var(--fs-section);
   }
 
   .contact-details strong,
