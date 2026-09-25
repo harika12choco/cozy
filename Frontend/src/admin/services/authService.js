@@ -26,8 +26,17 @@ function clearToken() {
   window.localStorage.removeItem(ADMIN_TOKEN_STORAGE_KEY);
 }
 
+// When the token was last issued in this tab. Verifying a token the server handed over a moment
+// ago is a wasted round trip, and on a cold backend that round trip is what the admin experiences
+// as "signing in is slow".
+let issuedAt = 0;
+
 export const adminAuthService = {
   tokenKey: ADMIN_TOKEN_STORAGE_KEY,
+
+  wasJustIssued(withinMs = 15000) {
+    return issuedAt > 0 && Date.now() - issuedAt < withinMs;
+  },
 
   getToken() {
     return readToken();
@@ -53,6 +62,7 @@ export const adminAuthService = {
     }
 
     saveToken(token);
+    issuedAt = Date.now();
     return response;
   },
 
@@ -62,6 +72,7 @@ export const adminAuthService = {
   },
 
   logout() {
+    issuedAt = 0;
     clearToken();
   }
 };

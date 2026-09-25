@@ -178,15 +178,6 @@ export default function ProductChoiceCard({ product, onAddToCart, variant = "sho
             />
           </Link>
 
-          <button
-            className="choice-card-action-bar"
-            type="button"
-            onClick={handlePrimaryAction}
-            disabled={isUnavailable}
-          >
-            <span>{isUnavailable ? "Out of Stock" : actionLabel}</span>
-            <FaShoppingBag aria-hidden="true" />
-          </button>
         </div>
 
         <div className="choice-card-body">
@@ -209,6 +200,19 @@ export default function ProductChoiceCard({ product, onAddToCart, variant = "sho
 
           {showSafety ? <CandleSafety compact className="choice-card-safety" /> : null}
         </div>
+
+        {/* A direct child of the card, so CSS can place it: over the foot of the image on
+            hover-capable devices, and as a normal full-width button below the details on touch
+            devices, where a permanent overlay would just hide part of the photo. */}
+        <button
+          className="choice-card-action-bar"
+          type="button"
+          onClick={handlePrimaryAction}
+          disabled={isUnavailable}
+        >
+          <span>{isUnavailable ? "Out of Stock" : actionLabel}</span>
+          <FaShoppingBag aria-hidden="true" />
+        </button>
       </article>
 
       {isQuickViewOpen ? (

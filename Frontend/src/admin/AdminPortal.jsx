@@ -85,6 +85,12 @@ export default function AdminPortal({ currentPage = "dashboard", currentProductI
         return;
       }
 
+      // Straight after signing in the token is known-good; re-checking it only adds a round trip
+      // to the slowest moment of the session.
+      if (adminAuthService.wasJustIssued()) {
+        return;
+      }
+
       try {
         const valid = await adminAuthService.verify();
         if (!active) {

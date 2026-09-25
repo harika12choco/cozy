@@ -903,3 +903,12 @@
   font-weight:700;
   opacity:0.7;
 }
+
+/* Shown while a sign-in is taking longer than usual (typically a sleeping free-tier backend). */
+.admin-login-hint{
+  margin:0;
+  color:var(--text-dark);
+  font-size:13px;
+  line-height:1.5;
+  opacity:0.85;
+}

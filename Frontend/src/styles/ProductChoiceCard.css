@@ -6,8 +6,8 @@
    ────────────────────────────────────────────────────────────────────────── */
 
 .choice-card.luxury-card {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
   background: transparent;
   border: 0;
   border-radius: 0;
@@ -24,6 +24,7 @@
 }
 
 .choice-card-image-wrap {
+  grid-row: 1;
   position: relative;
   aspect-ratio: 1 / 1;
   background: #ffffff;
@@ -124,27 +125,28 @@
 
 /* ── Action bar over the foot of the image ─────────────────────────────── */
 
+/* Touch devices get a real button under the details - the layout the client asked for. A bar
+   pinned over the image only works where it can stay hidden until hover. */
 .choice-card-action-bar {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 2;
+  grid-row: 3;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 9px;
-  min-height: 46px;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 12px;
   padding: 0 14px;
   border: 0;
-  background: rgba(255, 255, 255, 0.96);
-  color: var(--heading-dark);
-  font-size: 12px;
+  border-radius: 4px;
+  background: var(--primary);
+  color: #fff;
+  font-family: var(--body-font);
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   cursor: pointer;
-  transition: transform 0.28s ease, opacity 0.28s ease, color 0.2s ease;
+  transition: background 0.2s ease, transform 0.28s ease, opacity 0.28s ease, color 0.2s ease;
 }
 
 .choice-card-action-bar svg {
@@ -152,18 +154,42 @@
 }
 
 .choice-card-action-bar:hover:not(:disabled) {
-  color: var(--primary);
+  background: var(--accent);
 }
 
 .choice-card-action-bar:disabled {
-  color: #9a8e88;
+  background: #cabfb8;
+  color: #fff;
   cursor: not-allowed;
 }
 
+/* Pointer devices keep the original behaviour: the bar sits over the foot of the image and only
+   slides in on hover, so at rest the photo is completely unobstructed. */
 @media (hover: hover) and (pointer: fine) {
   .choice-card-action-bar {
+    grid-row: 1;
+    align-self: end;
+    margin-top: 0;
+    border-radius: 0;
+    background: rgba(255, 255, 255, 0.96);
+    color: var(--heading-dark);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    min-height: 46px;
     transform: translateY(100%);
     opacity: 0;
+  }
+
+  .choice-card-action-bar:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.96);
+    color: var(--primary);
+  }
+
+  .choice-card-action-bar:disabled {
+    background: rgba(255, 255, 255, 0.96);
+    color: #9a8e88;
   }
 
   .choice-card:hover .choice-card-action-bar,
@@ -176,6 +202,7 @@
 /* ── Details below the image ───────────────────────────────────────────── */
 
 .choice-card-body {
+  grid-row: 2;
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -516,30 +543,48 @@
     font-size: 9px;
   }
 
-  .choice-card-action-bar {
-    min-height: 38px;
-    gap: 6px;
-    font-size: 10px;
-    letter-spacing: 0.08em;
+  /* Nothing is allowed to sit on top of the photo on a phone except the wishlist heart - the
+     quick-view trigger is redundant there because tapping the card already opens the product. */
+  .choice-quickview-trigger {
+    display: none;
+  }
+
+  /* Stock takes the slot a rating would occupy on a competitor card: name, availability, price. */
+  .choice-card-title {
+    order: 0;
+    font-size: 14px;
+    line-height: 1.35;
+  }
+
+  .choice-stock-status {
+    order: 1;
+    font-size: 12px;
+  }
+
+  .choice-price-group {
+    order: 2;
   }
 
   .choice-card-body {
     padding-top: 10px;
     margin-top: 8px;
-    gap: 4px;
-  }
-
-  .choice-card-title {
-    font-size: 13px;
+    gap: 5px;
   }
 
   .choice-selling-price {
-    font-size: 13px;
+    font-size: 17px;
+    font-weight: 700;
   }
 
-  .choice-original-price,
-  .choice-stock-status {
-    font-size: 11px;
+  .choice-original-price {
+    font-size: 12px;
+  }
+
+  .choice-card-action-bar {
+    min-height: 42px;
+    margin-top: 10px;
+    gap: 7px;
+    font-size: 13px;
   }
 
   .quickview-grid {

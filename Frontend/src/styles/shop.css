@@ -45,6 +45,9 @@
 }
 
 .shop-search{
+  /* Without this the horizontal padding is added on top of the 100% width, so the search box
+     hangs ~38px past the screen edge on a phone and looks clipped. */
+  box-sizing:border-box;
   width:min(100%, 520px);
   min-height:52px;
   margin:0 auto 34px;
