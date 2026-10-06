@@ -3,6 +3,15 @@
   padding-top: 118px;
 }
 
+/* The global .section rule reserves 10% of the viewport on each side. On a product grid that
+   threw away a fifth of the screen - the empty band beside the last column - and shrank every
+   card to pay for it. These two sections keep a slim gutter instead; other sections are
+   untouched. */
+.best-sellers-section,
+.our-products-section {
+  padding-inline: clamp(16px, 2.5vw, 44px);
+}
+
 .best-title {
   text-align: center;
   color: var(--heading-dark);
@@ -30,7 +39,7 @@
      below 1550px there is not enough width for four readable cards, so the breakpoint
      under this one drops back to three rather than shrinking them. */
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px 10px;
+  gap: 14px 8px;
   max-width: 1800px;
   margin-inline: auto;
 }
