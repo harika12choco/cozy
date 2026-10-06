@@ -25,16 +25,14 @@
 
 .products {
   display: grid;
-  /* Three across on a normal laptop so each card - and its photo - is meaningfully larger.
-     A fourth column only once the screen is wide enough to carry it. */
+  /* Three across on every desktop width. A fourth column was previously restored above
+     1500px, which left a 1920px card at 369px wide - narrower than the 407px square it
+     replaced - so the bigger-card fix was invisible on exactly the large monitors it was
+     meant for. The max-width stops three columns spreading thin on an ultrawide. */
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 26px 20px;
-}
-
-@media (min-width: 1500px) {
-  .products {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
+  max-width: 1400px;
+  margin-inline: auto;
 }
 
 @media (max-width: 1023px) {
