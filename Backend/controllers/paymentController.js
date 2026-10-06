@@ -5,6 +5,7 @@ const Product = require("../models/productModel");
 const { getStaticProductById, isStaticProductId } = require("../utils/staticProducts");
 const { getFragrancePriceAdjustment, parseProductPrice } = require("../utils/productPricing");
 const {
+  assertLineItemsAvailable,
   prepareOrderPayload,
   saveOrderFromPayload
 } = require("./orderController");
@@ -91,6 +92,8 @@ const createRazorpayOrder = async (req, res) => {
       email: req.user.email || rawPayload.email
     };
     const orderPayload = await prepareOrderPayload(payloadWithUser);
+    // Never open a payment for stock we cannot actually ship.
+    await assertLineItemsAvailable(orderPayload.lineItems);
     const amount = toRazorpayAmount(orderPayload.total);
 
     if (amount <= 0) {

@@ -309,6 +309,42 @@ async function resolveProductId(item) {
   return product?._id ? String(product._id) : "";
 }
 
+/**
+ * Confirms every line item can actually be fulfilled.
+ *
+ * Called before a Razorpay order is created, because stock was previously only checked by
+ * reserveStock() - which runs *after* the customer has paid. An order larger than the remaining
+ * stock therefore took the money and then failed, leaving the customer charged with no order.
+ * The reservation itself is still the authoritative, atomic check at save time; this just stops
+ * us asking for money we cannot honour.
+ */
+async function assertLineItemsAvailable(lineItems = []) {
+  for (const item of lineItems) {
+    // Catalogue items are served from the bundle and are not stock-tracked, exactly as
+    // reserveStock() treats them.
+    if (isStaticProductId(item.productId) || !mongoose.Types.ObjectId.isValid(item.productId)) {
+      continue;
+    }
+
+    const product = await Product.findById(item.productId).select("name stock").lean();
+
+    if (!product) {
+      throw createHttpError(400, `Product not found: ${item.productId}`);
+    }
+
+    const available = Math.max(0, Number(product.stock ?? 0));
+
+    if (available < item.quantity) {
+      throw createHttpError(
+        409,
+        available === 0
+          ? `${product.name} is out of stock. Please remove it from your cart.`
+          : `Only ${available} left of ${product.name}. Please reduce the quantity and try again.`
+      );
+    }
+  }
+}
+
 async function reserveStock(lineItems) {
   const session = await mongoose.startSession();
 
@@ -488,6 +524,7 @@ const deleteOrder = async (req, res) => {
 };
 
 module.exports = {
+  assertLineItemsAvailable,
   listOrders,
   createOrder,
   updateOrder,

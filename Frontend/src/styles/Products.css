@@ -25,8 +25,16 @@
 
 .products {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 24px 20px;
+  /* Three across on a normal laptop so each card - and its photo - is meaningfully larger.
+     A fourth column only once the screen is wide enough to carry it. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 26px 20px;
+}
+
+@media (min-width: 1500px) {
+  .products {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 1023px) {
