@@ -25,20 +25,26 @@
 
 .products {
   display: grid;
-  /* Three across on every desktop width. A fourth column was previously restored above
-     1500px, which left a 1920px card at 369px wide - narrower than the 407px square it
-     replaced - so the bigger-card fix was invisible on exactly the large monitors it was
-     meant for. The max-width stops three columns spreading thin on an ultrawide. */
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 26px 20px;
-  max-width: 1400px;
+  /* Four across, with a tighter gutter so the row reads as one block rather than
+     separate cards. The max-width keeps four columns from stretching on an ultrawide;
+     below 1550px there is not enough width for four readable cards, so the breakpoint
+     under this one drops back to three rather than shrinking them. */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 22px 14px;
+  max-width: 1800px;
   margin-inline: auto;
+}
+
+@media (max-width: 1549px) {
+  .products {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 1023px) {
   .products {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 20px 16px;
+    gap: 18px 12px;
   }
 }
 
