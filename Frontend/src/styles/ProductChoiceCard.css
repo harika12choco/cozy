@@ -7,6 +7,11 @@
 
 .choice-card.luxury-card {
   display: grid;
+  /* One explicit column. On a pointer device the action bar moves onto grid-row 1 so it can
+     slide up over the photo; with no column declared, auto-placement gave it a second implicit
+     column instead and the card split in two - the photo kept under half the card width and the
+     rest showed as dead space beside it. */
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto 1fr auto;
   background: transparent;
   border: 0;
@@ -25,6 +30,7 @@
 
 .choice-card-image-wrap {
   grid-row: 1;
+  grid-column: 1;
   position: relative;
   /* Standing-rectangle product shots on every screen. A square tile left desktop cards looking
      text-heavy, because a wrapped two or three line product name took more height than the photo. */
@@ -170,6 +176,7 @@
 @media (hover: hover) and (pointer: fine) {
   .choice-card-action-bar {
     grid-row: 1;
+    grid-column: 1;
     align-self: end;
     margin-top: 0;
     border-radius: 0;

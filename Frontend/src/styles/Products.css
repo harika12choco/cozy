@@ -30,7 +30,7 @@
      below 1550px there is not enough width for four readable cards, so the breakpoint
      under this one drops back to three rather than shrinking them. */
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 22px 14px;
+  gap: 16px 10px;
   max-width: 1800px;
   margin-inline: auto;
 }
